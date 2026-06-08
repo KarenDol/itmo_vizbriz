@@ -1,0 +1,830 @@
+{% extends "base.html" %}
+
+{% block title %}Level-4 Report Viewer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-viewer-container {
+        max-width: 1200px;
+        margin: 32px auto;
+        padding: 24px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        color: #1a1a1a;
+    }
+    .report-header {
+        border-bottom: 2px solid #26a69a;
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+    }
+    .report-header h2 {
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+    }
+    .report-meta {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+    }
+    .report-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        background: #26a69a;
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .formatted-report {
+        color: #1a1a1a;
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+    /* Ensure ALL table headers in formatted report have white text on green */
+    .formatted-report th {
+        background-color: #26a69a !important;
+        color: white !important;
+        font-weight: 700;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #1e8e82;
+    }
+    .formatted-report td {
+        background-color: #fff;
+        color: #1a1a1a;
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
+    .formatted-report table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+    }
+    .report-section {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .report-section:last-child {
+        border-bottom: none;
+    }
+    .report-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid #26a69a;
+    }
+    .report-section-content {
+        font-size: 0.9rem;
+        color: #1a1a1a;
+    }
+    .report-section-content p {
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+    .report-section-content h1 {
+        font-size: 1.3rem;
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+    .report-section-content h2 {
+        font-size: 1.15rem;
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+    .report-section-content h3 {
+        font-size: 1.05rem;
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+    .report-section-content h4,
+    .report-section-content h5,
+    .report-section-content h6 {
+        font-size: 0.95rem;
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.95rem;
+    }
+    .report-table th,
+    .report-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border: 1px solid #d1d5db;
+        color: #1a1a1a;
+        background: #ffffff;
+    }
+    .report-table th {
+        background-color: #26a69a !important;
+        color: white !important;
+        font-weight: 700;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #1e8e82;
+    }
+    .report-table td {
+        background: #ffffff;
+        color: #1a1a1a;
+        padding: 8px;
+        border: 1px solid #ddd;
+    }
+    .report-table tr:nth-child(even) td {
+        background: #f9fafb;
+    }
+    .report-list {
+        margin: 16px 0;
+        padding-left: 24px;
+    }
+    .report-list li {
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+    .formatted-report br {
+        display: block;
+        margin: 4px 0;
+    }
+    .back-link {
+        display: inline-block;
+        margin-bottom: 16px;
+        color: #26a69a;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    /* Edit mode styles */
+    .edit-mode [contenteditable="true"] {
+        background: #fffef0 !important;
+        border: 2px solid #26a69a !important;
+        cursor: text;
+        min-height: 1.5em;
+    }
+    .edit-mode [contenteditable="true"]:focus {
+        outline: none;
+        background: #fff !important;
+        box-shadow: 0 0 0 3px rgba(38, 166, 154, 0.2);
+    }
+    .edit-mode [contenteditable="true"]:hover {
+        background: #f0fdf4 !important;
+    }
+    .edit-mode p[contenteditable="true"],
+    .edit-mode li[contenteditable="true"] {
+        margin-bottom: 8px;
+    }
+    /* Table header styling already defined above */
+    .edit-toolbar {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(135deg, #26a69a 0%, #1e8e82 100%);
+        padding: 16px 24px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .edit-toolbar-info {
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    .edit-toolbar-actions {
+        display: flex;
+        gap: 12px;
+    }
+    .btn-save {
+        background: white;
+        color: #26a69a;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    .btn-save:hover {
+        background: #f0f9ff;
+        transform: translateY(-1px);
+    }
+    .btn-cancel {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.4);
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .btn-cancel:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    .status-message {
+        padding: 10px 18px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-left: 16px;
+        display: none;
+    }
+    .status-success {
+        background: #10b981;
+        color: white;
+        display: inline-block;
+    }
+    .status-error {
+        background: #ef4444;
+        color: white;
+        display: inline-block;
+    }
+    
+    /* Clinical Image Paste Zone */
+    .clinical-images-section {
+        margin-top: 32px;
+        padding: 24px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .clinical-images-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e8e82;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .paste-zone {
+        min-height: 120px;
+        border: 2px dashed #94a3b8;
+        border-radius: 8px;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 20px;
+    }
+    .paste-zone:hover {
+        border-color: #26a69a;
+        background: #f0fdfa;
+    }
+    .paste-zone.drag-over {
+        border-color: #26a69a;
+        background: #ccfbf1;
+        border-style: solid;
+    }
+    .paste-zone-text {
+        color: #64748b;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+    .paste-zone-text i {
+        font-size: 2rem;
+        margin-bottom: 8px;
+        display: block;
+        color: #94a3b8;
+    }
+    
+    /* Image Gallery */
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .image-tile {
+        width: 220px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    .image-tile img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
+    }
+    .image-tile .caption-input {
+        width: 100%;
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        padding: 10px;
+        font-size: 0.85rem;
+        color: #374151;
+        background: #fafafa;
+    }
+    .image-tile .caption-input::placeholder {
+        color: #9ca3af;
+    }
+    .image-tile .caption-input:focus {
+        outline: none;
+        background: #f0fdfa;
+    }
+    .image-tile .upload-status {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .image-tile .upload-status.uploading {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .image-tile .upload-status.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .image-tile .upload-status.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .image-tile .delete-btn {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .image-tile:hover .delete-btn {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-viewer-container {% if edit_mode %}edit-mode{% endif %}">
+    {% if edit_mode %}
+    <div class="edit-toolbar">
+        <div class="edit-toolbar-info">
+            ✏️ Edit Mode - Click on any table cell to edit
+        </div>
+        <div class="edit-toolbar-actions">
+            <span id="status-message" class="status-message"></span>
+            <button id="save-btn" class="btn-save" onclick="saveReport()">💾 Save & Generate PDF</button>
+            <a href="/reports/level4-report/view/{{ history_id }}" class="btn-cancel">Cancel</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="report-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+                <h1 style="color: #1e8e82; font-size: 1.4rem; margin-bottom: 0.5rem; font-weight: 700;">VizBriz Level-4 — OSA Data Assessment Report</h1>
+                <div class="report-meta">
+                    <span><strong>Patient:</strong> {{ patient_name }} (ID: {{ patient_id }})</span>
+                    <span><strong>Generated:</strong> {{ created_at.strftime('%Y-%m-%d %H:%M:%S') if created_at else 'N/A' }}</span>
+                </div>
+            </div>
+            {% if history_id and not edit_mode %}
+            <a href="/reports/level4-report/view/{{ history_id }}?edit=true" 
+               style="background: #26a69a; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; white-space: nowrap; margin-left: 16px; transition: all 0.2s;"
+               onmouseover="this.style.background='#1e8e82'; this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.background='#26a69a'; this.style.transform='translateY(0)'">
+                ✏️ Edit Report
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div id="report-content" class="formatted-report">
+        {{ report_html|safe }}
+    </div>
+</div>
+
+<!-- Clinical Images Section - Upload only available in edit mode -->
+<div id="clinical-images-container" class="clinical-images-section" style="max-width: 1200px; margin: 0 auto 32px auto; padding: 20px 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <div style="font-size: 1.05rem; font-weight: 700; color: #1e8e82; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        <span>📷</span> Clinical Images
+        {% if not edit_mode %}
+        <span style="font-size: 0.8rem; font-weight: 400; color: #64748b; margin-left: auto;">(Edit mode required to upload)</span>
+        {% endif %}
+    </div>
+    {% if edit_mode %}
+    <div id="paste-zone" class="paste-zone" tabindex="0">
+        <div class="paste-zone-text">
+            <i>📋</i>
+            Paste images here (Ctrl+V / Cmd+V)<br>
+            <small>or drag & drop image files</small>
+        </div>
+    </div>
+    {% endif %}
+    <div id="image-gallery" class="image-gallery">
+        <!-- Uploaded images will appear here -->
+    </div>
+    {% if not edit_mode %}
+    <div id="no-images-placeholder" style="color: #94a3b8; text-align: center; padding: 20px; font-size: 0.9rem;">
+        No images uploaded yet. Switch to Edit mode to add clinical images.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Position Clinical Images section after Anatomical Findings
+(function() {
+    const clinicalImagesContainer = document.getElementById('clinical-images-container');
+    const reportContent = document.getElementById('report-content');
+    
+    if (clinicalImagesContainer && reportContent) {
+        // Find the Structural Observations section (or Anatomical Findings)
+        const headers = reportContent.querySelectorAll('h3');
+        let insertAfter = null;
+        
+        for (let h3 of headers) {
+            const text = h3.textContent.toLowerCase();
+            if (text.includes('structural observations') || text.includes('anatomical')) {
+                // Find the table after this header
+                let sibling = h3.nextElementSibling;
+                while (sibling) {
+                    if (sibling.tagName === 'TABLE') {
+                        insertAfter = sibling;
+                        break;
+                    }
+                    if (sibling.tagName === 'H3') break; // Next section
+                    sibling = sibling.nextElementSibling;
+                }
+                break;
+            }
+        }
+        
+        if (insertAfter) {
+            // Insert after the table
+            insertAfter.parentNode.insertBefore(clinicalImagesContainer, insertAfter.nextSibling);
+        } else {
+            // Fallback: insert at end of report content
+            reportContent.appendChild(clinicalImagesContainer);
+        }
+    }
+})();
+
+// Clinical Image Paste & Upload functionality
+(function() {
+    const patientId = {{ patient_id }};
+    const pasteZone = document.getElementById('paste-zone');
+    const gallery = document.getElementById('image-gallery');
+    const isEditMode = {{ 'true' if edit_mode else 'false' }};
+    let imageCounter = 0;
+    
+    // Only enable upload functionality in edit mode
+    if (isEditMode && pasteZone) {
+        // Handle paste events
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    const file = items[i].getAsFile();
+                    handleImageFile(file);
+                    break;
+                }
+            }
+        });
+        
+        // Handle drag & drop
+        pasteZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pasteZone.classList.add('drag-over');
+        });
+        
+        pasteZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pasteZone.classList.remove('drag-over');
+        });
+        
+        pasteZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pasteZone.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].type.startsWith('image/')) {
+                    handleImageFile(files[i]);
+                }
+            }
+        });
+        
+        // Click to focus (enables keyboard paste)
+        pasteZone.addEventListener('click', function() {
+            pasteZone.focus();
+        });
+    }
+    
+    function handleImageFile(file) {
+        if (!isEditMode) return; // Only allow uploads in edit mode
+        
+        const tileId = 'image-tile-' + (++imageCounter);
+        
+        // Hide the "no images" placeholder if it exists
+        const placeholder = document.getElementById('no-images-placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+        
+        // Create preview immediately
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const tile = createImageTile(tileId, e.target.result, true);
+            gallery.appendChild(tile);
+            
+            // Upload to server
+            uploadImage(file, tileId);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function createImageTile(tileId, imageSrc, forEdit = true) {
+        const tile = document.createElement('div');
+        tile.className = 'image-tile';
+        tile.id = tileId;
+        
+        if (forEdit) {
+            // Edit mode: show delete button and editable caption
+            tile.innerHTML = `
+                <button class="delete-btn" onclick="removeImageTile('${tileId}')" title="Remove">×</button>
+                <span class="upload-status uploading">Uploading...</span>
+                <img src="${imageSrc}" alt="Clinical image">
+                <input type="text" class="caption-input" placeholder="Add a caption..." data-tile-id="${tileId}">
+            `;
+        } else {
+            // View mode: no delete button, read-only caption
+            tile.innerHTML = `
+                <img src="${imageSrc}" alt="Clinical image">
+                <input type="text" class="caption-input" placeholder="" data-tile-id="${tileId}" readonly style="background: #f0f0f0; cursor: default;">
+            `;
+        }
+        return tile;
+    }
+    
+    function uploadImage(file, tileId) {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('patient_id', patientId);
+        
+        fetch('/upload_clinical_image', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tile = document.getElementById(tileId);
+            const statusEl = tile.querySelector('.upload-status');
+            
+            if (data.success) {
+                // Update image src to S3 URL
+                const img = tile.querySelector('img');
+                img.src = data.url;
+                img.dataset.s3Key = data.s3_key;
+                
+                // Update status
+                statusEl.className = 'upload-status success';
+                statusEl.textContent = '✓ Uploaded';
+                
+                // Fade out status after 3 seconds
+                setTimeout(() => {
+                    statusEl.style.opacity = '0';
+                    setTimeout(() => statusEl.remove(), 300);
+                }, 3000);
+            } else {
+                statusEl.className = 'upload-status error';
+                statusEl.textContent = 'Upload failed';
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            const tile = document.getElementById(tileId);
+            if (tile) {
+                const statusEl = tile.querySelector('.upload-status');
+                statusEl.className = 'upload-status error';
+                statusEl.textContent = 'Upload failed – please try again';
+            }
+        });
+    }
+    
+    // Global function to remove image tile (only works in edit mode)
+    window.removeImageTile = function(tileId) {
+        if (!isEditMode) return; // Only allow deletion in edit mode
+        
+        const tile = document.getElementById(tileId);
+        if (tile) {
+            tile.style.opacity = '0';
+            tile.style.transform = 'scale(0.9)';
+            setTimeout(() => tile.remove(), 200);
+        }
+    };
+})();
+</script>
+
+{% if edit_mode %}
+<script>
+function saveReport() {
+    const statusMessage = document.getElementById('status-message');
+    const saveBtn = document.getElementById('save-btn');
+    
+    // Get the report content from the DOM
+    const reportContent = document.getElementById('report-content').innerHTML;
+    
+    // Convert HTML back to plain text with tables
+    const plainText = htmlToPlainText(reportContent);
+    
+    // Log debug info to console (can check with F12)
+    const tableCount = (reportContent.match(/<table/gi) || []).length;
+    const pipeCount = (plainText.match(/\|/g) || []).length;
+    console.log('PDF Save - Tables in HTML:', tableCount, 'Pipes in result:', pipeCount);
+    
+    saveBtn.disabled = true;
+    saveBtn.textContent = '⏳ Saving...';
+    
+    fetch('/reports/api/level4_kb_report/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            patient_id: {{ patient_id }},
+            report_content: plainText,
+            history_id: {{ history_id }}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            statusMessage.textContent = '✓ Saved successfully!';
+            statusMessage.className = 'status-message status-success';
+            statusMessage.style.display = 'inline-block';
+            
+            // Redirect to view the saved report or download PDF
+            if (data.pdf_url) {
+                window.open(data.pdf_url, '_blank');
+            }
+            
+            setTimeout(() => {
+                window.location.href = '/reports/level4-report/view/{{ history_id }}';
+            }, 1500);
+        } else {
+            statusMessage.textContent = '✗ Error: ' + (data.error || 'Unknown error');
+            statusMessage.className = 'status-message status-error';
+            statusMessage.style.display = 'inline-block';
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Save & Generate PDF';
+        }
+    })
+    .catch(error => {
+        statusMessage.textContent = '✗ Error: ' + error.message;
+        statusMessage.className = 'status-message status-error';
+        statusMessage.style.display = 'inline-block';
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save & Generate PDF';
+    });
+}
+
+function htmlToPlainText(html) {
+    // Create a temporary element to parse HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    let result = '';
+    
+    // Debug: count tables
+    const tables = temp.querySelectorAll('table');
+    console.log('htmlToPlainText: Found ' + tables.length + ' tables in HTML');
+    
+    // Process each element
+    function processNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent;
+        }
+        
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName.toLowerCase();
+            
+            // Handle tables - convert to markdown format
+            if (tag === 'table') {
+                let tableText = '\n';
+                const rows = node.querySelectorAll('tr');
+                console.log('Processing table with ' + rows.length + ' rows');
+                rows.forEach((row, rowIndex) => {
+                    const cells = row.querySelectorAll('th, td');
+                    if (cells.length === 0) return;
+                    
+                    let rowText = '|';
+                    cells.forEach(cell => {
+                        rowText += ' ' + cell.textContent.trim() + ' |';
+                    });
+                    tableText += rowText + '\n';
+                    console.log('Table row ' + rowIndex + ': ' + rowText);
+                    
+                    // Always add separator after first row (treat as header)
+                    if (rowIndex === 0) {
+                        let separator = '|';
+                        cells.forEach(() => {
+                            separator += '---|';
+                        });
+                        tableText += separator + '\n';
+                    }
+                });
+                console.log('Table converted to markdown:\n' + tableText);
+                return tableText + '\n';
+            }
+            
+            // Handle headers
+            if (tag.match(/^h[1-6]$/)) {
+                return '\n' + node.textContent.trim() + '\n\n';
+            }
+            
+            // Handle paragraphs
+            if (tag === 'p') {
+                return node.textContent.trim() + '\n\n';
+            }
+            
+            // Handle lists
+            if (tag === 'ul' || tag === 'ol') {
+                let listText = '\n';
+                node.querySelectorAll('li').forEach(li => {
+                    listText += '• ' + li.textContent.trim() + '\n';
+                });
+                return listText + '\n';
+            }
+            
+            // Handle line breaks
+            if (tag === 'br') {
+                return '\n';
+            }
+            
+            // Handle divs
+            if (tag === 'div') {
+                let content = '';
+                node.childNodes.forEach(child => {
+                    content += processNode(child);
+                });
+                return content;
+            }
+            
+            // Default: process children
+            let content = '';
+            node.childNodes.forEach(child => {
+                content += processNode(child);
+            });
+            return content;
+        }
+        
+        return '';
+    }
+    
+    result = processNode(temp);
+    
+    // Clean up extra whitespace
+    result = result.replace(/\n{3,}/g, '\n\n');
+    result = result.trim();
+    
+    // Debug: show first 1000 chars of result
+    console.log('htmlToPlainText result (first 1000 chars):\n' + result.substring(0, 1000));
+    console.log('Result contains pipes: ' + result.includes('|'));
+    
+    return result;
+}
+</script>
+{% endif %}
+{% endblock %}
+

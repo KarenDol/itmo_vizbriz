@@ -1,0 +1,1241 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Management Dashboard - Admin{% endblock %}
+
+{% block content %}
+<!-- Material Design CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<div class="dashboard-container">
+    <!-- Simplified Header Section -->
+    <div class="dashboard-header" style="padding: 20px; margin-bottom: 16px;">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title" style="font-size: 1.8rem; margin-bottom: 4px;">Patient Management</h1>
+                <p class="dashboard-subtitle" style="font-size: 0.9rem;">Patient status overview and management</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Management Section -->
+    <div class="patient-management-section">
+        <!-- Search and Filter Section -->
+        <div class="search-filter-container">
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <i class="material-icons search-icon">search</i>
+                        <input type="text" id="patient-search" placeholder="Search patients by name, email, or ID..." class="search-input">
+                        <div id="search-results" class="search-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLLAPSIBLE STAGE FILTER SECTION -->
+            <div style="margin: 20px 0;">
+                <!-- Filter Toggle Button -->
+                <button id="filter-toggle-btn" onclick="toggleFilterSection()" style="
+                    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin: 0 auto;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+                " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <i class="material-icons" id="filter-toggle-icon" style="font-size: 18px;">filter_list</i>
+                    <span id="filter-toggle-text">Show Stage Filters</span>
+                    <i class="material-icons" id="filter-expand-icon" style="font-size: 18px; transition: transform 0.3s ease;">expand_more</i>
+                </button>
+
+                <!-- Collapsible Filter Content -->
+                <div id="filter-content" style="
+                    display: none;
+                    background: #f8f9fa;
+                    border: 1px solid #dee2e6;
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin-top: 12px;
+                    transition: all 0.3s ease;
+                    opacity: 0;
+                    transform: translateY(-10px);
+                ">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <h4 style="font-weight: 600; color: #2c3e50; font-size: 16px; margin: 0 0 8px 0;">Filter by Stage</h4>
+                        <p style="color: #666; font-size: 14px; margin: 0;">Click stages to toggle visibility. Multiple stages can be selected.</p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                        <button id="select-all-stages" style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-right: 8px;">
+                            Select All
+                        </button>
+                        <button id="clear-all-stages" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                            Clear All
+                        </button>
+                    </div>
+                    
+                    <div id="stage-filter-buttons" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                        {% if manifest %}
+                            {% for stage in manifest %}
+                            <button class="stage-filter-btn" data-stage="{{ stage.stage_name }}" style="background: #ecf0f1; color: #2c3e50; border: 2px solid #bdc3c7; padding: 8px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <span class="btn-text">{{ stage.stage_name }}</span>
+                                <i class="material-icons check-icon" style="font-size: 14px; margin-left: 4px; opacity: 0; transition: opacity 0.2s ease;">check</i>
+                            </button>
+                            {% endfor %}
+                            <!-- Add "Not Started" option -->
+                            <button class="stage-filter-btn" data-stage="Not Started" style="background: #ecf0f1; color: #2c3e50; border: 2px solid #bdc3c7; padding: 8px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <span class="btn-text">Not Started</span>
+                                <i class="material-icons check-icon" style="font-size: 14px; margin-left: 4px; opacity: 0; transition: opacity 0.2s ease;">check</i>
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="filter-status-buttons" style="display: none; background: #e3f2fd; border: 1px solid #2196F3; border-radius: 6px; padding: 12px; color: #2196F3; font-size: 12px; font-weight: 600; margin-top: 12px; text-align: center;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+                            <i class="material-icons" style="font-size: 16px; color: #2196F3;">filter_list</i>
+                            <span style="font-weight: 700;">ACTIVE FILTERS:</span>
+                        </div>
+                        <div id="filter-status-text-buttons" style="font-size: 11px; line-height: 1.4; max-width: 100%; word-wrap: break-word;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient List Section -->
+        <div class="patient-list-section">
+            <div class="section-header">
+                <h4 class="subsection-title">
+                    <i class="material-icons">list</i>
+                    Patient List (LIFO - Latest First)
+                </h4>
+                <div class="section-actions">
+                    <span class="patient-count">{{ patients|length }} patients</span>
+                </div>
+            </div>
+
+            <div class="patient-grid">
+                {% if patients %}
+                    {% for patient in patients %}
+                    <div class="patient-card status-{{ (patient.status or 'New')|lower|replace(' ', '-') }}" data-current-stage="{{ patient.current_stage }}" onclick="showLoadingAndNavigate('{{ patient.workflow_url }}', this)" title="Current Stage: {{ patient.current_stage }}">
+                        <div class="card-header">
+                            <div class="patient-avatar">
+                                <div class="avatar-circle">{{ patient.name[0].upper() if patient.name else 'P' }}</div>
+                            </div>
+                            <div class="patient-basic-info">
+                                <h3 class="patient-name" style="display: flex; align-items: center; gap: 8px;">
+                                    {{ patient.name or 'Unnamed Patient' }}
+                                    {% if patient.status %}
+                                    <span class="status-chip status-{{ (patient.status or 'New')|lower|replace(' ', '-') }}">{{ patient.status }}</span>
+                                    {% endif %}
+                                </h3>
+                                <div class="patient-id">ID: {{ patient.id }}</div>
+                            </div>
+                            <div class="card-actions">
+                                <i class="material-icons">arrow_forward</i>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="contact-info">
+                                <div class="info-item">
+                                    <i class="material-icons">email</i>
+                                    <span>{{ patient.email or 'No email' }}</span>
+                                </div>
+                                {% if patient.phone %}
+                                <div class="info-item">
+                                    <i class="material-icons">phone</i>
+                                    <span>{{ patient.phone }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="patient-details">
+                                {% if patient.gender %}
+                                <div class="detail-item">
+                                    <span class="detail-label">Gender:</span>
+                                    <span class="detail-value">{{ patient.gender|title }}</span>
+                                </div>
+                                {% endif %}
+                                {% if patient.age %}
+                                <div class="detail-item">
+                                    <span class="detail-label">Age:</span>
+                                    <span class="detail-value">{{ patient.age }}</span>
+                                </div>
+                                {% endif %}
+                                {% if patient.dso_name %}
+                                <div class="detail-item">
+                                    <span class="detail-label">DSO:</span>
+                                    <span class="detail-value">{{ patient.dso_name }}</span>
+                                </div>
+                                {% endif %}
+                                {% if patient.clinic_name %}
+                                <div class="detail-item">
+                                    <span class="detail-label">Clinic:</span>
+                                    <span class="detail-value">{{ patient.clinic_name }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="date-info">
+                                <div class="detail-item">
+                                    <span class="detail-label">Added:</span>
+                                    <span class="detail-value">{{ patient.created_at.strftime('%m/%d/%Y') if patient.created_at else 'Unknown' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
+                            {% if patient.current_stage %}
+                            <div class="stage-info">
+                                <div class="stage-label">Current:</div>
+                                <div class="stage-name">{{ patient.current_stage }}</div>
+                            </div>
+                            {% endif %}
+                            {% if patient.next_stage %}
+                            <div class="stage-info">
+                                <div class="stage-label">Next:</div>
+                                <div class="stage-name next-stage">{{ patient.next_stage.stage_name }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="material-icons">people_outline</i>
+                        <p>No patients found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Material Design Dashboard Styles */
+.dashboard-container {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    padding: 24px;
+    margin: -20px;
+}
+
+/* Header Section */
+.dashboard-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dashboard-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+/* Removed Primary Metrics Section CSS */
+
+
+/* Removed Analytics Section CSS */
+
+/* Patient Management Section */
+.patient-management-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 40px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    border: 2px solid rgba(46, 204, 113, 0.1);
+    position: relative;
+}
+
+.patient-management-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    border-radius: 20px 20px 0 0;
+}
+
+/* Search and Filter Section */
+.search-filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.search-section {
+    width: 100%;
+}
+
+.filter-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.search-section .search-container {
+    position: relative;
+}
+
+.search-section .search-input-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-section .search-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+    font-size: 24px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.search-section .search-input {
+    width: 100%;
+    padding: 16px 56px 16px 16px;
+    border: 2px solid #e0e6ed;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.search-section .search-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.search-section .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-section .search-result-item {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.search-section .search-result-item:hover {
+    background: #f8f9fc;
+}
+
+.search-section .search-result-item:last-child {
+    border-bottom: none;
+}
+
+/* Search result loading states */
+.search-result-item.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.search-selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(33, 150, 243, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+    padding: 10px;
+    border: 2px solid #2196F3;
+}
+
+.search-selection-overlay i {
+    font-size: 18px;
+    color: #2196F3;
+    margin-bottom: 4px;
+}
+
+.search-selection-overlay span {
+    font-size: 12px;
+    color: #2196F3;
+    font-weight: 500;
+}
+
+.search-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.search-loading-overlay i {
+    font-size: 18px;
+    color: #4caf50;
+    margin-bottom: 4px;
+}
+
+.search-loading-overlay span {
+    font-size: 12px;
+    color: #4caf50;
+    font-weight: 500;
+}
+
+.filter-section .stage-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-section .stage-filter-container .filter-label {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.filter-section .stage-filter {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #e0e6ed;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-section .stage-filter:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.filter-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    background-color: #e3f2fd;
+    border: 1px solid #2196F3;
+    border-radius: 4px;
+    color: #2196F3;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.filter-status i {
+    font-size: 14px;
+}
+
+/* Patient List Section */
+.patient-list-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e0e6ed;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid rgba(52, 152, 219, 0.2);
+    position: relative;
+}
+
+.section-title i {
+    font-size: 2rem;
+    color: #3498db;
+}
+
+.subsection-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.patient-count {
+    font-size: 1rem;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+.patient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 32px;
+    margin-top: 24px;
+}
+
+.patient-card {
+    background: white;
+    border-radius: 18px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 3px solid rgba(46, 204, 113, 0.15);
+    overflow: hidden;
+    position: relative;
+}
+
+.patient-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    z-index: 1;
+}
+
+.patient-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    border-color: #3498db;
+}
+
+/* Status-based accent colors */
+.patient-card.status-new::before { background: linear-gradient(90deg, #1976d2, #0d47a1); }
+.patient-card.status-onboarding::before { background: linear-gradient(90deg, #f57c00, #e65100); }
+.patient-card.status-in-treatment::before { background: linear-gradient(90deg, #388e3c, #1b5e20); }
+.patient-card.status-followup::before { background: linear-gradient(90deg, #7b1fa2, #4a148c); }
+.patient-card.status-active::before { background: linear-gradient(90deg, #0277bd, #01579b); }
+.patient-card.status-archived { display: none; }
+/* Full card border colors - much more distinct */
+.patient-card.status-new { border: 3px solid #1976d2; }
+.patient-card.status-onboarding { border: 3px solid #f57c00; }
+.patient-card.status-in-treatment { border: 3px solid #388e3c; }
+.patient-card.status-followup { border: 3px solid #7b1fa2; }
+.patient-card.status-active { border: 3px solid #0277bd; }
+
+.patient-status-label { font-size: 0.85rem; color: #607d8b; margin-top: 4px; }
+
+/* Prominent status chips */
+.status-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    border: 1px solid transparent;
+}
+.status-chip.status-new { background: #1976d2; color: white; border-color: #1976d2; }
+.status-chip.status-onboarding { background: #f57c00; color: white; border-color: #f57c00; }
+.status-chip.status-in-treatment { background: #388e3c; color: white; border-color: #388e3c; }
+.status-chip.status-followup { background: #7b1fa2; color: white; border-color: #7b1fa2; }
+.status-chip.status-active { background: #0277bd; color: white; border-color: #0277bd; }
+
+.patient-card.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.loading-overlay i {
+    font-size: 24px;
+    color: #3498db;
+    margin-bottom: 8px;
+}
+
+.loading-overlay span {
+    font-size: 14px;
+    color: #3498db;
+    font-weight: 500;
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.patient-card.selected {
+    border-color: #27ae60;
+    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+}
+
+.selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(39, 174, 96, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 18px;
+    padding: 20px;
+    border: 2px solid #27ae60;
+}
+
+.selection-overlay i {
+    font-size: 24px;
+    color: #27ae60;
+    margin-bottom: 8px;
+}
+
+.selection-overlay span {
+    font-size: 14px;
+    color: #27ae60;
+    font-weight: 500;
+}
+
+
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.patient-avatar {
+    flex-shrink: 0;
+    margin-right: 16px;
+}
+
+.avatar-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.patient-basic-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-actions {
+    color: #7f8c8d;
+    transition: color 0.2s ease;
+}
+
+.patient-card:hover .card-actions {
+    color: #3498db;
+}
+
+.card-body {
+    padding: 20px;
+    flex: 1;
+}
+
+.contact-info {
+    margin-bottom: 16px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.info-item i {
+    font-size: 16px;
+    color: #95a5a6;
+}
+
+.patient-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-primary {
+    margin-bottom: 8px;
+}
+
+.patient-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 4px 0;
+}
+
+.patient-email {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.patient-phone {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-top: 2px;
+}
+
+.patient-secondary {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: #95a5a6;
+    margin-bottom: 8px;
+}
+
+.patient-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.date-info {
+    margin-top: auto;
+}
+
+.detail-label {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.detail-value {
+    color: #495057;
+    font-weight: 400;
+}
+
+.card-footer {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.patient-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stage-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stage-label {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.stage-name {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.stage-name.next-stage {
+    color: #3498db;
+    font-weight: 600;
+}
+
+.patient-actions {
+    color: #7f8c8d;
+    transition: color 0.2s ease;
+}
+
+.patient-card:hover .patient-actions {
+    color: #3498db;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7f8c8d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 16px;
+    }
+    
+    .search-filter-container {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .filter-section {
+        width: 100%;
+    }
+
+    .primary-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .distribution-charts-container {
+        grid-template-columns: 1fr;
+    }
+
+    .patient-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .patient-card {
+        min-height: auto;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Function to clean up any lingering loading states from previous navigation
+function cleanupLoadingStates() {
+    // Remove any lingering loading indicators
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.remove();
+    }
+    
+    // Remove loading classes and overlays from all patient cards
+    document.querySelectorAll('.patient-card').forEach(card => {
+        card.classList.remove('loading', 'selected');
+        card.style.pointerEvents = 'auto'; // Re-enable pointer events
+        
+        // Remove any loading or selection overlays
+        const loadingOverlay = card.querySelector('.loading-overlay');
+        const selectionOverlay = card.querySelector('.selection-overlay');
+        if (loadingOverlay) loadingOverlay.remove();
+        if (selectionOverlay) selectionOverlay.remove();
+    });
+    
+    // Remove loading classes and overlays from all search result items
+    document.querySelectorAll('.search-result-item').forEach(item => {
+        item.classList.remove('loading', 'selected');
+        item.style.pointerEvents = 'auto'; // Re-enable pointer events
+        item.style.background = '';
+        item.style.border = '';
+        
+        // Remove any loading or selection overlays
+        const loadingOverlay = item.querySelector('.search-loading-overlay');
+        const selectionOverlay = item.querySelector('.search-selection-overlay');
+        if (loadingOverlay) loadingOverlay.remove();
+        if (selectionOverlay) selectionOverlay.remove();
+    });
+}
+
+// Clean up loading states when page is about to be unloaded
+window.addEventListener('beforeunload', function() {
+    cleanupLoadingStates();
+});
+
+// Toggle filter section function - must be global for onclick to work
+function toggleFilterSection() {
+    const filterContent = document.getElementById('filter-content');
+    const toggleIcon = document.getElementById('filter-expand-icon');
+    const toggleText = document.getElementById('filter-toggle-text');
+    
+    if (filterContent.style.display === 'none' || filterContent.style.display === '') {
+        // Show the filter section
+        filterContent.style.display = 'block';
+        setTimeout(() => {
+            filterContent.style.opacity = '1';
+            filterContent.style.transform = 'translateY(0)';
+        }, 10);
+        
+        // Update button text and icon
+        toggleText.textContent = 'Hide Stage Filters';
+        toggleIcon.style.transform = 'rotate(180deg)';
+    } else {
+        // Hide the filter section
+        filterContent.style.opacity = '0';
+        filterContent.style.transform = 'translateY(-10px)';
+        
+        setTimeout(() => {
+            filterContent.style.display = 'none';
+        }, 300);
+        
+        // Update button text and icon
+        toggleText.textContent = 'Show Stage Filters';
+        toggleIcon.style.transform = 'rotate(0deg)';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Clean up any lingering loading states from previous navigation
+    cleanupLoadingStates();
+    
+    const searchInput = document.getElementById('patient-search');
+    const searchResults = document.getElementById('search-results');
+    let searchTimeout;
+
+    // Get patient data from the page (already loaded)
+    const patientsData = [
+        {% for patient in patients %}
+        {
+            id: {{ patient.id }},
+            name: "{{ patient.name or '' }}",
+            email: "{{ patient.email or '' }}",
+            phone: "{{ patient.phone or '' }}",
+            gender: "{{ patient.gender or '' }}",
+            age: {{ patient.age or 'null' }},
+            dso_name: "{{ patient.dso_name or '' }}",
+            clinic_name: "{{ patient.clinic_name or '' }}",
+            workflow_url: "{{ patient.workflow_url or '' }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    console.log('Loaded patient data for autocomplete:', patientsData.length, 'patients');
+
+    searchInput.addEventListener('input', function() {
+        console.log('Search input event triggered, value:', this.value);
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            console.log('Query too short, hiding results');
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        console.log('Setting timeout for search with query:', query);
+        searchTimeout = setTimeout(() => {
+            performClientSideSearch(query, patientsData);
+        }, 300);
+    });
+
+    // Hide search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    function performClientSideSearch(query, patientsData) {
+        console.log('Performing client-side search for:', query);
+        
+        // Filter patients based on search query
+        const filteredPatients = patientsData.filter(patient => {
+            const searchTerm = query.toLowerCase();
+            return (
+                (patient.name && patient.name.toLowerCase().includes(searchTerm)) ||
+                (patient.email && patient.email.toLowerCase().includes(searchTerm)) ||
+                (patient.phone && patient.phone.includes(searchTerm)) ||
+                (patient.id && patient.id.toString().includes(searchTerm)) ||
+                (patient.gender && patient.gender.toLowerCase().includes(searchTerm)) ||
+                (patient.dso_name && patient.dso_name.toLowerCase().includes(searchTerm)) ||
+                (patient.clinic_name && patient.clinic_name.toLowerCase().includes(searchTerm))
+            );
+        });
+        
+        console.log('Found', filteredPatients.length, 'matching patients');
+        displaySearchResults(filteredPatients);
+    }
+
+    function displaySearchResults(patients) {
+        console.log('Displaying search results for', patients.length, 'patients');
+        if (patients.length === 0) {
+            searchResults.innerHTML = '<div class="search-result-item">No patients found</div>';
+        } else {
+            searchResults.innerHTML = patients.map(patient => {
+                // Build additional info string
+                const additionalInfo = [];
+                if (patient.gender) additionalInfo.push(`Gender: ${patient.gender}`);
+                if (patient.age) additionalInfo.push(`Age: ${patient.age}`);
+                if (patient.dso_name) additionalInfo.push(`DSO: ${patient.dso_name}`);
+                if (patient.clinic_name) additionalInfo.push(`Clinic: ${patient.clinic_name}`);
+                
+                const additionalInfoText = additionalInfo.length > 0 ? additionalInfo.join(' • ') : '';
+                
+                return `
+                    <div class="search-result-item" onclick="showLoadingAndNavigateFromSearch('${patient.workflow_url}', this)">
+                        <div style="font-weight: 600; color: #2c3e50;">${patient.name || 'Unnamed Patient'}</div>
+                        <div style="font-size: 0.9rem; color: #7f8c8d;">${patient.email || 'No email'}</div>
+                        ${patient.phone ? `<div style="font-size: 0.9rem; color: #7f8c8d;">${patient.phone}</div>` : ''}
+                        <div style="font-size: 0.8rem; color: #95a5a6;">ID: ${patient.id}</div>
+                        ${additionalInfoText ? `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px;">${additionalInfoText}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        console.log('Setting search results display to block');
+        searchResults.style.display = 'block';
+    }
+
+    // BUTTON-BASED Patient List Filter
+    const stageFilterButtons = document.querySelectorAll('.stage-filter-btn');
+    const selectAllBtn = document.getElementById('select-all-stages');
+    const clearAllBtn = document.getElementById('clear-all-stages');
+    const patientCards = document.querySelectorAll('.patient-grid .patient-card');
+    
+    // Track selected stages - make it globally accessible
+    let selectedStages = new Set();
+    window.selectedStages = selectedStages;
+    
+    function updateButtonStyles() {
+        stageFilterButtons.forEach(btn => {
+            const stage = btn.dataset.stage;
+            const checkIcon = btn.querySelector('.check-icon');
+            
+            if (selectedStages.has(stage)) {
+                // Selected state - much more prominent
+                btn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+                btn.style.color = 'white';
+                btn.style.borderColor = '#2980b9';
+                btn.style.boxShadow = '0 4px 12px rgba(52, 152, 219, 0.4)';
+                btn.style.transform = 'translateY(-1px)';
+                btn.style.fontWeight = '600';
+                
+                // Show check icon
+                if (checkIcon) {
+                    checkIcon.style.opacity = '1';
+                    checkIcon.style.color = 'white';
+                }
+                
+                // Add selected indicator
+                btn.setAttribute('title', 'Selected - Click to deselect');
+            } else {
+                // Unselected state
+                btn.style.background = '#ecf0f1';
+                btn.style.color = '#2c3e50';
+                btn.style.borderColor = '#bdc3c7';
+                btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                btn.style.transform = 'translateY(0)';
+                btn.style.fontWeight = '500';
+                
+                // Hide check icon
+                if (checkIcon) {
+                    checkIcon.style.opacity = '0';
+                }
+                
+                // Remove selected indicator
+                btn.setAttribute('title', 'Click to select');
+            }
+        });
+    }
+    
+    function filterPatientCards() {
+        console.log('Filtering by stages:', Array.from(selectedStages));
+        
+        let visibleCount = 0;
+        patientCards.forEach(card => {
+            const currentStage = card.dataset.currentStage;
+            
+            if (selectedStages.size === 0 || selectedStages.has(currentStage)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        console.log(`Filter applied: ${visibleCount} patients visible out of ${patientCards.length} total`);
+        
+        // Update patient count display
+        const patientCountElement = document.querySelector('.patient-count');
+        if (patientCountElement) {
+            if (selectedStages.size === 0) {
+                patientCountElement.textContent = `${patientCards.length} patients`;
+                patientCountElement.style.color = '#666';
+            } else {
+                const stageList = Array.from(selectedStages).join(', ');
+                patientCountElement.textContent = `${visibleCount} patients (filtered by: ${stageList})`;
+                patientCountElement.style.color = '#2196F3';
+                patientCountElement.style.fontWeight = 'bold';
+            }
+        }
+        
+        // Add visual feedback to the filter
+        const filterStatus = document.getElementById('filter-status-buttons');
+        const filterStatusText = document.getElementById('filter-status-text-buttons');
+        
+        if (selectedStages.size === 0) {
+            if (filterStatus) {
+                filterStatus.style.display = 'none';
+            }
+        } else {
+            if (filterStatus) {
+                filterStatus.style.display = 'block';
+                const stageList = Array.from(selectedStages).join(', ');
+                filterStatusText.textContent = `Filtered by: ${stageList}`;
+            }
+        }
+    }
+    
+    // Make functions globally accessible
+    window.updateButtonStyles = updateButtonStyles;
+    window.filterPatientCards = filterPatientCards;
+    
+    // Add click handlers to stage buttons
+    stageFilterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const stage = btn.dataset.stage;
+            if (selectedStages.has(stage)) {
+                selectedStages.delete(stage);
+            } else {
+                selectedStages.add(stage);
+            }
+            updateButtonStyles();
+            filterPatientCards();
+        });
+    });
+    
+    // Select all button
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+            selectedStages.clear();
+            stageFilterButtons.forEach(btn => {
+                selectedStages.add(btn.dataset.stage);
+            });
+            updateButtonStyles();
+            filterPatientCards();
+        });
+    }
+    
+    // Clear all button
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            selectedStages.clear();
+            updateButtonStyles();
+            filterPatientCards();
+        });
+    }
+    
+    // Initialize
+    updateButtonStyles();
+    filterPatientCards();
+    console.log('BUTTON-BASED Stage filter initialized with', stageFilterButtons.length, 'stage buttons');
+});
+
+
+// Simple navigation function - no loading states on dashboard
+function showLoadingAndNavigate(url, cardElement) {
+    // Navigate immediately without showing loading states on dashboard
+    window.location.href = url;
+}
+
+// Simple navigation function for search results - no loading states on dashboard
+function showLoadingAndNavigateFromSearch(url, searchResultElement) {
+    // Navigate immediately without showing loading states on dashboard
+    window.location.href = url;
+}
+</script>
+{% endblock %} 

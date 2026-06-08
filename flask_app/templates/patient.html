@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Details - {{ patient.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    .card {
+        background-color: #1e1e1e;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+    }
+    .card-title, p, label {
+        color: #e0e0e0;
+    }
+    .tabs .tab a {
+        color: #bb86fc;
+    }
+    .tabs .tab a.active {
+        background-color: #2a2a2a;
+    }
+    .collection-item {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+    .btn {
+        background-color: #03dac6;
+        color: #121212;
+    }
+    .btn:hover {
+        background-color: #04e9d5;
+    }
+    .material-icons {
+        color: #bb86fc;
+    }
+    .upload-area {
+        border: 2px dashed #bb86fc;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-bottom: 10px;
+    }
+    .upload-area:hover {
+        background-color: rgba(187, 134, 252, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Patient Details: {{ patient.name }}</h2>
+    
+    <div class="row">
+        <div class="col s12">
+            <ul class="tabs">
+                <li class="tab col s6"><a href="#info-tab" class="active">Patient Information 2222</a></li>
+                <li class="tab col s6"><a href="#upload-tab">Upload Files</a></li>
+            </ul>
+        </div>
+        
+        <div id="info-tab" class="col s12">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">Patient Information</span>
+                    <p><strong>Name:</strong> {{ patient.name }}</p>
+                    <p><strong>Email:</strong> {{ patient.email }}</p>
+                    <p><strong>Phone:</strong> {{ patient.phone }}</p>
+                    <p><strong>Status:</strong> {{ patient.status }}</p>
+                    
+                    <h5>Uploaded Files</h5>
+                    <ul class="collection">
+                        {% for file in patient.files %}
+                        <li class="collection-item">
+                            {{ file.name }}
+                            <a href="{{ url_for('main.download_file', file_id=file.id) }}" class="secondary-content"><i class="material-icons">file_download</i></a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="upload-tab" class="col s12">
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title">Upload Additional Files</span>
+                    <form id="upload-form" method="POST" enctype="multipart/form-data">
+                        <div class="upload-area" id="drop-area">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop files here<br>Or you can select them manually</p>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" onclick="document.getElementById('fileElem').click()">Select files</button>
+                            <button type="button" onclick="document.getElementById('folderElem').click()">Select folder</button>
+                        </div>
+                        <input type="file" name="files" id="fileElem" style="display:none" multiple>
+                        <input type="file" name="folders" id="folderElem" style="display:none" webkitdirectory directory>
+                        <button class="btn waves-effect waves-light" type="submit">
+                            Upload
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tabs = document.querySelectorAll('.tabs');
+        M.Tabs.init(tabs);
+        
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('fileElem');
+        const folderInput = document.getElementById('folderElem');
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        folderInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            // Handle file uploads
+        }
+
+        var form = document.getElementById('upload-form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            
+            fetch('/patient/{{ patient.id }}/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    M.toast({html: 'Files uploaded successfully'});
+                    location.reload();
+                } else {
+                    M.toast({html: 'Upload failed: ' + data.message});
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                M.toast({html: 'An error occurred during upload'});
+            });
+        });
+    });
+</script>
+{% endblock %}

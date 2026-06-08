@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Clinic - Vizbriz</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .select-container {
+            max-width: 500px;
+            width: 90%;
+            margin: 20px auto;
+        }
+        .logo {
+            display: block;
+            max-width: 150px;
+            margin: 0 auto 20px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .clinic-option {
+            display: block;
+            padding: 16px 20px;
+            margin: 10px 0;
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .clinic-option:hover {
+            background-color: #383838;
+            border-color: #03dac6;
+        }
+        .clinic-option input {
+            margin-right: 12px;
+        }
+        .clinic-name { font-weight: 600; font-size: 1.1rem; }
+        .dso-name { color: #aaa; font-size: 0.9rem; margin-top: 4px; }
+        .btn {
+            background-color: #03dac6 !important;
+            color: #121212 !important;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container select-container">
+        <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Logo" class="logo">
+        <div class="card">
+            <div class="card-content white-text">
+                <span class="card-title">Select your clinic</span>
+                <p style="color: #aaa; margin-bottom: 24px;">
+                    You are associated with multiple clinics. Choose which one to work with for this session.
+                </p>
+                <form method="POST" action="{{ url_for('main.login_select_context') }}">
+                    {% for clinic in clinics %}
+                    <label class="clinic-option">
+                        <input name="clinic_id" type="radio" value="{{ clinic.id }}" required>
+                        <span class="clinic-name">{{ clinic.name }}</span>
+                        {% if clinic.dso_name %}
+                        <div class="dso-name">{{ clinic.dso_name }}</div>
+                        {% endif %}
+                    </label>
+                    {% endfor %}
+                    <button class="btn waves-effect waves-light" type="submit">
+                        Continue <i class="material-icons right">arrow_forward</i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

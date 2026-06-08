@@ -1,0 +1,1718 @@
+{
+  "metadata": {
+    "id": "vizbriz_osa_quiz",
+    "version": "v4.0",
+    "default_language": "en",
+    "languages": [
+      "en",
+      "he",
+      "ru"
+    ],
+    "notes": "Complete quiz structure matching exact requirements with proper sections and conditional logic.",
+    "display_groups": {
+      "Section_0": {
+        "title": "Section 0 – Patient Profile & Demographics",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_1": {
+        "title": "Section 1 – Sleep Apnea History & Treatments",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_2": {
+        "title": "Section 2 – Medical History & Comorbid Conditions",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3a": {
+        "title": "Section 3a – Sleep Quality & Symptoms",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3b": {
+        "title": "Section 3b – TMJ & Bruxism",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3c": {
+        "title": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_4": {
+        "title": "Section 4 – Personal Notes & Sleep Goals",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      }
+    }
+  },
+  "red_flags": [
+    {
+      "id": "FOSQ driving item (1–2)",
+      "description": "Reports difficulty operating a motor vehicle (scores 1–2 on Q36)",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "BMI ≥ 25",
+      "description": "Calculated BMI is 25 or higher based on height/weight",
+      "effect": "Cannot be Low Risk"
+    },
+    {
+      "id": "Driving sleepiness (Yes)",
+      "description": "Reports trouble staying awake while driving",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Observed apneas/gasping/choking (≥Often)",
+      "description": "Reports observed breathing interruptions often or always",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Bruxism (Yes)",
+      "description": "Reports teeth grinding or bruxism",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "TMJ/Bruxism subtotal ≥2",
+      "description": "Multiple TMJ/Bruxism symptoms present",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Sleep Symptoms subtotal ≥2",
+      "description": "Multiple sleep symptoms present",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Nasal obstruction ≥Often",
+      "description": "Reports nasal obstruction often or always",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Regular sedatives use",
+      "description": "Reports regular use of sedatives or sleeping pills",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Daily/heavy alcohol",
+      "description": "Reports daily or heavy alcohol consumption",
+      "effect": "Override Low Risk"
+    },
+    {
+      "id": "Hypertension / High BP",
+      "description": "Reports high blood pressure",
+      "effect": "Override Low Risk"
+    }
+  ],
+  "questions": [
+    {
+      "qid": "DEMO_FULL_NAME",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": true,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Full name",
+      "title_he": "שם מלא",
+      "title_ru": "Полное имя"
+    },
+    {
+      "qid": "DEMO_ID",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if_lang": "he",
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "ID number",
+      "title_he": "תעודת זהות",
+      "title_ru": "Номер удостоверения личности"
+    },
+    {
+      "qid": "DEMO_DOB",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "date",
+      "input": "date",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": true,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Date of birth (DD/MM/YYYY)",
+      "title_he": "תאריך לידה (יום/חודש/שנה)",
+      "title_ru": "Дата рождения (ДД/ММ/ГГГГ)"
+    },
+    {
+      "qid": "DEMO_EMAIL",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "email",
+      "input": "email",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": true,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Email address",
+      "title_he": "כתובת אימייל",
+      "title_ru": "Адрес электронной почты"
+    },
+    {
+      "qid": "DEMO_PHONE",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "tel",
+      "input": "tel",
+      "required": false,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Phone number (optional)",
+      "title_he": "מספר טלפון (אופציונלי)",
+      "title_ru": "Номер телефона (необязательно)"
+    },
+    {
+      "qid": "DEMO_REFERRING_DENTIST_OR_CLI",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [],
+      "score_map": null,
+      "score_flag": true,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Referring dentist or clinic",
+      "title_he": "רופא שיניים או מרפאה מפנה",
+      "title_ru": "Направляющий стоматолог или клиника"
+    },
+    {
+      "qid": "DEMO_AGE",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": false,
+      "display_if": {
+        "expr": "false"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": true,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Age",
+      "title_he": "גיל",
+      "title_ru": "Возраст"
+    },
+    {
+      "qid": "DEMO_SEX",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "male",
+          "label": "Male",
+          "label_he": "זכר",
+          "label_ru": "Мужской"
+        },
+        {
+          "value": "female",
+          "label": "Female",
+          "label_he": "נקבה",
+          "label_ru": "Женский"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "label_he": "אחר",
+          "label_ru": "Другое"
+        },
+        {
+          "value": "prefer_not_to_say",
+          "label": "Prefer not to say",
+          "label_he": "מעדיף לא לומר",
+          "label_ru": "Предпочитаю не говорить"
+        }
+      ],
+      "score_map": {
+        "mode": "sum_multi",
+        "weights": {
+          "high_blood_pressure": 1,
+          "heart_disease": 2,
+          "diabetes": 2,
+          "thyroid_disorder": 1,
+          "anxiety_depression": 1,
+          "chronic_nasal_sinus": 1,
+          "gerd_heartburn": 1,
+          "bruxism": 1,
+          "other": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Gender",
+      "title_he": "מין",
+      "title_ru": "Пол"
+    },
+    {
+      "qid": "DEMO_HEIGHT_CM",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Height (cm)",
+      "title_he": "גובה (ס\"מ)",
+      "title_ru": "Рост (см)"
+    },
+    {
+      "qid": "DEMO_WEIGHT_KG",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Weight (kg)",
+      "title_he": "משקל (ק\"ג)",
+      "title_ru": "Вес (кг)"
+    },
+    {
+      "qid": "Q1",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure",
+          "label_he": "לא בטוח",
+          "label_ru": "Не уверен"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0,
+          "not_sure": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Have you ever been diagnosed with sleep apnea (OSA)?",
+      "title_he": "האם אי פעם אובחנת עם דום נשימה בשינה (OSA)?",
+      "title_ru": "Были ли у вас когда-либо диагностированы апноэ во сне (OSA)?"
+    },
+    {
+      "qid": "Q2",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q1 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Are you currently receiving any treatment for your sleep apnea?",
+      "title_he": "האם אתה מקבל כרגע טיפול כלשהו לדום נשימה בשינה?",
+      "title_ru": "Получаете ли вы в настоящее время какое-либо лечение от апноэ во сне?"
+    },
+    {
+      "qid": "Q3",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q2 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "cpap",
+          "label": "CPAP",
+          "label_he": "CPAP",
+          "label_ru": "CPAP"
+        },
+        {
+          "value": "oral_appliance",
+          "label": "Oral appliance",
+          "label_he": "התקן אוראלי",
+          "label_ru": "Оральный аппарат"
+        },
+        {
+          "value": "positional_therapy",
+          "label": "Positional therapy",
+          "label_he": "טיפול תנוחתי",
+          "label_ru": "Позиционная терапия"
+        },
+        {
+          "value": "nasal_strips",
+          "label": "Nasal strips",
+          "label_he": "מדבקות אף",
+          "label_ru": "Носовые полоски"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "label_he": "אחר",
+          "label_ru": "Другое"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Which type of treatment are you currently using?",
+      "title_he": "איזה סוג טיפול אתה משתמש בו כרגע?",
+      "title_ru": "Какое лечение вы сейчас используете?"
+    },
+    {
+      "qid": "Q4",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q1 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Have you ever undergone surgery related to sleep apnea or airway breathing (such as nasal, palate, jaw, or throat surgery)?",
+      "title_he": "האם אי פעם עברת ניתוח הקשור לדום נשימה בשינה או נשימה בדרכי הנשימה (כמו ניתוח אף, חך, לסת או גרון)?",
+      "title_ru": "Проходили ли вы когда-либо операцию, связанную с апноэ во сне или дыханием дыхательных путей (например, операцию носа, неба, челюсти или горла)?"
+    },
+    {
+      "qid": "Q6",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q1 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never had one",
+          "label_he": "מעולם לא היה לי",
+          "label_ru": "Никогда не было"
+        },
+        {
+          "value": "dont_remember",
+          "label": "Don't remember",
+          "label_he": "לא זוכר",
+          "label_ru": "Не помню"
+        },
+        {
+          "value": "date",
+          "label": "I can provide the date",
+          "label_he": "אני יכול לספק את התאריך",
+          "label_ru": "Могу предоставить дату"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "When was your most recent sleep study performed?",
+      "title_he": "מתי בוצעה בדיקת השינה האחרונה שלך?",
+      "title_ru": "Когда было проведено ваше последнее исследование сна?"
+    },
+    {
+      "qid": "Q6a",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "date",
+      "input": "date",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q6 == 'date'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please provide the sleep study date",
+      "title_he": "אנא ספק את תאריך בדיקת השינה",
+      "title_ru": "Пожалуйста, укажите дату исследования сна"
+    },
+    {
+      "qid": "Q8",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "high_blood_pressure",
+          "label": "High blood pressure",
+          "label_he": "לחץ דם גבוה",
+          "label_ru": "Высокое кровяное давление"
+        },
+        {
+          "value": "heart_disease",
+          "label": "Heart disease",
+          "label_he": "מחלת לב",
+          "label_ru": "Болезнь сердца"
+        },
+        {
+          "value": "diabetes",
+          "label": "Diabetes",
+          "label_he": "סוכרת",
+          "label_ru": "Диабет"
+        },
+        {
+          "value": "thyroid_disorder",
+          "label": "Thyroid disorder",
+          "label_he": "הפרעה בבלוטת התריס",
+          "label_ru": "Заболевание щитовидной железы"
+        },
+        {
+          "value": "anxiety_depression",
+          "label": "Anxiety or depression",
+          "label_he": "חרדה או דיכאון",
+          "label_ru": "Тревожность или депрессия"
+        },
+        {
+          "value": "chronic_nasal_sinus",
+          "label": "Chronic nasal or sinus problems",
+          "label_he": "בעיות כרוניות באף או בסינוסים",
+          "label_ru": "Хронические проблемы с носом или пазухами"
+        },
+        {
+          "value": "gerd_heartburn",
+          "label": "Gastroesophageal reflux (GERD) or heartburn",
+          "label_he": "רפלוקס קיבתי-ושטי (GERD) צרבת",
+          "label_ru": "Гастроэзофагеальный рефлюкс (ГЭРБ) или изжога"
+        },
+        {
+          "value": "bruxism",
+          "label": "Bruxism (clenching or grinding teeth)",
+          "label_he": "ברוקסיזם (הידוק או שחיקת שיניים)",
+          "label_ru": "Бруксизм (сжимание или скрежетание зубами)"
+        },
+        {
+          "value": "other",
+          "label": "Other (please specify)",
+          "label_he": "אחר (אנא ציין)",
+          "label_ru": "Другое (пожалуйста, укажите)"
+        },
+        {
+          "value": "none",
+          "label": "None of the above",
+          "label_he": "אין מהנ\"ל",
+          "label_ru": "Ничего из вышеперечисленного"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you currently have, or have you ever been diagnosed with, any of the following medical conditions?",
+      "title_he": "האם יש לך כרגע, או שאי פעם אובחנת עם, אחת מהמחלות הרפואיות הבאות?",
+      "title_ru": "Есть ли у вас в настоящее время или когда-либо диагностировались следующие медицинские состояния?"
+    },
+    {
+      "qid": "Q8a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q8 && ANS.Q8.includes('other')"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify other medical conditions:",
+      "title_he": "אנא ציין מצבים רפואיים אחרים:",
+      "title_ru": "Пожалуйста, укажите другие медицинские состояния:"
+    },
+    {
+      "qid": "Q9",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Are you currently taking any medications?",
+      "title_he": "האם אתה נוטל כרגע תרופות כלשהן?",
+      "title_ru": "Принимаете ли вы в настоящее время какие-либо лекарства?"
+    },
+    {
+      "qid": "Q9a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q9 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "If yes, please specify:",
+      "title_he": "אם כן, אנא ציין:",
+      "title_ru": "Если да, пожалуйста, укажите:"
+    },
+    {
+      "qid": "Q10",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have any known allergies (to medications, materials, or others)?",
+      "title_he": "האם יש לך אלרגיות ידועות (לתרופות, חומרים או אחרים)?",
+      "title_ru": "Есть ли у вас известные аллергии (на лекарства, материалы или другие)?"
+    },
+    {
+      "qid": "Q10a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q10 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "If yes, please specify:",
+      "title_he": "אם כן, אנא ציין:",
+      "title_ru": "Если да, пожалуйста, укажите:"
+    },
+    {
+      "qid": "Q11",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you smoke or use tobacco products?",
+      "title_he": "האם אתה מעשן או משתמש במוצרי טבק?",
+      "title_ru": "Курите ли вы или используете табачные изделия?"
+    },
+    {
+      "qid": "Q12",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "label_he": "אין",
+          "label_ru": "Нет"
+        },
+        {
+          "value": "1_2_times_per_week",
+          "label": "1–2 times per week",
+          "label_he": "1-2 פעמים בשבוע",
+          "label_ru": "1-2 раза в неделю"
+        },
+        {
+          "value": "3_6_times_per_week",
+          "label": "3–6 times per week",
+          "label_he": "3-6 פעמים בשבוע",
+          "label_ru": "3-6 раз в неделю"
+        },
+        {
+          "value": "daily",
+          "label": "Daily",
+          "label_he": "יומי",
+          "label_ru": "Ежедневно"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How often do you consume alcohol?",
+      "title_he": "כמה פעמים אתה שותה אלכוהול?",
+      "title_ru": "Как часто вы употребляете алкоголь?"
+    },
+    {
+      "qid": "Q13",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you regularly use sedatives or sleeping pills?",
+      "title_he": "האם אתה משתמש באופן קבוע במרגיעים או כדורי שינה?",
+      "title_ru": "Регулярно ли вы используете седативные средства или снотворные?"
+    },
+    {
+      "qid": "Q13a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q13 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "If yes, please specify:",
+      "title_he": "אם כן, אנא ציין:",
+      "title_ru": "Если да, пожалуйста, укажите:"
+    },
+    {
+      "qid": "Q15",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have any chronic nasal or sinus issues (e.g., frequent congestion, nasal obstruction, or sinus infections)?",
+      "title_he": "האם יש לך בעיות כרוניות באף או בסינוסים (למשל גודש תכוף, חסימת אף או דלקות סינוסים)?",
+      "title_ru": "Есть ли у вас хронические проблемы с носом или пазухами (например, частые заложенности, закупорка носа или инфекции пазух)?"
+    },
+    {
+      "qid": "Q16",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How long (in minutes) does it usually take you to fall asleep?",
+      "title_he": "כמה זמן (בדקות) בדרך כלל לוקח לך להירדם?",
+      "title_ru": "Сколько времени (в минутах) обычно требуется вам, чтобы заснуть?"
+    },
+    {
+      "qid": "Q17",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How many hours of actual sleep do you get at night? (This may be different than the number of hours you spend in bed.)",
+      "title_he": "כמה שעות שינה אמיתית אתה מקבל בלילה? (זה עשוי להיות שונה ממספר השעות שאתה מבלה במיטה.)",
+      "title_ru": "Сколько часов реального сна вы получаете ночью? (Это может отличаться от количества часов, которые вы проводите в постели.)"
+    },
+    {
+      "qid": "Q18",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_good",
+          "label": "Very good",
+          "label_he": "טוב מאוד",
+          "label_ru": "Очень хорошо"
+        },
+        {
+          "value": "fairly_good",
+          "label": "Fairly good",
+          "label_he": "די טוב",
+          "label_ru": "Довольно хорошо"
+        },
+        {
+          "value": "fairly_bad",
+          "label": "Fairly bad",
+          "label_he": "די גרוע",
+          "label_ru": "Довольно плохо"
+        },
+        {
+          "value": "very_bad",
+          "label": "Very bad",
+          "label_he": "גרוע מאוד",
+          "label_ru": "Очень плохо"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how would you rate your sleep quality overall?",
+      "title_he": "בחודש האחרון, איך היית מדרג את איכות השינה שלך באופן כללי?",
+      "title_ru": "За последний месяц, как бы вы оценили общее качество вашего сна?"
+    },
+    {
+      "qid": "Q19",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never",
+          "label_he": "1 = אף פעם",
+          "label_ru": "1 = Никогда"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely",
+          "label_he": "2 = לעתים רחוקות",
+          "label_ru": "2 = Редко"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes",
+          "label_he": "3 = לפעמים",
+          "label_ru": "3 = Иногда"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often",
+          "label_he": "4 = לעתים קרובות",
+          "label_ru": "4 = Часто"
+        },
+        {
+          "value": "5",
+          "label": "5 = Always",
+          "label_he": "5 = תמיד",
+          "label_ru": "5 = Всегда"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often did you wake up feeling tired or unrefreshed, even after what seemed like a full night's sleep?",
+      "title_he": "בחודש האחרון, כמה פעמים התעוררת מרגיש עייף או לא רענן, גם אחרי מה שנראה כמו לילה מלא של שינה?",
+      "title_ru": "За последний месяц, как часто вы просыпались, чувствуя усталость или не отдохнувшими, даже после того, что казалось полноценным ночным сном?"
+    },
+    {
+      "qid": "Q20",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never",
+          "label_he": "1 = אף פעם",
+          "label_ru": "1 = Никогда"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely",
+          "label_he": "2 = לעתים רחוקות",
+          "label_ru": "2 = Редко"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes",
+          "label_he": "3 = לפעמים",
+          "label_ru": "3 = Иногда"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often",
+          "label_he": "4 = לעתים קרובות",
+          "label_ru": "4 = Часто"
+        },
+        {
+          "value": "5",
+          "label": "5 = Always",
+          "label_he": "5 = תמיד",
+          "label_ru": "5 = Всегда"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often did you wake up gasping for air, coughing, or with a choking sensation during sleep?",
+      "title_he": "בחודש האחרון, כמה פעמים התעוררת מתנשף לאוויר, משתעל, או עם תחושת חנק במהלך השינה?",
+      "title_ru": "За последний месяц, как часто вы просыпались, задыхаясь, кашляя или с ощущением удушья во время сна?"
+    },
+    {
+      "qid": "Q21",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        },
+        {
+          "value": "dont_know",
+          "label": "Don't know",
+          "label_he": "לא יודע",
+          "label_ru": "Не знаю"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you snore loudly at night?",
+      "title_he": "האם אתה נוחר בקול רם בלילה?",
+      "title_ru": "Громко ли вы храпите ночью?"
+    },
+    {
+      "qid": "Q22",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        },
+        {
+          "value": "dont_know",
+          "label": "Don't know",
+          "label_he": "לא יודע",
+          "label_ru": "Не знаю"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you usually breathe through your mouth while sleeping or wake up with a dry mouth or sore throat?",
+      "title_he": "האם אתה בדרך כלל נושם דרך הפה בזמן השינה או מתעורר עם פה יבש או גרון כואב?",
+      "title_ru": "Обычно ли вы дышите ртом во время сна или просыпаетесь с сухостью во рту или болью в горле?"
+    },
+    {
+      "qid": "Q23",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never",
+          "label_he": "1 = אף פעם",
+          "label_ru": "1 = Никогда"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely",
+          "label_he": "2 = לעתים רחוקות",
+          "label_ru": "2 = Редко"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes",
+          "label_he": "3 = לפעמים",
+          "label_ru": "3 = Иногда"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often",
+          "label_he": "4 = לעתים קרובות",
+          "label_ru": "4 = Часто"
+        },
+        {
+          "value": "5",
+          "label": "5 = Always",
+          "label_he": "5 = תמיד",
+          "label_ru": "5 = Всегда"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often did you feel excessively sleepy or drowsy during the day?",
+      "title_he": "בחודש האחרון, כמה פעמים הרגשת עייפות מוגזמת או נמנום במהלך היום?",
+      "title_ru": "За последний месяц, как часто вы чувствовали чрезмерную сонливость или дремоту в течение дня?"
+    },
+    {
+      "qid": "Q24",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have trouble staying awake while driving or during activities requiring attention — or have you ever unintentionally fallen asleep during the day (for example while reading or watching TV)?",
+      "title_he": "האם יש לך בעיה להישאר ער בזמן נהיגה או במהלך פעילויות הדורשות תשומת לב — או שאי פעם נרדמת בטעות במהלך היום (למשל בזמן קריאה או צפייה בטלוויזיה)?",
+      "title_ru": "Есть ли у вас проблемы с бодрствованием во время вождения или во время деятельности, требующей внимания — или вы когда-либо непреднамеренно засыпали в течение дня (например, во время чтения или просмотра телевизора)?"
+    },
+    {
+      "qid": "Q25",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never",
+          "label_he": "1 = אף פעם",
+          "label_ru": "1 = Никогда"
+        },
+        {
+          "value": "2",
+          "label": "2 = Less than once a week",
+          "label_he": "2 = פחות מפעם בשבוע",
+          "label_ru": "2 = Менее одного раза в неделю"
+        },
+        {
+          "value": "3",
+          "label": "3 = Once or twice a week",
+          "label_he": "3 = פעם או פעמיים בשבוע",
+          "label_ru": "3 = Один или два раза в неделю"
+        },
+        {
+          "value": "4",
+          "label": "4 = Three or more times a week",
+          "label_he": "4 = שלוש פעמים או יותר בשבוע",
+          "label_ru": "4 = Три или более раз в неделю"
+        },
+        {
+          "value": "5",
+          "label": "5 = Every day",
+          "label_he": "5 = כל יום",
+          "label_ru": "5 = Каждый день"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often have you woken up during the night or early morning and had trouble getting back to sleep?",
+      "title_he": "בחודש האחרון, כמה פעמים התעוררת במהלך הלילה או בשעות הבוקר המוקדמות והיה לך קשה לחזור לישון?",
+      "title_ru": "За последний месяц, как часто вы просыпались ночью или рано утром и испытывали трудности с засыпанием?"
+    },
+    {
+      "qid": "Q26",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you snooze or take naps during the day?",
+      "title_he": "האם אתה מנמנם או לוקח תנומות במהלך היום?",
+      "title_ru": "Дремаете ли вы или спите днем?"
+    },
+    {
+      "qid": "Q27",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up frequently to urinate at night?",
+      "title_he": "האם אתה מתעורר לעתים קרובות להשתין בלילה?",
+      "title_ru": "Часто ли вы просыпаетесь ночью, чтобы помочиться?"
+    },
+    {
+      "qid": "Q29",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have TMJ (jaw joint) problems?",
+      "title_he": "האם יש לך בעיות TMJ (מפרק הלסת)?",
+      "title_ru": "Есть ли у вас проблемы с ВНЧС (височно-нижнечелюстным суставом)?"
+    },
+    {
+      "qid": "Q30",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience jaw joint or chewing-muscle pain when you wake up?",
+      "title_he": "האם אתה חווה כאב במפרק הלסת או בשרירי הלעיסה כשאתה מתעורר?",
+      "title_ru": "Испытываете ли вы боль в челюстном суставе или жевательных мышцах, когда просыпаетесь?"
+    },
+    {
+      "qid": "Q31",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you grind your teeth, have signs of worn teeth, or has anyone told you that you suffer from bruxism?",
+      "title_he": "האם אתה שוחק שיניים, יש לך סימנים של שיניים שחוקות, או מישהו אמר לך שאתה סובל מברוקסיזם?",
+      "title_ru": "Скрежещете ли вы зубами, есть ли у вас признаки стертых зубов, или кто-то говорил вам, что вы страдаете бруксизмом?"
+    },
+    {
+      "qid": "Q32",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "ear_pain",
+          "label": "Ear pain",
+          "label_he": "כאב אוזניים",
+          "label_ru": "Боль в ухе"
+        },
+        {
+          "value": "tinnitus",
+          "label": "Tinnitus (ringing in ears)",
+          "label_he": "טינטון (צלצול באוזניים)",
+          "label_ru": "Тиннитус (звон в ушах)"
+        },
+        {
+          "value": "vertigo",
+          "label": "Vertigo (dizziness)",
+          "label_he": "ורטיגו (סחרחורת)",
+          "label_ru": "Вертиго (головокружение)"
+        },
+        {
+          "value": "none",
+          "label": "None of the above",
+          "label_he": "אף אחד מהנ\"ל",
+          "label_ru": "Ничего из вышеперечисленного"
+        },
+        {
+          "value": "other",
+          "label": "Other (please specify)",
+          "label_he": "אחר (אנא ציין)",
+          "label_ru": "Другое (пожалуйста, укажите)"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience any of the following? (Select all that apply)",
+      "title_he": "האם אתה חווה אחד מהבאים? (בחר את כל הרלוונטיים)",
+      "title_ru": "Испытываете ли вы что-либо из следующего? (Выберите все подходящие)"
+    },
+    {
+      "qid": "Q32a",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q32 && ANS.Q32.includes('other')"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify other symptoms:",
+      "title_he": "אנא ציין תסמינים אחרים:",
+      "title_ru": "Пожалуйста, укажите другие симптомы:"
+    },
+    {
+      "qid": "Q38",
+      "section": "Section 4 – Personal Notes & Sleep Goals",
+      "display_group": "Section_4",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "reduce_snoring",
+          "label": "Reduce snoring",
+          "label_he": "הפחתת נחירות",
+          "label_ru": "Уменьшение храпа"
+        },
+        {
+          "value": "improve_sleep_quality",
+          "label": "Improve sleep quality",
+          "label_he": "שיפור איכות השינה",
+          "label_ru": "Улучшение качества сна"
+        },
+        {
+          "value": "increase_daytime_energy",
+          "label": "Increase daytime energy",
+          "label_he": "הגברת אנרגיה ביום",
+          "label_ru": "Повышение дневной энергии"
+        },
+        {
+          "value": "reduce_morning_headaches",
+          "label": "Reduce morning headaches",
+          "label_he": "הפחתת כאבי ראש בבוקר",
+          "label_ru": "Уменьшение утренних головных болей"
+        },
+        {
+          "value": "reduce_jaw_discomfort",
+          "label": "Reduce jaw discomfort or TMJ pain",
+          "label_he": "הפחתת אי נוחות בלסת או כאב TMJ",
+          "label_ru": "Уменьшение дискомфорта в челюсти или боли ВНЧС"
+        },
+        {
+          "value": "improve_concentration",
+          "label": "Improve concentration or mood",
+          "label_he": "שיפור ריכוז או מצב רוח",
+          "label_ru": "Улучшение концентрации или настроения"
+        },
+        {
+          "value": "improve_overall_health",
+          "label": "Improve or maintain overall health and well-being",
+          "label_he": "שיפור או שמירה על בריאות כללית ורווחה",
+          "label_ru": "Улучшение или поддержание общего здоровья и благополучия"
+        },
+        {
+          "value": "other",
+          "label": "Other",
+          "label_he": "אחר",
+          "label_ru": "Другое"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "What would you most like to improve about your sleep or health? (Select all that apply)",
+      "title_he": "מה היית הכי רוצה לשפר בשינה או בבריאות שלך? (בחר את כל הרלוונטיים)",
+      "title_ru": "Что бы вы больше всего хотели улучшить в своем сне или здоровье? (Выберите все подходящие)"
+    },
+    {
+      "qid": "Q38a",
+      "section": "Section 4 – Personal Notes & Sleep Goals",
+      "display_group": "Section_4",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q38 && ANS.Q38.includes('other')"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify other goals:",
+      "title_he": "אנא ציין מטרות אחרות:",
+      "title_ru": "Пожалуйста, укажите другие цели:"
+    },
+    {
+      "qid": "Q38b",
+      "section": "Section 4 – Personal Notes & Sleep Goals",
+      "display_group": "Section_4",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please share any other information about your sleep, symptoms, or concerns that may help us better understand your situation.",
+      "title_he": "אנא שתף כל מידע נוסף על השינה שלך, התסמינים או החששות שעשויים לעזור לנו להבין טוב יותר את המצב שלך.",
+      "title_ru": "Пожалуйста, поделитесь любой другой информацией о вашем сне, симптомах или проблемах, которая может помочь нам лучше понять вашу ситуацию."
+    },
+    {
+      "qid": "Q39",
+      "section": "Section 4 – Personal Notes & Sleep Goals",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן",
+          "label_ru": "Да"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא",
+          "label_ru": "Нет"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you consent to VizBriz sharing your information with third-party partners (such as sleep labs and dental labs) to help coordinate your care?",
+      "title_he": "האם אתה מסכים ש-VizBriz יחלוק את המידע שלך עם שותפים של צד שלישי (כמו מעבדות שינה ומעבדות שיניים) כדי לסייע בתיאום הטיפול שלך?",
+      "title_ru": "Согласны ли вы, чтобы VizBriz делился вашей информацией с партнерами третьих сторон (такими как лаборатории сна и стоматологические лаборатории) для координации вашего лечения?"
+    }
+  ]
+}

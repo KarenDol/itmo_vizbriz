@@ -1,0 +1,250 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Sleep Metrics Timeline</title>
+  <!-- Tailwind (optional, for badges/cards) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js + annotation plugin + date adapter -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2"></script>
+  <style>
+    .chart-container {
+      position: relative;
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-5xl mx-auto p-6">
+    <div class="bg-white rounded-2xl shadow p-5">
+      <h2 class="text-xl font-semibold">Sleep Metrics Timeline</h2>
+      <p class="text-sm text-gray-500 mb-4">AHI (Apnea–Hypopnea Index) progression with patient journey events</p>
+      <div class="chart-container">
+        <canvas id="ahiChart"></canvas>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-5 mt-4">
+      <h3 class="text-lg font-semibold mb-3">Patient Journey Events</h3>
+      <div id="eventBadges" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <div class="bg-white rounded-2xl shadow p-5">
+        <div class="text-sm text-gray-500">Initial AHI</div>
+        <div id="kpiInitial" class="text-3xl font-bold text-red-600">—</div>
+        <div class="text-xs text-gray-400">events/hour</div>
+      </div>
+      <div class="bg-white rounded-2xl shadow p-5">
+        <div class="text-sm text-gray-500">Current AHI</div>
+        <div id="kpiCurrent" class="text-3xl font-bold text-emerald-600">—</div>
+        <div class="text-xs text-gray-400">events/hour</div>
+      </div>
+      <div class="bg-white rounded-2xl shadow p-5">
+        <div class="text-sm text-gray-500">Improvement</div>
+        <div id="kpiImprovement" class="text-3xl font-bold text-indigo-600">—</div>
+        <div class="text-xs text-gray-400">reduction</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(async function () {
+  // Get patient_id from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get('patient_id');
+  
+  if (!patientId) {
+    document.body.innerHTML = '<div class="max-w-5xl mx-auto p-6"><div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: patient_id parameter required</div></div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`/sleep/timeline.json?patient_id=${patientId}`);
+    const payload = await res.json();
+
+    if (payload.error) {
+      document.body.innerHTML = `<div class="max-w-5xl mx-auto p-6"><div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ${payload.error}</div></div>`;
+      return;
+    }
+
+    const series = payload.series || [];
+    const events = payload.events || [];
+    const bands  = payload.bands || {mild_min:5, mild_max:15, moderate_min:15, moderate_max:30, severe_min:30};
+
+    // KPIs
+    if (payload.kpis) {
+      document.getElementById("kpiInitial").textContent    = (payload.kpis.initial_ahi ?? "—");
+      document.getElementById("kpiCurrent").textContent    = (payload.kpis.current_ahi ?? "—");
+      document.getElementById("kpiImprovement").textContent= (payload.kpis.improvement_pct ?? "—") + "%";
+    }
+
+    // Badges
+    const TYPE_STYLE = {
+      consultation:   "bg-sky-100 text-sky-700",
+      device_delivery:"bg-emerald-100 text-emerald-700",
+      titration:      "bg-violet-100 text-violet-700",
+      adjustment:     "bg-amber-100 text-amber-700"
+    };
+    const badgeWrap = document.getElementById("eventBadges");
+    events.forEach(e=>{
+      const span = document.createElement("span");
+      span.className = "px-3 py-1 rounded-full text-sm " + (TYPE_STYLE[e.type] || "bg-gray-100 text-gray-700");
+      span.textContent = e.label || e.type;
+      badgeWrap.appendChild(span);
+    });
+
+    // Chart data
+    const labels = series.map(p => p.date);
+    const dataAHI = series.map(p => p.ahi);
+
+    // Annotations: severity lines + vertical event lines with labels
+    const ann = {
+      mildLine:     { 
+        type: 'line', 
+        yMin: bands.mild_min,  
+        yMax: bands.mild_min,  
+        borderDash: [4,4],
+        borderColor: 'rgba(34, 197, 94, 0.5)',
+        label: {
+          enabled: true, 
+          content: `Mild (${bands.mild_min}–${bands.mild_max})`, 
+          position: 'end', 
+          backgroundColor: 'rgba(0,0,0,0)',
+          color: 'rgba(34, 197, 94, 0.8)'
+        } 
+      },
+      moderateLine: { 
+        type: 'line', 
+        yMin: bands.moderate_min, 
+        yMax: bands.moderate_min, 
+        borderDash: [4,4],
+        borderColor: 'rgba(245, 158, 11, 0.5)',
+        label: {
+          enabled: true, 
+          content: `Moderate (${bands.moderate_min}–${bands.moderate_max})`, 
+          position: 'end', 
+          backgroundColor: 'rgba(0,0,0,0)',
+          color: 'rgba(245, 158, 11, 0.8)'
+        } 
+      },
+      severeLine:   { 
+        type: 'line', 
+        yMin: bands.severe_min, 
+        yMax: bands.severe_min, 
+        borderDash: [4,4],
+        borderColor: 'rgba(239, 68, 68, 0.5)',
+        label: {
+          enabled: true, 
+          content: `Severe (>${bands.severe_min})`, 
+          position: 'end', 
+          backgroundColor: 'rgba(0,0,0,0)',
+          color: 'rgba(239, 68, 68, 0.8)'
+        } 
+      },
+    };
+
+    // Add event vertical lines (sort events by date for chart)
+    const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
+    console.log('Events for chart:', sortedEvents);
+    console.log('Chart labels:', labels);
+    console.log('AHI data:', dataAHI);
+    console.log('Total events found:', events.length);
+    
+    sortedEvents.forEach((e, i) => {
+      const eventColors = {
+        consultation: 'rgba(59, 130, 246, 0.6)',
+        device_delivery: 'rgba(16, 185, 129, 0.6)',
+        titration: 'rgba(124, 58, 237, 0.6)'
+      };
+      
+      console.log(`Adding event ${i}: ${e.date} - ${e.label}`);
+      
+      ann["evt"+i] = {
+        type: 'line',
+        xMin: e.date,
+        xMax: e.date,
+        borderDash: [6,6],
+        borderColor: eventColors[e.type] || 'rgba(107, 114, 128, 0.6)',
+        label: {
+          enabled: true,
+          rotation: 90,
+          content: e.label || e.type,
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          color: 'rgba(0,0,0,0.8)',
+          position: 'start',
+          padding: 4
+        }
+      };
+    });
+    
+    console.log('Final annotations:', ann);
+
+    new Chart(document.getElementById("ahiChart"), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'AHI (events/hour)',
+          data: dataAHI,
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.25,       // smooth line
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true },
+          annotation: { 
+            annotations: ann,
+            clip: false  // Allow annotations to extend beyond chart area
+          },
+          tooltip: {
+            callbacks: {
+              afterBody: (items) => {
+                // Show any events occurring on this date
+                const idx = items[0].dataIndex;
+                const d = labels[idx];
+                const hits = sortedEvents.filter(ev => ev.date === d).map(ev => `• ${ev.label || ev.type}`);
+                return hits.length ? ["Events:", ...hits] : [];
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            title: { display: true, text: 'AHI (events/hour)' },
+            suggestedMin: 0,
+            grid: {
+              color: 'rgba(0,0,0,0.1)'
+            }
+          },
+          x: {
+            ticks: { 
+              autoSkip: true,
+              maxTicksLimit: 10
+            },
+            grid: {
+              color: 'rgba(0,0,0,0.1)'
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error loading sleep timeline:', error);
+    document.body.innerHTML = `<div class="max-w-5xl mx-auto p-6"><div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error loading data: ${error.message}</div></div>`;
+  }
+})();
+</script>
+</body>
+</html>

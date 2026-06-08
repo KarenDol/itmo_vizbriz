@@ -1,0 +1,557 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Level-4 Report (JSON Mode){% endblock %}
+
+{% block extra_css %}
+<style>
+    .editor-container {
+        max-width: 1400px;
+        margin: 32px auto;
+        padding: 24px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+    .editor-header {
+        border-bottom: 2px solid #1e8e82;
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .editor-header h1 {
+        color: #1e8e82;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .editor-actions {
+        display: flex;
+        gap: 12px;
+    }
+    .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-primary {
+        background: #1e8e82;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #1a7a70;
+    }
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    .section {
+        margin-bottom: 24px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e8e82;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #1e8e82;
+    }
+    .form-group {
+        margin-bottom: 16px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+    }
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        font-family: inherit;
+    }
+    .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .array-item {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: flex-start;
+    }
+    .array-item input {
+        flex: 1;
+    }
+    .btn-remove {
+        background: #dc3545;
+        color: white;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+    .btn-add {
+        background: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin-top: 8px;
+    }
+    .image-upload-zone {
+        border: 2px dashed #1e8e82;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        background: #f0fdfa;
+        margin-bottom: 16px;
+    }
+    .image-upload-zone.drag-over {
+        background: #ccfbf1;
+        border-color: #1a7a70;
+    }
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+    .image-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+    }
+    .image-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+    .image-card .caption {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+    .image-card .actions {
+        padding: 8px;
+        display: flex;
+        gap: 8px;
+    }
+    .status-message {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        display: none;
+    }
+    .status-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .status-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <div class="editor-header">
+        <div>
+            <h1>Edit Level-4 Report</h1>
+            <div style="color: #666; font-size: 0.9rem; margin-top: 4px;">
+                Patient: {{ patient_name }} (ID: {{ patient_id }})
+            </div>
+        </div>
+        <div class="editor-actions">
+            <button class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveReport()">💾 Save Report</button>
+            <button class="btn btn-primary" onclick="generatePDF()">📄 Generate PDF</button>
+        </div>
+    </div>
+
+    <div id="status-message" class="status-message"></div>
+
+    <form id="report-form">
+        <!-- Personal Details -->
+        <div class="section">
+            <div class="section-title">Personal Details</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Gender</label>
+                    <input type="text" name="personal_details.gender" value="{{ report_data.personal_details.gender or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="text" name="personal_details.age" value="{{ report_data.personal_details.age or '' }}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>BMI</label>
+                    <input type="text" name="personal_details.bmi" value="{{ report_data.personal_details.bmi or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>Weight</label>
+                    <input type="text" name="personal_details.weight" value="{{ report_data.personal_details.weight or '' }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Height</label>
+                <input type="text" name="personal_details.height" value="{{ report_data.personal_details.height or '' }}">
+            </div>
+        </div>
+
+        <!-- Clinical Background -->
+        <div class="section">
+            <div class="section-title">Clinical Background</div>
+            <div class="form-group">
+                <label>Background</label>
+                <textarea name="clinical_background.background">{{ report_data.clinical_background.background or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Patient Complaints</label>
+                <textarea name="clinical_background.complaints">{{ report_data.clinical_background.complaints or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Patient Goals</label>
+                <textarea name="clinical_background.goals">{{ report_data.clinical_background.goals or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- ENT Findings -->
+        <div class="section">
+            <div class="section-title">ENT / Sinus Findings</div>
+            <div class="form-group">
+                <textarea name="ent_findings">{{ report_data.ent_findings or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Sleep Study -->
+        <div class="section">
+            <div class="section-title">Sleep Study Data</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>AHI</label>
+                    <input type="text" name="sleep_study.ahi" value="{{ report_data.sleep_study.ahi or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>RDI</label>
+                    <input type="text" name="sleep_study.rdi" value="{{ report_data.sleep_study.rdi or '' }}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>ODI</label>
+                    <input type="text" name="sleep_study.odi" value="{{ report_data.sleep_study.odi or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>O2 Nadir</label>
+                    <input type="text" name="sleep_study.o2_nadir" value="{{ report_data.sleep_study.o2_nadir or '' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Observations -->
+        <div class="section">
+            <div class="section-title">Observations</div>
+            <div id="observations-list">
+                {% for obs in report_data.observations or [] %}
+                <div class="array-item">
+                    <input type="text" value="{{ obs }}" data-array="observations">
+                    <button type="button" class="btn-remove" onclick="removeArrayItem(this, 'observations')">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn-add" onclick="addArrayItem('observations')">+ Add Observation</button>
+        </div>
+
+        <!-- Structural Observations -->
+        <div class="section">
+            <div class="section-title">Structural Observations</div>
+            <div class="form-group">
+                <label>Obstruction Sites</label>
+                <textarea name="structural_observations.obstruction_sites">{{ report_data.structural_observations.obstruction_sites or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Bite & Jaw</label>
+                <textarea name="structural_observations.bite_jaw">{{ report_data.structural_observations.bite_jaw or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Conclusion</label>
+                <textarea name="structural_observations.conclusion">{{ report_data.structural_observations.conclusion or '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Treatment Considerations -->
+        <div class="section">
+            <div class="section-title">Treatment Considerations</div>
+            <div id="treatment-list">
+                {% for item in report_data.treatment_considerations or [] %}
+                <div class="array-item">
+                    <input type="text" value="{{ item }}" data-array="treatment_considerations">
+                    <button type="button" class="btn-remove" onclick="removeArrayItem(this, 'treatment_considerations')">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn-add" onclick="addArrayItem('treatment_considerations')">+ Add Consideration</button>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="section">
+            <div class="section-title">Recommendations</div>
+            <div id="recommendations-list">
+                {% for item in report_data.recommendations or [] %}
+                <div class="array-item">
+                    <input type="text" value="{{ item }}" data-array="recommendations">
+                    <button type="button" class="btn-remove" onclick="removeArrayItem(this, 'recommendations')">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn-add" onclick="addArrayItem('recommendations')">+ Add Recommendation</button>
+        </div>
+
+        <!-- Clinical Images -->
+        <div class="section">
+            <div class="section-title">Clinical Images</div>
+            <div class="image-upload-zone" id="upload-zone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                <p>📷 Drag & drop images here or click to upload</p>
+                <input type="file" id="image-input" multiple accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+            <div class="image-gallery" id="image-gallery">
+                {% for img in clinical_images or [] %}
+                <div class="image-card" data-s3-key="{{ img.s3_key }}">
+                    <img src="{{ img.url or '#' }}" alt="{{ img.caption or '' }}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22%3E%3Crect fill=%22%23ddd%22 width=%22200%22 height=%22150%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3EImage%3C/text%3E%3C/svg%3E'">
+                    <div class="caption">
+                        <input type="text" value="{{ img.caption or '' }}" placeholder="Caption" onchange="updateImageCaption(this, '{{ img.s3_key }}')">
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn-remove" onclick="removeImage('{{ img.s3_key }}')">Remove</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+const historyId = {{ history_id }};
+const patientId = {{ patient_id }};
+let clinicalImages = {{ clinical_images | tojson }};
+
+// Form to JSON conversion
+function formToJSON() {
+    const form = document.getElementById('report-form');
+    const formData = new FormData(form);
+    const json = {
+        personal_details: {},
+        clinical_background: {},
+        ent_findings: '',
+        sleep_study: {},
+        observations: [],
+        structural_observations: {},
+        treatment_considerations: [],
+        recommendations: []
+    };
+
+    // Process form fields
+    for (const [name, value] of formData.entries()) {
+        const parts = name.split('.');
+        if (parts.length === 2) {
+            const [section, field] = parts;
+            if (section === 'personal_details' || section === 'clinical_background' || section === 'sleep_study' || section === 'structural_observations') {
+                json[section][field] = value;
+            } else if (section === 'ent_findings') {
+                json.ent_findings = value;
+            }
+        }
+    }
+
+    // Process array fields
+    document.querySelectorAll('[data-array]').forEach(input => {
+        const arrayName = input.getAttribute('data-array');
+        if (input.value.trim()) {
+            json[arrayName].push(input.value.trim());
+        }
+    });
+
+    return json;
+}
+
+function saveReport() {
+    const json = formToJSON();
+    json.clinical_images = clinicalImages;
+
+    fetch(`/reports/api/level4_report/save_json`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            history_id: historyId,
+            report_data: json,
+            clinical_images: clinicalImages
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        const statusEl = document.getElementById('status-message');
+        if (data.success) {
+            statusEl.className = 'status-message status-success';
+            statusEl.textContent = '✓ Report saved successfully!';
+            statusEl.style.display = 'block';
+        } else {
+            statusEl.className = 'status-message status-error';
+            statusEl.textContent = '✗ Error: ' + (data.error || 'Unknown error');
+            statusEl.style.display = 'block';
+        }
+    })
+    .catch(err => {
+        const statusEl = document.getElementById('status-message');
+        statusEl.className = 'status-message status-error';
+        statusEl.textContent = '✗ Error: ' + err.message;
+        statusEl.style.display = 'block';
+    });
+}
+
+function generatePDF() {
+    saveReport(); // Save first, then generate
+    setTimeout(() => {
+        fetch(`/reports/api/level4_report/generate_pdf_from_json/${historyId}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            const statusEl = document.getElementById('status-message');
+            if (data.success) {
+                statusEl.className = 'status-message status-success';
+                statusEl.textContent = '✓ PDF generated: ' + data.filename;
+                statusEl.style.display = 'block';
+            } else {
+                statusEl.className = 'status-message status-error';
+                statusEl.textContent = '✗ Error: ' + (data.error || 'Unknown error');
+                statusEl.style.display = 'block';
+            }
+        });
+    }, 500);
+}
+
+// Array management
+function addArrayItem(arrayName) {
+    const listId = arrayName + '-list';
+    const list = document.getElementById(listId);
+    const div = document.createElement('div');
+    div.className = 'array-item';
+    div.innerHTML = `
+        <input type="text" data-array="${arrayName}">
+        <button type="button" class="btn-remove" onclick="removeArrayItem(this, '${arrayName}')">Remove</button>
+    `;
+    list.appendChild(div);
+}
+
+function removeArrayItem(btn, arrayName) {
+    btn.closest('.array-item').remove();
+}
+
+// Image upload
+document.getElementById('upload-zone').addEventListener('click', () => {
+    document.getElementById('image-input').click();
+});
+
+function handleFileSelect(e) {
+    Array.from(e.target.files).forEach(file => uploadImage(file));
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    Array.from(e.dataTransfer.files).forEach(file => {
+        if (file.type.startsWith('image/')) uploadImage(file);
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('patient_id', patientId);
+
+    fetch('/upload_clinical_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            clinicalImages.push({
+                s3_key: data.s3_key,
+                url: data.url,
+                caption: ''
+            });
+            addImageCard(data.s3_key, data.url, '');
+        }
+    });
+}
+
+function addImageCard(s3Key, url, caption) {
+    const gallery = document.getElementById('image-gallery');
+    const card = document.createElement('div');
+    card.className = 'image-card';
+    card.setAttribute('data-s3-key', s3Key);
+    card.innerHTML = `
+        <img src="${url}" alt="${caption}">
+        <div class="caption">
+            <input type="text" value="${caption}" placeholder="Caption" onchange="updateImageCaption(this, '${s3Key}')">
+        </div>
+        <div class="actions">
+            <button type="button" class="btn-remove" onclick="removeImage('${s3Key}')">Remove</button>
+        </div>
+    `;
+    gallery.appendChild(card);
+}
+
+function updateImageCaption(input, s3Key) {
+    const img = clinicalImages.find(i => i.s3_key === s3Key);
+    if (img) img.caption = input.value;
+}
+
+function removeImage(s3Key) {
+    clinicalImages = clinicalImages.filter(i => i.s3_key !== s3Key);
+    document.querySelector(`[data-s3-key="${s3Key}"]`).remove();
+}
+</script>
+{% endblock %}
+

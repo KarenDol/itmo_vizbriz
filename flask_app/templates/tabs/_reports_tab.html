@@ -1,0 +1,28 @@
+<div id="reports" class="col s12 tab-content">
+    <div class="card dark-card">
+        <div class="card-content">
+            <!-- Title and Button -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="card-title">Reports</span>
+                <a href="{{ url_for('viewer.viewer_page', patient_id=patient.id) }}" 
+                   class="btn waves-effect waves-light" 
+                   style="background-color: #004080; color: white;" target="_blank">
+                    View Patient OSA Model
+                </a>
+            </div>
+
+            <!-- File List -->
+            <ul class="file-list" id="reports-file-list">
+                {% if uploaded_files.reports and uploaded_files.reports|length > 0 %}
+                    {% for file in uploaded_files.reports if file.is_public %}
+                        <li>
+                            <a href="{{ url_for('filemgmt.download_admin_file', file_id=file.id) }}" target="_blank">{{ file.name }}</a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No reports uploaded yet.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>

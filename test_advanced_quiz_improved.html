@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Quiz 2-Step Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .step {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .step-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            margin: 0 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        .step-dot.active {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+        button {
+            padding: 15px 30px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            background: #f8f9fa;
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+            padding-right: 45px;
+        }
+        select[multiple] {
+            min-height: 120px;
+            background-image: none;
+            padding-right: 15px;
+        }
+        select[multiple] option {
+            padding: 8px 10px;
+            margin: 2px 0;
+            border-radius: 5px;
+            background: white;
+            border: 1px solid #e1e8ed;
+        }
+        select[multiple] option:checked {
+            background: #3498db;
+            color: white;
+        }
+        .content-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #3498db;
+        }
+        .content-section h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .button-group .btn-primary {
+            flex: 2;
+        }
+        .button-group .btn-secondary {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Advanced Quiz 2-Step Test</h1>
+    
+    <div class="step-indicator">
+        <div class="step-dot active" id="step1-dot">1</div>
+        <div class="step-dot" id="step2-dot">2</div>
+    </div>
+
+    <!-- Step 1: Introduction -->
+    <div id="step1" class="step active">
+        <h2>Step 1: Introduction</h2>
+        <p>Welcome to the advanced sleep assessment. This is step 1.</p>
+        <button class="btn-primary" onclick="nextStep()">Start Advanced Assessment</button>
+    </div>
+
+    <!-- Step 2: Assessment Form -->
+    <div id="step2" class="step">
+        <h2>Step 2: Detailed Assessment</h2>
+        
+        <form id="advancedQuizForm">
+            <div class="form-group">
+                <label>Email Address:</label>
+                <input type="email" name="patient_email" value="test@example.com" readonly style="background-color: #f8f9fa; color: #6c757d;">
+                <small style="color: #6c757d; font-size: 12px;">Email from your basic assessment</small>
+            </div>
+            
+            <!-- Sleep Patterns & Quality -->
+            <div class="content-section">
+                <h4>🔸 1. Sleep Patterns & Quality</h4>
+                
+                <div class="form-group">
+                    <label>How long does it usually take you to fall asleep?</label>
+                    <textarea name="fall_asleep_time" placeholder="e.g., 15 minutes, 30 minutes, etc."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Do you have trouble falling asleep again after waking during the night?</label>
+                    <select name="trouble_falling_asleep_again">
+                        <option value="">Select an option</option>
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Do you breathe through your mouth at night?</label>
+                    <select name="mouth_breathing">
+                        <option value="">Select an option</option>
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                        <option value="dont_know">Don't know</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TMJ / Bruxism Symptoms -->
+            <div class="content-section">
+                <h4>🔸 2. Jaw / TMJ / Bruxism Symptoms</h4>
+                
+                <div class="form-group">
+                    <label>Do you have TMJ (jaw joint) problems?</label>
+                    <select name="tmj_problems">
+                        <option value="">Select an option</option>
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Do you experience any of the following? (Select all that apply)</label>
+                    <select name="ear_symptoms" multiple>
+                        <option value="ear_pain">Ear pain</option>
+                        <option value="tinnitus">Tinnitus (ringing in ears)</option>
+                        <option value="vertigo">Vertigo (dizziness)</option>
+                        <option value="none">None of the above</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Lifestyle -->
+            <div class="content-section">
+                <h4>🔸 3. Lifestyle Factors</h4>
+                
+                <div class="form-group">
+                    <label>How often do you consume alcohol?</label>
+                    <select name="alcohol_use">
+                        <option value="">Select an option</option>
+                        <option value="none">None</option>
+                        <option value="1_2">1–2 drinks per week</option>
+                        <option value="3_6">3–6 drinks per week</option>
+                        <option value="daily">Daily or heavy use</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Personal treatment goals -->
+            <div class="content-section">
+                <h4>🔸 4. Personal Treatment Goals</h4>
+                
+                <div class="form-group">
+                    <label>What would you most like to improve about your sleep or health? (Select all that apply)</label>
+                    <select name="goals" multiple>
+                        <option value="stop_snoring">Stop snoring</option>
+                        <option value="improve_energy">Improve energy levels</option>
+                        <option value="improve_sleep">Improve sleep quality</option>
+                        <option value="reduce_tmj">Reduce TMJ or jaw discomfort</option>
+                        <option value="reduce_grinding">Reduce teeth clenching or grinding</option>
+                        <option value="reduce_headaches">Reduce morning headaches</option>
+                        <option value="reduce_tinnitus">Reduce tinnitus (ringing sounds)</option>
+                        <option value="other">Other (please describe below)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn-secondary" onclick="prevStep()">Back to Introduction</button>
+                <button type="submit" class="btn-primary">Submit Advanced Assessment</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="results" style="display: none;">
+        <h2>Results</h2>
+        <div id="resultContent"></div>
+    </div>
+
+    <script>
+        function nextStep() {
+            console.log('nextStep called');
+            const currentStep = getCurrentStep();
+            
+            if (currentStep === 1) {
+                console.log('Moving from step 1 to step 2');
+                document.getElementById('step1-dot').classList.remove('active');
+                document.getElementById('step2-dot').classList.add('active');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                console.log('Step 2 should now be visible');
+            }
+        }
+
+        function prevStep() {
+            console.log('prevStep called');
+            const currentStep = getCurrentStep();
+            
+            if (currentStep === 2) {
+                console.log('Moving from step 2 to step 1');
+                document.getElementById('step2-dot').classList.remove('active');
+                document.getElementById('step1-dot').classList.add('active');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step1').classList.add('active');
+            }
+        }
+
+        function getCurrentStep() {
+            if (document.getElementById('step1').classList.contains('active')) return 1;
+            if (document.getElementById('step2').classList.contains('active')) return 2;
+            return 1;
+        }
+
+        // Form submission
+        document.getElementById('advancedQuizForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Advanced quiz form submitted');
+            
+            const formData = new FormData(this);
+            const answers = {};
+            formData.forEach((value, key) => {
+                answers[key] = value;
+            });
+            
+            console.log('Form data:', answers);
+            
+            // Show results
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('resultContent').innerHTML = `
+                <h3>Advanced Assessment Complete!</h3>
+                <h4>Assessment Summary:</h4>
+                <p><strong>Email:</strong> ${answers.patient_email}</p>
+                <p><strong>Fall asleep time:</strong> ${answers.fall_asleep_time || 'Not specified'}</p>
+                <p><strong>Trouble falling asleep again:</strong> ${answers.trouble_falling_asleep_again || 'Not specified'}</p>
+                <p><strong>Mouth breathing:</strong> ${answers.mouth_breathing || 'Not specified'}</p>
+                <p><strong>TMJ problems:</strong> ${answers.tmj_problems || 'Not specified'}</p>
+                <p><strong>Alcohol use:</strong> ${answers.alcohol_use || 'Not specified'}</p>
+                <p><strong>Goals:</strong> ${answers.goals || 'Not specified'}</p>
+            `;
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing advanced quiz test...');
+            console.log('Step 1 should be visible');
+        });
+    </script>
+</body>
+</html> 

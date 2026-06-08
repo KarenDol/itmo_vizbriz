@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbox Visibility Test</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-title {
+            color: #2196F3;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .test-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .fix-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .fix-list h3 {
+            color: #2196F3;
+            margin-top: 0;
+        }
+        
+        .fix-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .fix-list li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-content">
+        <h1 class="test-title">Chatbox Visibility Fix Test</h1>
+        
+        <div class="test-description">
+            This page documents the fixes applied to resolve the chatbox visibility issue where it was appearing and disappearing during page load.
+        </div>
+        
+        <div class="status success">
+            <strong>✅ FIXES APPLIED:</strong> The following changes have been made to ensure the chatbox stays visible:
+        </div>
+        
+        <div class="fix-list">
+            <h3>CSS Fixes:</h3>
+            <ul>
+                <li><strong>Removed problematic transitions:</strong> Removed CSS transitions that were causing flickering</li>
+                <li><strong>Added explicit visibility:</strong> Set <code>opacity: 1</code> and <code>visibility: visible</code> in CSS</li>
+                <li><strong>Removed transform effects:</strong> Removed <code>translateY</code> transforms that could cause positioning issues</li>
+                <li><strong>Removed backdrop-filter:</strong> Removed blur effect that might cause rendering issues</li>
+            </ul>
+            
+            <h3>JavaScript Fixes:</h3>
+            <ul>
+                <li><strong>Immediate visibility:</strong> Set visibility properties immediately on DOMContentLoaded</li>
+                <li><strong>State restoration:</strong> Ensure visibility after loading saved state</li>
+                <li><strong>Fallback display:</strong> Force <code>display: flex</code> to ensure proper rendering</li>
+            </ul>
+            
+            <h3>HTML Fixes:</h3>
+            <ul>
+                <li><strong>Inline styles:</strong> Added inline styles to ensure visibility from the start</li>
+                <li><strong>Default state:</strong> Set <code>opacity: 1; visibility: visible; display: flex;</code> directly in HTML</li>
+            </ul>
+        </div>
+        
+        <div class="status warning">
+            <strong>⚠️ TESTING REQUIRED:</strong> Please test the actual patient journey page to verify the chatbox now stays visible consistently.
+        </div>
+        
+        <div class="test-description">
+            <strong>Expected Behavior:</strong> The Dr. Briz chatbox should now:
+            <ul>
+                <li>Appear immediately when the page loads</li>
+                <li>Stay visible without flickering or disappearing</li>
+                <li>Remain draggable and resizable</li>
+                <li>Maintain its position and size across page refreshes</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html> 

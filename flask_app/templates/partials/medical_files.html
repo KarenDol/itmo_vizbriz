@@ -1,0 +1,52 @@
+<!-- Step: Medical Files -->
+<div class="form-step" id="step-6" style="display:none;">
+    <h5>Step 6: Medical Files</h5>
+
+    <h6>Sleep Test</h6>
+    <div class="upload-area drop-zone" id="drop-area-sleep">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop sleep test files here<br>Or select manually</p>
+        <input type="file" id="fileElemSleep" name="sleep_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-sleep" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemSleep', 'file-list-sleep');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemSleep', 'file-list-sleep');">Upload Folder</button>
+    </div>
+
+    <h6>Questionnaire</h6>
+    <div class="upload-area drop-zone" id="drop-area-questionnaire">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop questionnaire files here<br>Or select manually</p>
+        <input type="file" id="fileElemQuestionnaire" name="questionnaire_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-questionnaire" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemQuestionnaire', 'file-list-questionnaire');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemQuestionnaire', 'file-list-questionnaire');">Upload Folder</button>
+    </div>
+
+    <h6>Medical Background</h6>
+    <div class="upload-area drop-zone" id="drop-area-medical">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop medical background files here<br>Or select manually</p>
+        <input type="file" id="fileElemMedical" name="medical_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-medical" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemMedical', 'file-list-medical');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemMedical', 'file-list-medical');">Upload Folder</button>
+    </div>
+
+    <!-- Navigation Buttons with increased spacing -->
+    <div class="button-group">
+        <button class="btn waves-effect waves-light" type="button" onclick="prevStep(5)">
+            Previous
+            <i class="material-icons left">arrow_back</i>
+        </button>
+        <button class="btn waves-effect waves-light btn-upload" type="submit">
+            Submit
+            <i class="material-icons right">save</i>
+        </button>
+    </div>
+</div>

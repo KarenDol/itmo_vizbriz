@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICOM and STL Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/cornerstone-math/dist/cornerstoneMath.min.js"></script>
+    <script src="https://unpkg.com/cornerstone-core/dist/cornerstone.min.js"></script>
+    <script src="https://unpkg.com/dicom-parser/dist/dicomParser.min.js"></script>
+    <script src="https://unpkg.com/cornerstone-wado-image-loader/dist/cornerstoneWADOImageLoader.bundle.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='viewer_tmplates/style.css') }}">
+</head>
+<body>
+    <div id="title">
+        <h1>DICOM and STL Viewer</h1>
+    </div>
+    <div id="filter">
+        <label for="file-type">Choose file type:</label>
+        <select id="file-type">
+            <option value="dcm">DICOM</option>
+            <option value="stl">STL</option>
+        </select>
+        <button id="apply-filter">Apply</button>
+    </div>
+    <div id="main-content">
+        <!-- File List Section -->
+        <div id="file-list">
+            <h2>Available Files</h2>
+            <ul id="files" style="list-style-type: none;">
+                <!-- File list dynamically populated here -->
+            </ul>
+            <button id="submit-files" style="margin-top: 10px;">Load Selected STL(s)</button>
+        </div>
+        <div id="frame-slider">
+            <input type="range" id="frame-control" orient="vertical">
+        </div>
+        <!-- Viewer Section -->
+        <div id="viewer">
+            <!-- DICOM Container -->
+            <div id="dicom-container">
+                <canvas></canvas>
+                <div id="metadata-overlay"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Move script to the bottom to ensure all elements are loaded -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Ensure JavaScript only executes after DOM is fully loaded
+            const applyFilterButton = document.getElementById('apply-filter');
+            const submitFilesButton = document.getElementById('submit-files');
+
+            if (applyFilterButton) {
+                applyFilterButton.addEventListener('click', () => {
+                    console.log("Apply filter button clicked");
+                    // Your apply filter logic
+                });
+            }
+
+            if (submitFilesButton) {
+                submitFilesButton.addEventListener('click', () => {
+                    console.log("Submit files button clicked");
+                    // Your submit files logic
+                });
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
+</body>
+</html>

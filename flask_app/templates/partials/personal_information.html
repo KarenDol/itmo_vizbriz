@@ -1,0 +1,97 @@
+<style>
+/* Materialize datepicker styling */
+.datepicker-container {
+    width: 320px; /* Adjust width as needed */
+}
+
+/* Hide the large left panel with selected date display */
+.datepicker-date-display {
+    display: none !important;
+}
+
+/* Adjust calendar container to fill the space */
+.datepicker-calendar-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* Customize Clear button */
+.datepicker-container .btn-flat.datepicker-clear {
+    color: #03dac6; /* Match app theme */
+}
+
+/* Datepicker input styling */
+input.datepicker {
+    color: #e0e0e0;
+    background-color: #2a2a2a;
+    border-bottom: 1px solid #00BAFF;
+    cursor: pointer;
+}
+
+input.datepicker:focus {
+    border-bottom: 1px solid #03dac6;
+    box-shadow: 0 1px 0 0 #03dac6;
+}
+
+.required-note p {
+    font-size: 0.9rem;
+    color: #ff5252 !important; /* Force red color */
+    margin-bottom: 20px; /* Add space below the note */
+}
+</style>
+<!-- Step 1: Personal Information -->
+<div class="form-step" id="step-1">
+    <h5>Step 1: Personal Information</h5>
+    <div class="required-note">
+        <p>* Indicates required question</p>
+    </div>
+    <div class="input-field">
+        <input id="patient_name" name="patient_name" type="text" class="validate" required aria-required="true">
+        <label for="patient_name">Patient Name <span class="required">*</span></label>
+        <span class="helper-text" data-error="Patient name is required"></span>
+    </div>
+
+    <div class="input-field">
+        <input id="email" name="email" type="text" class="validate">
+        <label for="email">Email</label>
+        <span class="helper-text" data-error="Please enter a valid email"></span>
+    </div>
+
+    <div class="input-field">
+        <input id="phone" name="phone" type="text" class="validate">
+        <label for="phone">Phone</label>
+        <span class="helper-text" data-error="Please enter a valid phone number"></span>
+    </div>
+    <div class="input-field">
+        <input id="dob" name="dob" type="text" class="datepicker validate">
+        <label for="dob">Date of Birth</label>
+        <span class="helper-text" data-error="Please enter a valid date"></span>
+    </div>
+
+    <div class="input-field">
+        <select id="gender" name="gender" class="validate">
+            <option value="" disabled selected>Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+        </select>
+        <label for="gender">Gender</label>
+    </div>
+
+    <!-- Clinic Selection Field -->
+    <div class="input-field" id="clinic-selection-field" style="display: block;">
+        <select id="clinic_id" name="clinic_id" class="validate">
+            <option value="" disabled selected>Loading clinics...</option>
+        </select>
+        <label for="clinic_id">Clinic <span class="required">*</span></label>
+        <span class="helper-text" data-error="Please select a clinic"></span>
+    </div>
+
+    <div class="center-align">
+        <button class="btn waves-effect waves-light" type="button" onclick="nextStep(2)">
+            Next
+            <i class="material-icons right">arrow_forward</i>
+        </button>
+    </div>
+</div>

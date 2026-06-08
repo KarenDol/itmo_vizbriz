@@ -1,0 +1,45 @@
+<!-- Step 2: Insurance Information -->
+<div class="form-step" id="step-2" style="display:none;">
+    <h5>Step 2: Insurance Information</h5>
+
+    <div class="input-field">
+        <input id="insurer" name="insurer" type="text" class="validate">
+        <label for="insurer">Insurer</label>
+    </div>
+
+    <div class="input-field">
+        <input id="policy_id" name="policy_id" type="text" class="validate">
+        <label for="policy_id">Policy ID</label>
+    </div>
+
+    <div class="input-field">
+        <input id="address" name="address" type="text" class="validate">
+        <label for="address">Address</label>
+    </div>
+
+     <!-- New Status Field -->
+    <div class="input-field">
+        <select id="status" name="status">
+            <option value="new" selected>New</option>
+            <option value="waiting_for_referral">Waiting for Referral</option>
+            <option value="referral_in_process">Referral in Process</option>
+            <option value="rx_available">RX Available</option>
+            <option value="schedule_dmd_consult">Schedule DMD Consult</option>
+            <option value="dmd_consult_scheduled">DMD Consult Scheduled</option>
+            <option value="in_treatment">In Treatment</option>
+        </select>
+        <label for="status">Status</label>
+    </div>
+    
+    <div class="center-align">
+        <button class="btn waves-effect waves-light" type="button" onclick="prevStep(1)">
+            Previous
+            <i class="material-icons left">arrow_back</i>
+        </button>
+        <button class="btn waves-effect waves-light" type="button" onclick="nextStep(3)">
+            Next
+            <i class="material-icons right">arrow_forward</i>
+        </button>
+    </div>
+   
+</div>

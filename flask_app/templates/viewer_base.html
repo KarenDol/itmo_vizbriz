@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICOM Viewer with Metadata Overlay</title>
+    
+    <!-- Add required dependencies -->
+    <script src="https://unpkg.com/cornerstone-math/dist/cornerstoneMath.min.js"></script>
+    <script src="https://unpkg.com/cornerstone-core/dist/cornerstone.min.js"></script>
+    <script src="https://unpkg.com/dicom-parser/dist/dicomParser.min.js"></script>
+    <script src="https://unpkg.com/cornerstone-wado-image-loader/dist/cornerstoneWADOImageLoader.bundle.min.js"></script>
+    <script src="https://unpkg.com/cornerstone-web-image-loader/dist/cornerstoneWebImageLoader.min.js"></script>
+
+    <!-- Add global CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='viewer_tmplates/style.css') }}">
+   
+</head>
+<body>
+  
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>© 2024 My Flask Application</p>
+    </footer>
+ 
+</body>
+</html>

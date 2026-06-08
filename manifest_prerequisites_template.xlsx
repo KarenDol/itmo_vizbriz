@@ -1,0 +1,9 @@
+Prerequisite Key,Description,How to Check in DB (SQL/Python),Required Value
+quiz_filled,Patient has completed the sleep quiz,patients.quiz_completed == True,True
+sleep_test_uploaded,Patient has uploaded a sleep test,exists in patient_files where type='sleep_test',file exists
+soap_note_received,SOAP note received from specialist,exists in patient_files where type='soap_note',file exists
+cbct_uploaded,CBCT imaging file uploaded,exists in patient_files where type='cbct',file exists
+ent_consultation_scheduled,ENT consult scheduled,patients.ent_consultation_date IS NOT NULL,date exists
+appliance_ordered,Oral appliance has been ordered,patients.appliance_ordered == True,True
+appliance_delivered,Appliance delivered,patients.appliance_delivered_date IS NOT NULL,date exists
+followup_visit_completed,Follow-up visit completed,patients.followup_completed == True,True 

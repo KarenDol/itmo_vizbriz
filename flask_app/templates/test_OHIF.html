@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cornerstone DICOM Viewer Example</title>
+  <style>
+    /* Style the viewer element */
+    #dicomImage {
+      width: 512px;
+      height: 512px;
+      margin: 20px auto;
+      background-color: black;
+    }
+  </style>
+  <!-- Load required libraries from a CDN -->
+  <script src="{{ url_for('static', filename='js/dicomParser.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cornerstone.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoader.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cornerstoneTools.min.js') }}"></script>
+</head>
+<body>
+  <div id="dicomImage"></div>
+  <script>
+    // Wait until the window is fully loaded.
+    window.addEventListener('load', function() {
+      // Configure the Cornerstone WADO Image Loader
+      cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+      cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+      cornerstoneWADOImageLoader.configure({
+        beforeSend: function(xhr) {
+          // (Optional) Set custom headers here if needed.
+        }
+      });
+
+      // Use a publicly available sample DICOM file.
+      // This sample file is hosted in the cornerstoneDemo repository on GitHub.
+      var sampleUrl = "https://raw.githubusercontent.com/chafey/cornerstoneDemo/master/public/dicom/sample.dcm";
+      
+      // The WADO Image Loader requires the imageId to be prefixed with "wadouri:".
+      var imageId = "wadouri:" + sampleUrl;
+      console.log("Using imageId:", imageId);
+
+      // Get the target element where the DICOM image will be displayed.
+      var element = document.getElementById('dicomImage');
+
+      // Enable the element for Cornerstone.
+      cornerstone.enable(element);
+
+      // Load the image using the imageId and then display it.
+      cornerstone.loadImage(imageId)
+        .then(function(image) {
+          cornerstone.displayImage(element, image);
+        })
+        .catch(function(error) {
+          console.error("Error loading DICOM image:", error);
+          element.innerHTML = "<p>Error loading DICOM image.</p>";
+        });
+    });
+  </script>
+</body>
+</html>

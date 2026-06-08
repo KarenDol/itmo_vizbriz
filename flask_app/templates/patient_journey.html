@@ -1,0 +1,4156 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Journey - {{ patient.name }} | Dr. Briz{% endblock %}
+
+{% block content %}
+<style>
+/* Override base.html layout constraints for patient journey */
+main {
+  margin-left: 0 !important;
+  padding-top: 64px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.container {
+  max-width: none !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+}
+
+/* Material Design Colors and Variables */
+:root {
+  --primary-color: #2196F3;
+  --primary-dark: #1976D2;
+  --primary-light: #BBDEFB;
+  --accent-color: #FF4081;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --divider-color: #BDBDBD;
+  --background: #FAFAFA;
+  --surface: #FFFFFF;
+  --error: #F44336;
+  --success: #4CAF50;
+  --warning: #FF9800;
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.journey-container {
+  max-width: 1400px;
+  margin: 0 0 0 16px;
+  padding: 20px 20px 20px 0;
+  width: calc(100vw - 32px) !important;
+  overflow-x: auto !important;
+}
+
+/* Header Section */
+.journey-header {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.journey-title {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.patient-info {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.progress-section {
+  margin-top: 16px;
+}
+
+.progress-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--divider-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--success);
+  transition: width 0.3s ease;
+}
+
+/* Main Content Layout */
+.journey-content {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* Timeline Section */
+.timeline-section {
+  flex: 0 0 300px;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 24px 24px 32px 24px; /* Extra padding at bottom for last item */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: calc(100vh - 200px); /* Fixed height to prevent page scroll */
+  overflow-y: auto; /* Add vertical scrollbar */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+}
+
+/* Custom scrollbar styling for timeline */
+.timeline-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.timeline-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.timeline-section::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.timeline-section::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.timeline-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.timeline-item {
+  position: relative;
+  padding: 16px 16px 16px 40px;
+  margin-bottom: 12px; /* Increased spacing between items */
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+  min-height: 60px; /* Ensure consistent height */
+}
+
+.timeline-item:hover {
+  background: rgba(33, 150, 243, 0.04);
+}
+
+.timeline-item.active {
+  background: rgba(33, 150, 243, 0.08);
+  border-left: 4px solid var(--primary-color);
+}
+
+.timeline-item.completed {
+  border-left: 4px solid var(--success);
+}
+
+.timeline-item.pending {
+  border-left: 4px solid var(--divider-color);
+}
+
+.timeline-icon {
+  position: absolute;
+  left: 8px;
+  top: 20px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+}
+
+.timeline-item.completed .timeline-icon {
+  background: var(--success);
+}
+
+.timeline-item.pending .timeline-icon {
+  background: var(--divider-color);
+}
+
+.timeline-item.active .timeline-icon {
+  background: var(--primary-color);
+}
+
+.timeline-content {
+  margin-left: 8px;
+}
+
+.timeline-stage {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.timeline-date {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* Right Content Area */
+.right-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* AI Workflow Section */
+.ai-workflow-section {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ai-workflow-header {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ai-workflow-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.ai-workflow-subtitle {
+  color: rgba(255,255,255,0.9);
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.ai-recommendations {
+  display: grid;
+  gap: 16px;
+}
+
+.ai-recommendation-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.ai-recommendation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ai-recommendation-icon {
+  margin-right: 12px;
+}
+
+.ai-recommendation-title {
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.ai-recommendation-priority {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.priority-high {
+  background: rgba(244, 67, 54, 0.1);
+  color: var(--error);
+}
+
+.priority-medium {
+  background: rgba(255, 152, 0, 0.1);
+  color: var(--warning);
+}
+
+.priority-low {
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--success);
+}
+
+.ai-recommendation-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.ai-recommendation-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ai-action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.ai-action-btn.primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.ai-action-btn.secondary {
+  background: rgba(33, 150, 243, 0.1);
+  color: var(--primary-color);
+}
+
+.ai-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Complete AI Analysis Styles */
+.ai-complete-analysis {
+  margin-top: 16px;
+}
+
+.ai-analysis-content {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+}
+
+.ai-analysis-content h1,
+.ai-analysis-content h2,
+.ai-analysis-content h3 {
+  color: var(--primary-color);
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.ai-analysis-content h1 {
+  font-size: 18px;
+}
+
+.ai-analysis-content h2 {
+  font-size: 16px;
+}
+
+.ai-analysis-content h3 {
+  font-size: 14px;
+}
+
+.ai-analysis-content ul,
+.ai-analysis-content ol {
+  margin-left: 20px;
+  margin-bottom: 12px;
+}
+
+.ai-analysis-content li {
+  margin-bottom: 4px;
+}
+
+.ai-analysis-content strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ai-analysis-content em {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+/* Enhanced AI Workflow Assistant Styles */
+.ai-workflow-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-workflow-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  pointer-events: none;
+}
+
+.ai-workflow-header {
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ai-workflow-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.ai-workflow-subtitle {
+  color: rgba(255,255,255,0.9);
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.ai-refresh-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.ai-refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.ai-refresh-btn i {
+  font-size: 20px;
+}
+
+
+
+.ai-recommendation-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-recommendation-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.ai-recommendation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.ai-recommendation-card.priority-high::before {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+}
+
+.ai-recommendation-card.priority-medium::before {
+  background: linear-gradient(135deg, #feca57, #ff9ff3);
+}
+
+.ai-recommendation-card.priority-low::before {
+  background: linear-gradient(135deg, #48dbfb, #0abde3);
+}
+
+.ai-recommendation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.ai-recommendation-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-size: 18px;
+}
+
+/* Action Manifest Styles */
+.ai-suggested-action {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  border-left: 4px solid #FF6B35;
+}
+
+.ai-suggested-action h4 {
+  color: #FF6B35;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.suggested-action-details {
+  margin-bottom: 16px;
+}
+
+.suggested-action-details strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.suggested-action-details p {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 8px 0 0 0;
+  line-height: 1.4;
+}
+
+.available-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.available-actions-grid .ai-action-btn {
+  font-size: 12px;
+  padding: 8px 12px;
+  min-height: auto;
+}
+
+.ai-action-container {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ai-action-container h4 {
+  color: white;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+  margin-right: 12px;
+  color: var(--primary-color);
+}
+
+.ai-recommendation-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  font-size: 16px;
+}
+
+.ai-recommendation-priority {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.priority-high {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+}
+
+.priority-medium {
+  background: linear-gradient(135deg, #feca57, #ff9ff3);
+  color: white;
+}
+
+.priority-low {
+  background: linear-gradient(135deg, #48dbfb, #0abde3);
+  color: white;
+}
+
+/* Action Button Styles */
+.ai-action-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 16px;
+}
+
+.ai-action-btn.primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.ai-action-btn.secondary {
+  background: linear-gradient(135deg, #feca57, #ff9ff3);
+  color: white;
+  box-shadow: 0 4px 16px rgba(254, 202, 87, 0.3);
+}
+
+.ai-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  margin: 5% auto;
+  padding: 32px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.close {
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close:hover {
+  color: var(--error);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background: #f8f9fa;
+  color: var(--text-primary);
+  border: 2px solid #e9ecef;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* No Recommendations State */
+.ai-no-recommendations {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.ai-no-recommendations i {
+  font-size: 48px;
+  color: #ccc;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.ai-no-recommendations-text {
+  color: #666;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* AI Recommendations Container */
+.ai-recommendations {
+  position: relative;
+  z-index: 1;
+}
+
+/* AI Recommendation Description */
+.ai-recommendation-description {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  padding-left: 20px;
+}
+
+/* AI Recommendation Actions */
+.ai-recommendation-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* New AI Analysis Container Styles */
+.ai-analysis-container {
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.ai-analysis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.ai-analysis-header i {
+  color: #667eea;
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.ai-analysis-header span {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.ai-priority-badge {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.ai-analysis-content {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #333;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  margin-bottom: 20px;
+}
+
+.ai-analysis-content h1,
+.ai-analysis-content h2,
+.ai-analysis-content h3 {
+  color: #667eea;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  border-left: 3px solid #667eea;
+  padding-left: 12px;
+}
+
+.ai-analysis-content h1 {
+  font-size: 18px;
+}
+
+.ai-analysis-content h2 {
+  font-size: 16px;
+}
+
+.ai-analysis-content h3 {
+  font-size: 14px;
+}
+
+.ai-analysis-content ul,
+.ai-analysis-content ol {
+  margin-left: 24px;
+  margin-bottom: 16px;
+}
+
+.ai-analysis-content li {
+  margin-bottom: 8px;
+  padding-left: 8px;
+}
+
+.ai-analysis-content strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.ai-analysis-content em {
+  font-style: italic;
+  color: #666;
+}
+
+.ai-action-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* AI Recommendation Item Styles */
+.ai-recommendation-item {
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.3s ease;
+}
+
+.ai-recommendation-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.ai-recommendation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.ai-recommendation-header i {
+  color: #667eea;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.ai-recommendation-header span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.ai-recommendation-description {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+}
+
+/* AI Error Message Styles */
+.ai-recommendation-item[data-type="ai_error"] {
+  border-left: 4px solid #f44336;
+  background: #fff5f5;
+}
+
+.ai-recommendation-item[data-type="ai_error"] .ai-recommendation-header {
+  border-bottom-color: rgba(244, 67, 54, 0.2);
+}
+
+.ai-recommendation-item[data-type="ai_error"] .ai-recommendation-header i {
+  color: #f44336;
+}
+
+.ai-recommendation-item[data-type="ai_error"] .ai-recommendation-description {
+  background: #ffebee;
+  border-left-color: #f44336;
+  color: #c62828;
+}
+
+/* Details Section */
+.details-section {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-height: 400px;
+}
+
+.stage-details {
+  display: none;
+}
+
+.stage-details.active {
+  display: block;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--divider-color);
+}
+
+.details-title {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.details-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.completed {
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--success);
+}
+
+.status-badge.pending {
+  background: rgba(255, 152, 0, 0.1);
+  color: var(--warning);
+}
+
+.status-badge.active {
+  background: rgba(33, 150, 243, 0.1);
+  color: var(--primary-color);
+}
+
+.details-date {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.details-date i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.details-content {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+/* Files Section */
+.files-section {
+  background: rgba(33, 150, 243, 0.04);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 24px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.files-section h4 {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.file-icon {
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.file-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.file-action {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.file-action.view {
+  background: var(--primary-color);
+  color: white;
+}
+
+.file-action.download {
+  background: var(--success);
+  color: white;
+  text-decoration: none;
+}
+
+.file-action.disabled {
+  background: var(--divider-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.share-files-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-no-recommendations {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.ai-no-recommendations-text {
+  font-size: 16px;
+  margin-top: 16px;
+}
+
+/* Share Files Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-header {
+    padding: 15px 15px 0 15px;
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+}
+</style>
+
+<div class="journey-container">
+  <!-- Header -->
+  <div class="journey-header">
+    <div class="journey-title">Patient Journey</div>
+    <div class="patient-info" data-patient-email="{{ patient.email if patient.email else '' }}">
+      Patient: {{ patient.name }} • ID: {{ patient.id }} 
+      {% if patient.gender %}• Gender: {{ patient.gender }}{% endif %}
+      {% if age %}• Age: {{ age }}{% endif %}
+      {% if patient.clinic %}• Clinic: {{ patient.clinic.name }}{% endif %}
+      {% if patient.email %}• Email: {{ patient.email }}{% endif %}
+      {% if patient.phone %}• Phone: {{ patient.phone }}{% endif %}
+      • Treatment Progress
+    </div>
+    <div class="progress-section">
+      <div class="progress-label">Overall Progress</div>
+      <div class="progress-text">{{ completed_stages }} of {{ total_stages }} steps completed ({{ progress_percentage }}%)</div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="journey-content">
+    <!-- Timeline Section -->
+    <div class="timeline-section">
+      <div class="timeline-title">Treatment Timeline</div>
+      {% for stage in stages %}
+      <div class="timeline-item {% if stage.status == 'completed' %}completed{% elif stage.status == 'active' %}active{% else %}pending{% endif %}" 
+           onclick="selectStage('{{ stage.key }}')">
+        <div class="timeline-icon">
+          {% if stage.status == 'completed' %}
+            <i class="material-icons" style="font-size: 14px;">check</i>
+          {% elif stage.status == 'active' %}
+            <i class="material-icons" style="font-size: 14px;">radio_button_checked</i>
+          {% else %}
+            <i class="material-icons" style="font-size: 14px;">radio_button_unchecked</i>
+          {% endif %}
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-stage">{{ stage.name }}</div>
+          {% if stage.status == 'completed' and stage.date %}
+          <div class="timeline-date">{{ stage.date }}</div>
+          {% endif %}
+          {% if stage.files %}
+          <div style="font-size: 12px; color: var(--primary-color); margin-top: 4px;">
+            📁 {{ stage.files|length }} file(s)
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Right Content Area -->
+    <div class="right-content-area">
+      <!-- AI Workflow Section -->
+      <div class="ai-workflow-section">
+        <div class="ai-workflow-header">
+          <div class="ai-workflow-title">
+            <i class="material-icons" style="color: #FF6B35; margin-right: 8px;">psychology</i>
+            AI Workflow Assistant
+          </div>
+          <div class="ai-workflow-subtitle">AI-powered recommendations based on patient's current stage</div>
+          <button class="ai-refresh-btn" onclick="requestNewAnalysis()" title="Request new AI analysis">
+            <i class="material-icons">refresh</i>
+          </button>
+        </div>
+        
+        <!-- DEBUG: AI Recommendations Count: {{ ai_recommendations|length if ai_recommendations else 0 }} -->
+        {% if ai_recommendations %}
+          {% for recommendation in ai_recommendations %}
+            {% if recommendation.type == 'complete_analysis' %}
+              <!-- Display complete AI response in styled format -->
+              <div class="ai-analysis-container">
+                <div class="ai-analysis-header">
+                  <i class="material-icons">analytics</i>
+                  <span>AI Workflow Analysis</span>
+                  <div class="ai-priority-badge">HIGH PRIORITY</div>
+                </div>
+                
+                <div class="ai-analysis-content">
+                  {{ recommendation.complete_response|safe }}
+                </div>
+                
+                <!-- Action Manifest Integration -->
+                {% if recommendation.suggested_action and recommendation.suggested_action.action_key %}
+                  <div class="ai-action-container">
+                    <div class="ai-suggested-action">
+                      <h4>🤖 AI Suggested Action:</h4>
+                      <div class="suggested-action-details">
+                        <strong>{{ recommendation.suggested_action.action_key|replace('_', ' ')|title }}</strong>
+                        <p>{{ recommendation.suggested_action.reasoning }}</p>
+                      </div>
+                      <button class="ai-action-btn primary" onclick="executeSuggestedAction('{{ recommendation.suggested_action.action_key }}', {{ recommendation.suggested_action.parameters|tojson }})">
+                        <!-- Debug info -->
+                        <script>
+                          console.log('AI Recommendation Button - Action Key: {{ recommendation.suggested_action.action_key }}');
+                          console.log('AI Recommendation Button - Parameters: {{ recommendation.suggested_action.parameters|tojson }}');
+                        </script>
+                        <i class="material-icons">play_arrow</i>
+                        Execute Suggested Action
+                      </button>
+                    </div>
+                  </div>
+                {% endif %}
+                
+                <!-- Available Actions Section -->
+                {% if recommendation.available_actions and recommendation.available_actions is iterable %}
+                  <div class="ai-action-container">
+                    <h4>📋 Available Actions:</h4>
+                    <div class="available-actions-grid">
+                      {% for action_key in recommendation.available_actions %}
+                        <button class="ai-action-btn primary" onclick="executeSuggestedAction('{{ action_key }}', {})">
+                          <i class="material-icons">play_arrow</i>
+                          {{ action_key|replace('_', ' ')|title }}
+                        </button>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+                
+                <!-- Legacy Action Buttons (keeping for backward compatibility) -->
+                <!-- Action Button for Stage 2 -->
+                {% if current_stage and current_stage['key'] == 'initial_consult_scheduled' %}
+                  <div class="ai-action-container">
+                    <button class="ai-action-btn primary" onclick="openConsultationModal()">
+                      <i class="material-icons">schedule</i>
+                      Schedule Consultation
+                    </button>
+                  </div>
+                {% endif %}
+                
+                <!-- Action Button for Stage 3 -->
+                {% if current_stage and current_stage['key'] == 'initial_consult_completed' %}
+                  <div class="ai-action-container">
+                    <button class="ai-action-btn primary" onclick="openCompleteConsultationModal('{{ consultation_id }}')">
+                      <i class="material-icons">check_circle</i>
+                      Complete Consultation
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+            {% else %}
+              <!-- Display regular recommendation -->
+              <div class="ai-recommendation-item" data-type="{{ recommendation.type|default('recommendation') }}">
+                <div class="ai-recommendation-header">
+                  <i class="material-icons">{{ recommendation.icon|default('info') }}</i>
+                  <span>{{ recommendation.title }}</span>
+                  <div class="ai-priority-badge">{{ recommendation.priority|default('medium')|upper }}</div>
+                </div>
+                <div class="ai-recommendation-description">
+                  {{ recommendation.description }}
+                </div>
+                
+                <div class="ai-recommendation-actions">
+                  {% if recommendation.action_key %}
+                    {# Use data attributes instead of inline onclick #}
+                    <button class="ai-action-btn primary action-button" 
+                            data-action-key="{{ recommendation.action_key|escape }}" 
+                            data-parameters="{{ recommendation.parameters|default('{}')|tojson|safe }}">
+                      <i class="material-icons">{{ recommendation.icon|default('play_arrow')|escape }}</i>
+                      {{ recommendation.title|default('Execute Action')|escape }}
+                    </button>
+                  {% else %}
+                    <!-- Fallback button -->
+                    <button class="ai-action-btn primary action-button" 
+                            data-action-key="complete_sleep_doctor_followup" 
+                            data-parameters="{}">
+                      <i class="material-icons">check_circle</i>
+                      Execute Action
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <div class="ai-no-recommendations">
+            <i class="material-icons">psychology</i>
+            <div class="ai-no-recommendations-text">
+              No AI recommendations available at this time.
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Details Section - Below AI Workflow -->
+      <div class="details-section">
+        {% for stage in stages %}
+        <div class="stage-details" id="details-{{ stage.key }}" data-stage-key="{{ stage.key }}">
+          <div class="details-header">
+            <div>
+              <div class="details-title">{{ stage.name }}</div>
+              <div class="details-subtitle">{{ stage.subtitle or 'Treatment Stage' }}</div>
+            </div>
+            <div class="status-badge {{ stage.status }}">
+              {{ stage.status|title }}
+            </div>
+          </div>
+          
+          {% if stage.status == 'completed' and stage.date %}
+          <div class="details-date">
+            <i class="material-icons">event</i>
+            Date: {{ stage.date }}
+          </div>
+          {% endif %}
+          
+          <div class="details-content">
+            {{ stage.description or 'No description available for this stage.' }}
+          </div>
+          
+          {% if stage.files %}
+          <div class="files-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h4>Associated Files ({{ stage.files|length }})</h4>
+              <button onclick="openShareFilesModal('{{ stage.key }}', '{{ stage.name }}')" class="share-files-btn">
+                📤 Share Files
+              </button>
+            </div>
+            {% for file in stage.files %}
+            <div class="file-item" data-file-id="{{ file.id }}" data-file-name="{{ file.name }}" data-file-s3-key="{{ file.s3_key }}">
+              <div class="file-icon">📄</div>
+              <div class="file-info">
+                <div class="file-name">{{ file.name }}</div>
+                <div class="file-meta">{{ file.date.strftime('%B %d, %Y') }} - {{ file.description }}</div>
+              </div>
+              {% if file.download_url %}
+                {% if file.is_viewable %}
+                <button onclick="viewFile('{{ file.download_url }}', '{{ file.name }}', '{{ file.file_type }}')" class="file-action view">
+                  👁️ View
+                </button>
+                {% else %}
+                <a href="{{ file.download_url }}" target="_blank" class="file-action download">
+                  📥 Download
+                </a>
+                {% endif %}
+              {% else %}
+              <button class="file-action disabled" disabled>
+                No Link
+              </button>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Manifest Testing Section -->
+<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+  <h5 style="margin: 0 0 10px 0; color: #495057; font-size: 14px;">🧪 Manifest Testing Controls</h5>
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <button onclick="toggleManifest('validation')" 
+            style="padding: 8px 12px; background: #2196F3; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+       📋 Validation Manifest
+    </button>
+    <button onclick="toggleManifest('clinical')" 
+            style="padding: 8px 12px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+       🏥 Clinical Manifest
+    </button>
+    <button onclick="toggleManifest('both')" 
+            style="padding: 8px 12px; background: #FF9800; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+       🔄 Both Manifests
+    </button>
+    <button onclick="toggleManifest('action')" 
+            style="padding: 8px 12px; background: #9C27B0; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+       ⚡ Action Manifest
+    </button>
+  </div>
+  <p style="margin: 10px 0 0 0; font-size: 11px; color: #888;">
+    Click these buttons to show/hide different manifest views for testing purposes.
+  </p>
+  
+  <!-- Debug section for stages_json -->
+  <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeaa7;">
+    <h5 style="margin: 0 0 10px 0; color: #856404; font-size: 13px;">🐛 Debug: Stages JSON Data</h5>
+    <div style="font-family: monospace; font-size: 11px; background: white; padding: 10px; border-radius: 3px; max-height: 200px; overflow-y: auto;">
+      <strong>Raw stages_json:</strong><br>
+      <pre style="margin: 5px 0; white-space: pre-wrap;">{{ stages_json|default('NO DATA') }}</pre>
+      <strong>Length:</strong> {{ stages_json|length if stages_json else 0 }}<br>
+      <strong>Type:</strong> {{ stages_json.__class__.__name__ if stages_json else 'None' }}
+    </div>
+  </div>
+</div>
+
+<!-- Collapsible Manifest Information Display -->
+<div id="validation-manifest" class="manifest-section" style="display: none; margin-top: 20px; padding: 20px; background: #e3f2fd; border-radius: 8px; border: 1px solid #2196F3;">
+  <h4 style="margin: 0 0 15px 0; color: #1565C0; font-size: 16px;">📋 Validation Manifest Data</h4>
+  <div style="padding: 10px; background: white; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto;">
+    <pre style="margin: 0;">{{ patient_manifest|tojson(indent=2) }}</pre>
+  </div>
+</div>
+
+<div id="clinical-manifest" class="manifest-section" style="display: none; margin-top: 20px; padding: 20px; background: #e8f5e8; border-radius: 8px; border: 1px solid #4CAF50;">
+  <h4 style="margin: 0 0 15px 0; color: #2E7D32; font-size: 16px;">🏥 Document-Based Clinical Observations</h4>
+  {% if document_observations %}
+    {% for source_type, observations in document_observations.items() %}
+    <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #4CAF50;">
+      <h6 style="margin: 0 0 8px 0; color: #2E7D32; font-size: 13px;">{{ source_type.upper() }} Documents ({{ observations|length }} observations):</h6>
+      {% for obs in observations[:5] %}
+      <div style="margin-bottom: 8px; padding: 8px; background: #f9f9f9; border-radius: 3px;">
+        <strong>{{ obs.observation }}:</strong> {{ obs.value }}
+        {% if obs.document_name %}
+        <br><small style="color: #666;">Source: {{ obs.document_name }}</small>
+        {% endif %}
+        {% if obs.evidence %}
+        <br><small style="color: #666;">Evidence: {{ obs.evidence[:100] }}{% if obs.evidence|length > 100 %}...{% endif %}</small>
+        {% endif %}
+      </div>
+      {% endfor %}
+      {% if observations|length > 5 %}
+      <div style="font-size: 12px; color: #666; font-style: italic;">
+        ... and {{ observations|length - 5 }} more observations
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="padding: 10px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeaa7;">
+      <p style="margin: 0; color: #856404; font-size: 13px;">⚠️ No document-based clinical observations found for this patient.</p>
+    </div>
+  {% endif %}
+</div>
+
+<div id="both-manifest" class="manifest-section" style="display: none; margin-top: 20px; padding: 20px; background: #fff3e0; border-radius: 8px; border: 1px solid #FF9800;">
+  <h4 style="margin: 0 0 15px 0; color: #E65100; font-size: 16px;">🔄 Both Manifests View</h4>
+  
+  <!-- Clinical Observations Section -->
+  <div style="margin-bottom: 20px;">
+    <h5 style="margin: 0 0 10px 0; color: #E65100; font-size: 14px;">🏥 Document-Based Clinical Observations:</h5>
+    {% if document_observations %}
+      {% for source_type, observations in document_observations.items() %}
+      <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 4px; border-left: 4px solid #FF9800;">
+        <h6 style="margin: 0 0 8px 0; color: #E65100; font-size: 13px;">{{ source_type.upper() }} Documents ({{ observations|length }} observations):</h6>
+        {% for obs in observations[:3] %}
+        <div style="margin-bottom: 8px; padding: 8px; background: #f9f9f9; border-radius: 3px;">
+          <strong>{{ obs.observation }}:</strong> {{ obs.value }}
+          {% if obs.document_name %}
+          <br><small style="color: #666;">Source: {{ obs.document_name }}</small>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if observations|length > 3 %}
+        <div style="font-size: 12px; color: #666; font-style: italic;">
+          ... and {{ observations|length - 3 }} more observations
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="padding: 10px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeaa7;">
+        <p style="margin: 0; color: #856404; font-size: 13px;">⚠️ No document-based clinical observations found for this patient.</p>
+      </div>
+    {% endif %}
+  </div>
+  
+  <!-- Validation Manifest Section -->
+  <div>
+    <h5 style="margin: 0 0 10px 0; color: #E65100; font-size: 14px;">📋 Validation Manifest Data:</h5>
+    <div style="padding: 10px; background: white; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+      <pre style="margin: 0;">{{ patient_manifest|tojson(indent=2) }}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- Action Manifest Section -->
+<div id="action-manifest" class="manifest-section" style="display: none; margin-top: 20px; padding: 20px; background: #f3e5f5; border-radius: 8px; border: 1px solid #9C27B0;">
+  <h4 style="margin: 0 0 15px 0; color: #7B1FA2; font-size: 16px;">⚡ Action Manifest Reference</h4>
+  
+  {% if action_manifest_by_stage and action_manifest_by_stage is mapping %}
+    {% for stage_key, actions in action_manifest_by_stage.items() %}
+    <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #9C27B0;">
+      <h5 style="margin: 0 0 10px 0; color: #7B1FA2; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+        🎯 {{ stage_key.replace('_', ' ').title() }}
+      </h5>
+      
+      {% if actions and actions is iterable %}
+        {% if actions is mapping %}
+          {# Handle dictionary format #}
+          {% for action_key, action_config in actions.items() %}
+          <div style="margin-bottom: 12px; padding: 10px; background: #fafafa; border-radius: 4px; border: 1px solid #e0e0e0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <strong style="color: #333; font-size: 13px;">{{ action_key.replace('_', ' ').title() }}</strong>
+              {% if action_config.category %}
+              <span style="font-size: 11px; color: #666; background: #e8eaf6; padding: 2px 6px; border-radius: 3px;">
+                {{ action_config.category }}
+              </span>
+              {% endif %}
+            </div>
+            
+            {% if action_config.description %}
+            <div style="font-size: 12px; color: #555; margin-bottom: 8px;">
+              {{ action_config.description }}
+            </div>
+            {% endif %}
+            
+            {% if action_config.ai_guidance %}
+            <div style="font-size: 11px; color: #7B1FA2; background: #f3e5f5; padding: 8px; border-radius: 3px; border-left: 3px solid #9C27B0;">
+              <strong>💡 AI Guidance:</strong> {{ action_config.ai_guidance }}
+            </div>
+            {% endif %}
+            
+            {% if action_config.parameters %}
+            <div style="margin-top: 8px; font-size: 11px; color: #666;">
+              <strong>Parameters:</strong> {{ action_config.parameters|join(', ') }}
+            </div>
+            {% endif %}
+            
+            {% if action_config.validation_rule %}
+            <div style="margin-top: 6px; font-size: 11px; color: #666;">
+              <strong>Validation:</strong> {{ action_config.validation_rule }}
+            </div>
+            {% endif %}
+            
+            {% if action_config.method %}
+            <div style="margin-top: 6px; font-size: 11px; color: #666;">
+              <strong>Method:</strong> {{ action_config.method }}
+            </div>
+            {% endif %}
+            
+            {% if action_config.endpoint %}
+            <div style="margin-top: 6px; font-size: 11px; color: #666;">
+              <strong>Endpoint:</strong> {{ action_config.endpoint }}
+            </div>
+            {% endif %}
+            
+            {% if action_config.default_message %}
+            <div style="margin-top: 6px; font-size: 11px; color: #666;">
+              <strong>Default Message:</strong> {{ action_config.default_message }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          {# Handle list format from S3 #}
+          {% for action in actions %}
+          <div style="margin-bottom: 12px; padding: 10px; background: #fafafa; border-radius: 4px; border: 1px solid #e0e0e0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <strong style="color: #333; font-size: 13px;">{{ action.action_key.replace('_', ' ').title() }}</strong>
+              {% if action.category %}
+              <span style="font-size: 11px; color: #666; background: #e8eaf6; padding: 2px 6px; border-radius: 3px;">
+                {{ action.category }}
+              </span>
+              {% endif %}
+            </div>
+            
+            {% if action.description %}
+            <div style="font-size: 12px; color: #555; margin-bottom: 8px;">
+              {{ action.description }}
+            </div>
+            {% endif %}
+            
+            {% if action.ai_guidance %}
+            <div style="font-size: 11px; color: #7B1FA2; background: #f3e5f5; padding: 8px; border-radius: 3px; border-left: 3px solid #9C27B0;">
+              <strong>💡 AI Guidance:</strong> {{ action.ai_guidance }}
+            </div>
+            {% endif %}
+            
+            {% if action.parameters %}
+            <div style="margin-top: 8px; font-size: 11px; color: #666;">
+              <strong>Parameters:</strong> {{ action.parameters|join(', ') }}
+            </div>
+            {% endif %}
+            
+            {% if action.validation_rule %}
+            <div style="margin-top: 6px; font-size: 11px; color: #666;">
+              <strong>Validation:</strong> {{ action.validation_rule }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% endif %}
+      {% else %}
+        <div style="padding: 10px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeaa7;">
+          <p style="margin: 0; color: #856404; font-size: 12px;">⚠️ No actions available for this stage.</p>
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="padding: 15px; background: #fff3cd; border-radius: 4px; border: 1px solid #ffeaa7;">
+      <p style="margin: 0; color: #856404; font-size: 13px;">⚠️ No action manifest data available.</p>
+      <p style="margin: 5px 0 0 0; color: #856404; font-size: 11px;">Type: {{ action_manifest_by_stage.__class__.__name__ }}</p>
+    </div>
+  {% endif %}
+  
+  <!-- AI Guidance Summary -->
+  {% if ai_guidance_by_stage %}
+  <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 6px; border: 1px solid #4CAF50;">
+    <h5 style="margin: 0 0 10px 0; color: #2E7D32; font-size: 14px;">🤖 AI Guidance Summary</h5>
+    {% for stage_key, guidance in ai_guidance_by_stage.items() %}
+      {% if guidance %}
+      <div style="margin-bottom: 10px; padding: 8px; background: white; border-radius: 4px;">
+        <strong style="font-size: 12px; color: #2E7D32;">{{ stage_key.replace('_', ' ').title() }}:</strong>
+        <div style="font-size: 11px; color: #555; margin-top: 4px;">
+          {% for action_key, guidance_text in guidance.items() %}
+          <div style="margin-bottom: 4px;">
+            <strong>{{ action_key }}:</strong> {{ guidance_text }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Share Files Modal -->
+<div id="share-files-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
+    <div class="modal-header">
+      <h3 id="share-modal-title">Share Files</h3>
+      <button class="modal-close" onclick="closeShareFilesModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 20px;">
+      <div id="share-stage-info" style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+        <strong>Stage:</strong> <span id="share-stage-name"></span>
+      </div>
+      
+      <div id="share-files-selection" style="margin-bottom: 20px;">
+        <h4 style="margin-bottom: 10px;">Select Files to Share:</h4>
+        <div id="share-files-list">
+          <!-- Files will be populated here -->
+        </div>
+      </div>
+      
+      <form id="share-files-form">
+        <div style="margin-bottom: 15px;">
+          <label for="recipient-email" style="display: block; margin-bottom: 5px; font-weight: 500;">Recipient Emails (separate multiple emails with commas):</label>
+          <input type="text" id="recipient-email" name="email" required 
+                 placeholder="email1@example.com, email2@example.com"
+                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label for="email-message" style="display: block; margin-bottom: 5px; font-weight: 500;">Message:</label>
+          <textarea id="email-message" name="message" rows="4" 
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical;">Please find the selected files from the patient journey below.</textarea>
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" onclick="closeShareFilesModal()" 
+                  style="padding: 10px 20px; background: #666; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Cancel
+          </button>
+          <button type="submit" id="send-files-btn"
+                  style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; transition: all 0.3s ease;">
+            Send Files
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Simple Fixed Dr. Briz Chat Box -->
+<div id="dr-briz-chat" class="dr-briz-chat-window">
+
+  <div class="dr-briz-header">
+    <div class="dr-briz-header-left">
+      <img src="/flask_static/branding/drbriz_logo.png" alt="Dr. Briz Logo" />
+      <span>Dr. Briz</span>
+    </div>
+    <div class="dr-briz-header-controls">
+      <button class="dr-briz-control-btn" id="minimize-btn" title="Minimize">−</button>
+      <button class="dr-briz-control-btn" id="maximize-btn" title="Maximize">□</button>
+    </div>
+  </div>
+  <div id="chat-messages">
+    <div><b>Dr. Briz:</b> Welcome! I am Dr. Briz, your OSA Expert. I can provide both operational as well as clinical insights regarding your patient.</div>
+  </div>
+  <div class="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Type your message..." />
+    <button id="chat-send">Send</button>
+  </div>
+</div>
+
+<script>
+// Global variables
+const PATIENT_ID = {{ patient.id|default('null') }};
+const PATIENT_EMAIL = "{{ patient.email if patient.email else '' }}";
+
+// Action execution functions (defined early to avoid reference errors)
+function executeActionDirectly(actionKey, parameters) {
+  // Check if this is a file upload action
+  const fileUploadActions = [
+    'request_sleep_test_files',
+    'request_intraoral_scan',
+    'request_osa_report'
+  ];
+  
+  if (fileUploadActions.includes(actionKey)) {
+    // For file upload actions, redirect to patient details page
+    window.location.href = `/patient_details/${PATIENT_ID}`;
+    return;
+  }
+  
+  // For other actions, use the fallback method
+  executeActionDirectlyFallback(actionKey, parameters);
+}
+
+function executeActionDirectlyFallback(actionKey, parameters) {
+  console.log('Executing action directly:', actionKey, parameters);
+  console.log('Parameters being sent:', JSON.stringify(parameters, null, 2));
+  
+  fetch('/api/llm/execute_action', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action_key: actionKey,
+      parameters: parameters
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Action executed successfully!');
+      // Refresh the page to show updated status
+      location.reload();
+    } else {
+      alert('Error executing action: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error executing action. Please try again.');
+  });
+}
+
+// Simple test function
+function showActionDetails(actionKey) {
+  alert('Action details for: ' + actionKey);
+}
+
+// Add event listeners for action buttons
+document.addEventListener('DOMContentLoaded', function() {
+  // Add click handlers for action buttons
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.action-button')) {
+      const button = e.target.closest('.action-button');
+      const actionKey = button.getAttribute('data-action-key');
+      const parametersStr = button.getAttribute('data-parameters');
+      
+      let parameters = {};
+      if (parametersStr && parametersStr !== '{}' && parametersStr !== 'null') {
+        try {
+          parameters = JSON.parse(parametersStr);
+        } catch (error) {
+          console.error('Error parsing parameters:', error);
+          parameters = {};
+        }
+      }
+      
+      executeActionDirectly(actionKey, parameters);
+    }
+  });
+});
+
+// Stage selection functionality
+function selectStage(stageKey) {
+  console.log('selectStage called with:', stageKey);
+  
+  // Update active stage in timeline
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Find and activate the selected stage
+  const selectedItem = document.querySelector(`[onclick="selectStage('${stageKey}')"]`);
+  if (selectedItem) {
+    selectedItem.classList.add('active');
+    console.log('Activated timeline item for stage:', stageKey);
+  } else {
+    console.warn('Could not find timeline item for stage:', stageKey);
+  }
+  
+  // Update details section
+  document.querySelectorAll('.stage-details').forEach(detail => {
+    detail.classList.remove('active');
+  });
+  
+  const selectedDetail = document.getElementById('details-' + stageKey);
+  if (selectedDetail) {
+    selectedDetail.classList.add('active');
+    console.log('Activated details section for stage:', stageKey);
+  } else {
+    console.warn('Could not find details section for stage:', stageKey);
+  }
+}
+
+// Auto-select first stage on page load
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, looking for stages...');
+  
+  // Find the first .timeline-item.active or fallback to the first .timeline-item
+  let activeItem = document.querySelector('.timeline-item.active');
+  if (!activeItem) {
+    activeItem = document.querySelector('.timeline-item');
+  }
+  
+  if (activeItem) {
+    console.log('Found timeline item:', activeItem);
+    // Extract the stageKey from the onclick attribute
+    const onclickAttr = activeItem.getAttribute('onclick');
+    console.log('onclick attribute:', onclickAttr);
+    
+    const match = onclickAttr && onclickAttr.match(/selectStage\('([^']+)'\)/);
+    if (match && match[1]) {
+      console.log('Extracted stage key:', match[1]);
+      selectStage(match[1]);
+    } else {
+      console.warn('Could not extract stage key from onclick attribute');
+    }
+  } else {
+    console.warn('No timeline items found');
+  }
+  
+  // Fallback: if no stage is selected after 100ms, force select the first one
+  setTimeout(() => {
+    const activeDetails = document.querySelector('.stage-details.active');
+    if (!activeDetails) {
+      console.log('No active details found, forcing selection of first stage');
+      const firstTimelineItem = document.querySelector('.timeline-item');
+      if (firstTimelineItem) {
+        const onclickAttr = firstTimelineItem.getAttribute('onclick');
+        const match = onclickAttr && onclickAttr.match(/selectStage\('([^']+)'\)/);
+        if (match && match[1]) {
+          console.log('Forcing selection of stage:', match[1]);
+          selectStage(match[1]);
+          
+          // Double-check that the details are visible
+          setTimeout(() => {
+            const detailsSection = document.querySelector('.stage-details.active');
+            if (detailsSection) {
+              console.log('Details section is now active and visible');
+              detailsSection.style.display = 'block';
+            } else {
+              console.error('Details section still not visible after forced selection');
+            }
+          }, 50);
+        }
+      }
+    } else {
+      console.log('Details section is already active');
+    }
+  }, 100);
+});
+
+// Manifest toggle functionality
+function toggleManifest(type) {
+  // Hide all manifest sections
+  document.querySelectorAll('.manifest-section').forEach(section => {
+    section.style.display = 'none';
+  });
+  
+  // Show the selected manifest section
+  const selectedSection = document.getElementById(type + '-manifest');
+  if (selectedSection) {
+    selectedSection.style.display = 'block';
+  }
+}
+
+// File sharing functionality
+function shareFile(fileId, fileName) {
+  const shareUrl = window.location.origin + '/file/share/' + fileId;
+  window.prompt('Share this link for file "' + fileName + '":', shareUrl);
+}
+
+// AI Workflow modal functions (placeholder implementations)
+function openScheduleModal(consultType, title) {
+  alert('Schedule modal for: ' + title);
+}
+
+function openValidationModal(consultType, title) {
+  alert('Validation modal for: ' + title);
+}
+
+function openOrderModal() {
+  alert('Order modal');
+}
+
+function openDeliveryModal() {
+  alert('Delivery modal');
+}
+
+function completeCurrentStage() {
+  alert('Complete current stage');
+}
+
+function prepareNextStage(nextStageKey) {
+  alert('Prepare next stage: ' + nextStageKey);
+}
+
+function openShareFilesModal(stageKey, stageName) {
+  currentStageKey = stageKey;
+  
+  console.log('Opening share modal for stage:', stageKey, stageName);
+  
+  // Find the stage container in the DOM
+  const stageContainer = document.querySelector(`[data-stage-key="${stageKey}"]`);
+  if (!stageContainer) {
+    console.error('Stage container not found for key:', stageKey);
+    alert('Unable to find stage data. Please refresh the page and try again.');
+    return;
+  }
+  
+  // Extract file data from the DOM
+  const fileElements = stageContainer.querySelectorAll('.file-item');
+  const files = [];
+  
+  fileElements.forEach((fileElement, index) => {
+    const fileName = fileElement.querySelector('.file-name')?.textContent || 'Unknown file';
+    const fileMeta = fileElement.querySelector('.file-meta')?.textContent || '';
+    const downloadLink = fileElement.querySelector('a[href]')?.href || '';
+    const viewButton = fileElement.querySelector('button[onclick*="viewFile"]');
+    
+    // Extract file ID and S3 key from data attributes
+    const fileId = fileElement.getAttribute('data-file-id');
+    const s3Key = fileElement.getAttribute('data-file-s3-key') || '';
+    
+    // Parse date from file meta
+    const dateMatch = fileMeta.match(/(\w+ \d+, \d{4})/);
+    const fileDate = dateMatch ? dateMatch[1] : '';
+    
+    // Parse description from file meta
+    const descMatch = fileMeta.match(/ - (.+)$/);
+    const fileDescription = descMatch ? descMatch[1] : '';
+    
+    files.push({
+      id: fileId ? parseInt(fileId) : index,
+      name: fileName,
+      date: fileDate,
+      description: fileDescription,
+      s3_key: s3Key,
+      download_url: s3Key,
+      file_type: 'unknown',
+      is_viewable: !!viewButton
+    });
+  });
+  
+  console.log('Extracted files from DOM:', files);
+  
+  if (files.length === 0) {
+    alert('No files found for this stage.');
+    return;
+  }
+  
+  currentStageFiles = files;
+  populateShareFilesList(files);
+  document.getElementById('share-stage-name').textContent = stageName;
+  
+  // Clear the email field to ensure it's empty each time
+  document.getElementById('recipient-email').value = '';
+  
+  document.getElementById('share-files-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function populateShareFilesList(files) {
+  console.log('Populating share files list with:', files);  // Debug logging
+  const filesList = document.getElementById('share-files-list');
+  filesList.innerHTML = '';
+  
+  if (!files || files.length === 0) {
+    filesList.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No files found for this stage.</p>';
+    return;
+  }
+  
+  files.forEach((file, index) => {
+    console.log('Processing file:', file);  // Debug logging
+    const fileItem = document.createElement('div');
+    fileItem.style.cssText = 'display: flex; align-items: flex-start; padding: 12px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; background: white; gap: 12px;';
+    
+    // Create label wrapper for better accessibility and clickability
+    const label = document.createElement('label');
+    label.htmlFor = `file-checkbox-${index}`;
+    label.style.cssText = 'display: flex; align-items: center; cursor: pointer; margin-right: 12px; min-width: 20px; min-height: 20px;';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = `file-checkbox-${index}`;
+    checkbox.checked = true; // Pre-select all files by default
+    checkbox.style.cssText = 'width: 20px; height: 20px; cursor: pointer; margin: 0; padding: 0; appearance: auto; -webkit-appearance: auto; -moz-appearance: auto; display: inline-block !important; opacity: 1 !important; visibility: visible !important; background: white !important; border: 2px solid #2196F3 !important; border-radius: 3px !important; position: relative !important; z-index: 1 !important;';
+    
+    // Add click event listener to ensure it's interactive
+    checkbox.addEventListener('click', function(e) {
+      console.log('Checkbox clicked:', this.checked);
+      e.stopPropagation(); // Prevent event bubbling
+    });
+    
+    // Add debugging to ensure checkbox is created
+    console.log('Created checkbox:', checkbox);
+    console.log('Checkbox visible:', checkbox.offsetWidth > 0 && checkbox.offsetHeight > 0);
+    console.log('Checkbox style:', checkbox.style.cssText);
+    
+    const fileInfo = document.createElement('div');
+    fileInfo.style.flex = '1';
+    fileInfo.innerHTML = `
+      <div style="font-weight: 500; margin-bottom: 2px;">${file.name || 'Unknown file'}</div>
+      <div style="font-size: 12px; color: #666;">${file.date ? new Date(file.date).toLocaleDateString() : 'No date'} - ${file.description || 'No description'}</div>
+      <div style="font-size: 11px; color: #999;">S3 Key: ${file.s3_key || 'No S3 key'}</div>
+    `;
+    
+    // Append checkbox to label, then label to fileItem
+    label.appendChild(checkbox);
+    fileItem.appendChild(label);
+    fileItem.appendChild(fileInfo);
+    filesList.appendChild(fileItem);
+    
+    // Debug the final structure
+    console.log('File item created:', fileItem);
+    console.log('Checkbox in DOM:', fileItem.querySelector('input[type="checkbox"]'));
+    console.log('Total checkboxes in list:', filesList.querySelectorAll('input[type="checkbox"]').length);
+  });
+  
+  // Final debug check
+  console.log('Final files list HTML:', filesList.innerHTML);
+  console.log('All checkboxes found:', filesList.querySelectorAll('input[type="checkbox"]'));
+}
+
+function closeShareFilesModal() {
+  document.getElementById('share-files-modal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+  currentStageKey = null;
+  currentStageFiles = [];
+}
+
+function sendShareFiles() {
+  const recipientEmails = document.getElementById('recipient-email').value.trim();
+  const selectedFileIds = Array.from(document.querySelectorAll('#share-files-list input[type="checkbox"]:checked')).map(cb => cb.value);
+  const message = document.getElementById('email-message').value.trim();
+
+  if (!recipientEmails || selectedFileIds.length === 0) {
+    alert('Please select at least one file and enter recipient emails.');
+    return;
+  }
+
+  // Parse multiple email addresses
+  const emailList = recipientEmails.split(',').map(email => email.trim()).filter(email => email.length > 0);
+  
+  if (emailList.length === 0) {
+    alert('Please enter at least one valid email address.');
+    return;
+  }
+
+  // Get selected files by checking which checkboxes are checked
+  const selectedItems = [];
+  const checkboxes = document.querySelectorAll('#share-files-list input[type="checkbox"]:checked');
+  
+  checkboxes.forEach((checkbox, index) => {
+    const fileItem = checkbox.closest('div');
+    const fileInfo = fileItem.querySelector('div:last-child');
+    const fileName = fileInfo.querySelector('div:first-child').textContent;
+    const s3KeyLine = fileInfo.querySelector('div:last-child').textContent;
+    const s3Key = s3KeyLine.replace('S3 Key: ', '');
+    
+    // Find the corresponding file in currentStageFiles
+    const file = currentStageFiles.find(f => f.name === fileName && f.s3_key === s3Key);
+    
+    if (file) {
+      selectedItems.push({
+        isFolder: false,
+        fileId: file.id,
+        folderName: null,
+        category: file.file_type || 'unknown',
+        patientId: PATIENT_ID,
+        s3_key: file.s3_key,
+        name: file.name
+      });
+    }
+  });
+  
+  console.log('Selected items for sharing:', selectedItems);
+  
+  if (selectedItems.length === 0) {
+    alert('No files selected to share. Please select at least one file.');
+    return;
+  }
+
+  // Send separate requests for each recipient to maintain backward compatibility
+  let successCount = 0;
+  let errorCount = 0;
+  const totalRecipients = emailList.length;
+  
+  // Update button text to show progress
+  const sendButton = document.getElementById('send-files-btn');
+  const originalText = sendButton.textContent;
+  sendButton.textContent = `Sending... (0/${totalRecipients})`;
+  sendButton.disabled = true;
+  
+  // Send to each recipient separately
+  const sendPromises = emailList.map((email, index) => {
+    return fetch('/generate_presigned_links', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        items: selectedItems,
+        recipient_email: email.trim(),
+        message: message
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(`Share files response for ${email}:`, data);
+      
+      if (data.success) {
+        successCount++;
+        console.log(`✅ Successfully sent to ${email}`);
+      } else {
+        errorCount++;
+        console.error(`❌ Failed to send to ${email}: ${data.message || 'Unknown error'}`);
+      }
+      
+      // Update progress
+      sendButton.textContent = `Sending... (${successCount + errorCount}/${totalRecipients})`;
+      
+      return { email, success: data.success, message: data.message };
+    })
+    .catch(error => {
+      errorCount++;
+      console.error(`❌ Error sending to ${email}:`, error);
+      sendButton.textContent = `Sending... (${successCount + errorCount}/${totalRecipients})`;
+      return { email, success: false, message: error.message };
+    });
+  });
+  
+  // Wait for all requests to complete
+  Promise.all(sendPromises)
+    .then(results => {
+      const successfulEmails = results.filter(r => r.success).map(r => r.email);
+      const failedEmails = results.filter(r => !r.success).map(r => r.email);
+      
+      if (successfulEmails.length > 0) {
+        let message = `Files shared successfully! Emails sent to: ${successfulEmails.join(', ')}`;
+        if (failedEmails.length > 0) {
+          message += `\n\nFailed to send to: ${failedEmails.join(', ')}`;
+        }
+        alert(message);
+        closeShareFilesModal();
+      } else {
+        alert('Failed to send files to any recipients. Please check the email addresses and try again.');
+      }
+    })
+    .catch(error => {
+      console.error('Error in batch sending:', error);
+      alert('Error sharing files: ' + error.message);
+    })
+    .finally(() => {
+      // Reset button state regardless of success or failure
+      sendButton.disabled = false;
+      sendButton.textContent = originalText;
+    });
+}
+
+document.getElementById('share-files-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  sendShareFiles();
+});
+
+function viewFile(url, name, type) {
+  window.open(url, '_blank');
+}
+
+// File Sharing Variables
+let currentStageKey = null;
+let currentStageFiles = [];
+let stagesData = [];
+
+// Initialize stages data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const jsonString = '{{ stages_json|default('{}')|safe }}';
+    console.log('Raw JSON string:', jsonString);
+    
+    if (!jsonString || jsonString.trim() === '') {
+      console.warn('Stages JSON is empty');
+      stagesData = [];
+      return;
+    }
+    
+    stagesData = JSON.parse(jsonString);
+    console.log('Stages data loaded:', stagesData);
+  } catch (error) {
+    console.error('Error parsing stages data:', error);
+          console.error('Raw JSON string was:', '{{ stages_json|default('{}')|safe }}');
+    stagesData = [];
+  }
+});
+
+// Dr. Briz Chat Box functionality
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded - Initializing Dr. Briz chat...');
+  
+  const chatWindow = document.getElementById('dr-briz-chat');
+  const chatHeader = document.querySelector('.dr-briz-header');
+  const minimizeBtn = document.getElementById('minimize-btn');
+  const maximizeBtn = document.getElementById('maximize-btn');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+  
+  console.log('Elements found:', {
+    chatWindow: !!chatWindow,
+    chatHeader: !!chatHeader,
+    minimizeBtn: !!minimizeBtn,
+    maximizeBtn: !!maximizeBtn,
+    chatMessages: !!chatMessages,
+    chatInput: !!chatInput,
+    chatSend: !!chatSend
+  });
+  
+  // Check if all required elements exist
+  if (!chatWindow || !chatHeader || !minimizeBtn || !maximizeBtn || !chatMessages || !chatInput || !chatSend) {
+    console.error('Some Dr. Briz chat elements are missing:', {
+      chatWindow: !!chatWindow,
+      chatHeader: !!chatHeader,
+      minimizeBtn: !!minimizeBtn,
+      maximizeBtn: !!maximizeBtn,
+      chatMessages: !!chatMessages,
+      chatInput: !!chatInput,
+      chatSend: !!chatSend
+    });
+    return;
+  }
+  
+  console.log('Dr. Briz chat elements found, initializing...');
+  
+  let isDragging = false;
+  let dragOffset = { x: 0, y: 0 };
+  let isMinimized = false;
+  let isMaximized = false;
+  let originalPosition = { x: 20, y: 20 };
+  let originalSize = { width: '350px', height: '300px' };
+  let originalDisplay = 'flex';
+  
+  // Dragging functionality
+  chatHeader.addEventListener('mousedown', function(e) {
+    if (e.target.closest('.dr-briz-control-btn')) return;
+    isDragging = true;
+    const rect = chatWindow.getBoundingClientRect();
+    dragOffset.x = e.clientX - rect.left;
+    dragOffset.y = e.clientY - rect.top;
+    chatHeader.style.cursor = 'grabbing';
+  });
+  
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    
+    const x = e.clientX - dragOffset.x;
+    const y = e.clientY - dragOffset.y;
+    
+    // Constrain to viewport
+    const maxX = window.innerWidth - chatWindow.offsetWidth;
+    const maxY = window.innerHeight - chatWindow.offsetHeight;
+    
+    chatWindow.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+    chatWindow.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+  });
+  
+  document.addEventListener('mouseup', function() {
+    if (isDragging) {
+      isDragging = false;
+      chatHeader.style.cursor = 'grab';
+    }
+  });
+  
+  // Minimize/Maximize functionality
+  
+  minimizeBtn.addEventListener('click', function() {
+    console.log('Minimize button clicked, current states - minimized:', isMinimized, 'maximized:', isMaximized);
+    
+    if (isMinimized) {
+      // Restore from minimized state
+      chatWindow.style.height = originalSize.height;
+      chatWindow.style.width = originalSize.width;
+      chatMessages.style.display = 'block';
+      chatInput.style.display = 'block';
+      chatSend.style.display = 'block';
+      minimizeBtn.textContent = '−';
+      isMinimized = false;
+      console.log('Chat window restored from minimized state');
+    } else {
+      // Minimize the window
+      chatWindow.style.height = '50px';
+      chatMessages.style.display = 'none';
+      chatInput.style.display = 'none';
+      chatSend.style.display = 'none';
+      minimizeBtn.textContent = '+';
+      isMinimized = true;
+      console.log('Chat window minimized');
+    }
+  });
+  
+  maximizeBtn.addEventListener('click', function() {
+    console.log('Maximize button clicked, current states - minimized:', isMinimized, 'maximized:', isMaximized);
+    
+    if (isMaximized) {
+      // Restore to original size and position
+      chatWindow.style.width = originalSize.width;
+      chatWindow.style.height = originalSize.height;
+      chatWindow.style.left = originalPosition.x + 'px';
+      chatWindow.style.top = originalPosition.y + 'px';
+      chatWindow.style.right = 'auto';
+      chatWindow.style.bottom = 'auto';
+      maximizeBtn.textContent = '□';
+      isMaximized = false;
+      console.log('Chat window restored to original size');
+    } else {
+      // If currently minimized, restore first, then maximize
+      if (isMinimized) {
+        chatWindow.style.height = originalSize.height;
+        chatWindow.style.width = originalSize.width;
+        chatMessages.style.display = 'block';
+        chatInput.style.display = 'block';
+        chatSend.style.display = 'block';
+        minimizeBtn.textContent = '−';
+        isMinimized = false;
+        console.log('Restored from minimized state before maximizing');
+      }
+      
+      // Store current position and size
+      const rect = chatWindow.getBoundingClientRect();
+      originalPosition.x = rect.left;
+      originalPosition.y = rect.top;
+      originalSize.width = chatWindow.style.width || '350px';
+      originalSize.height = chatWindow.style.height || '300px';
+      
+      // Maximize to full screen
+      chatWindow.style.width = 'calc(100vw - 40px)';
+      chatWindow.style.height = 'calc(100vh - 40px)';
+      chatWindow.style.left = '20px';
+      chatWindow.style.top = '20px';
+      chatWindow.style.right = '20px';
+      chatWindow.style.bottom = '20px';
+      maximizeBtn.textContent = '❐';
+      isMaximized = true;
+      console.log('Chat window maximized');
+    }
+  });
+  
+
+  
+  // Send message functionality
+  function sendMessage() {
+    const message = chatInput.value.trim();
+    if (message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.innerHTML = `<b>You:</b> ${message}`;
+      chatMessages.appendChild(messageDiv);
+      chatInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Show loading indicator
+      const loadingDiv = document.createElement('div');
+      loadingDiv.innerHTML = `<b>Dr. Briz:</b> <i>Thinking...</i>`;
+      loadingDiv.id = 'loading-message';
+      chatMessages.appendChild(loadingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Call the AI API
+      fetch('/api/bedrock_chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          patient_id: {{ patient.id|default('null') }},
+          message: message,
+          workflow_mode: false
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Remove loading message
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) {
+          loadingMessage.remove();
+        }
+        
+        if (data.success) {
+          const responseDiv = document.createElement('div');
+          responseDiv.innerHTML = `<b>Dr. Briz:</b> ${data.response}`;
+          chatMessages.appendChild(responseDiv);
+        } else {
+          const errorDiv = document.createElement('div');
+          errorDiv.innerHTML = `<b>Dr. Briz:</b> <span style="color: red;">Sorry, I encountered an error: ${data.response || data.message}</span>`;
+          chatMessages.appendChild(errorDiv);
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      })
+      .catch(error => {
+        // Remove loading message
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) {
+          loadingMessage.remove();
+        }
+        
+        console.error('Error calling AI API:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.innerHTML = `<b>Dr. Briz:</b> <span style="color: red;">Sorry, I'm having trouble connecting right now. Please try again later.</span>`;
+        chatMessages.appendChild(errorDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
+    }
+  }
+  
+  chatSend.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+});
+</script>
+
+<style>
+/* Dr. Briz Chat Box Styles */
+.dr-briz-chat-window {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 350px;
+  height: 300px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  border: 1px solid #e0e0e0;
+}
+
+.dr-briz-header {
+  background: #2196F3;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.dr-briz-header:active {
+  cursor: grabbing;
+}
+
+.dr-briz-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dr-briz-header-left img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.dr-briz-header-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.dr-briz-control-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  min-width: 24px;
+  text-align: center;
+}
+
+.dr-briz-control-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.1);
+}
+
+.dr-briz-control-btn:active {
+  background: rgba(255,255,255,0.4);
+  transform: scale(0.95);
+}
+
+
+
+#chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#chat-messages div {
+  margin-bottom: 8px;
+}
+
+.chat-input-container {
+  padding: 12px 16px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 8px;
+}
+
+/* Action Modal Styles */
+#actionModal .modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+#actionModal .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
+  padding: 20px 24px;
+}
+
+#actionModal .modal-title {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+#actionModal .modal-body {
+  padding: 24px;
+}
+
+#actionModal .form-group {
+  margin-bottom: 20px;
+}
+
+#actionModal .form-group label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+#actionModal .form-control {
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+#actionModal .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+#actionModal .form-control[type="date"],
+#actionModal .form-control[type="time"] {
+  padding: 10px 12px;
+}
+
+#actionModal textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+#actionModal .modal-footer {
+  border-top: 1px solid #e1e5e9;
+  padding: 20px 24px;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+#actionModal .btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+#actionModal .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+#actionModal .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+#actionModal .btn-secondary {
+  background: #6c757d;
+  border: none;
+  color: white;
+}
+
+#actionModal .btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+#chat-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+#chat-send {
+  padding: 8px 16px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#chat-send:hover {
+  background: #1976D2;
+}
+</style>
+
+<!-- Consultation Scheduling Modal -->
+<div id="consultationModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Schedule Consultation</h2>
+      <span class="close" onclick="closeConsultationModal()">&times;</span>
+    </div>
+    
+    <form id="consultationForm">
+      <div class="form-group">
+        <label class="form-label" for="consultationDate">Date</label>
+        <input type="date" id="consultationDate" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="consultationTime">Time</label>
+        <input type="time" id="consultationTime" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="doctorName">Doctor Name</label>
+        <input type="text" id="doctorName" class="form-input" placeholder="Enter doctor name" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="consultationNotes">Notes</label>
+        <textarea id="consultationNotes" class="form-input form-textarea" placeholder="Additional notes about the consultation"></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeConsultationModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Schedule Consultation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Consultation Completion Modal -->
+<div id="completeConsultationModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Complete Consultation</h2>
+      <span class="close" onclick="closeCompleteConsultationModal()">&times;</span>
+    </div>
+    
+    <form id="completeConsultationForm">
+      <div class="form-group">
+        <label class="form-label" for="completionDate">Completion Date</label>
+        <input type="date" id="completionDate" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="completionTime">Completion Time</label>
+        <input type="time" id="completionTime" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="completionDoctorName">Doctor Name</label>
+        <input type="text" id="completionDoctorName" class="form-input" placeholder="Enter doctor name" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="completionNotes">Consultation Notes</label>
+        <textarea id="completionNotes" class="form-input form-textarea" placeholder="Notes about the consultation outcome, recommendations, etc."></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeCompleteConsultationModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Complete Consultation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Action Manifest Modals -->
+<!-- Approve OSA Report Modal -->
+<div id="approveOsaReportModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Approve OSA Report</h2>
+      <span class="close" onclick="closeActionModal('approveOsaReportModal')">&times;</span>
+    </div>
+    
+    <form id="approveOsaReportForm">
+      <div class="form-group">
+        <label class="form-label" for="osaReportId">OSA Report ID</label>
+        <input type="text" id="osaReportId" class="form-input" placeholder="Enter OSA report ID" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="approvalDate">Approval Date</label>
+        <input type="date" id="approvalDate" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="approverName">Approver Name</label>
+        <input type="text" id="approverName" class="form-input" placeholder="Enter approver name" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="approvalNotes">Approval Notes</label>
+        <textarea id="approvalNotes" class="form-input form-textarea" placeholder="Notes about the approval decision"></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeActionModal('approveOsaReportModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Approve Report</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Order Oral Appliance Modal -->
+<div id="orderOralApplianceModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Order Oral Appliance</h2>
+      <span class="close" onclick="closeActionModal('orderOralApplianceModal')">&times;</span>
+    </div>
+    
+    <form id="orderOralApplianceForm">
+      <div class="form-group">
+        <label class="form-label" for="applianceType">Appliance Type</label>
+        <select id="applianceType" class="form-input" required>
+          <option value="">Select appliance type</option>
+          <option value="mandibular_advancement">Mandibular Advancement Device</option>
+          <option value="tongue_retaining">Tongue Retaining Device</option>
+          <option value="palatal_lifting">Palatal Lifting Device</option>
+          <option value="custom_fitted">Custom Fitted Appliance</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="orderDate">Order Date</label>
+        <input type="date" id="orderDate" class="form-input" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="orderNotes">Order Notes</label>
+        <textarea id="orderNotes" class="form-input form-textarea" placeholder="Additional notes about the order"></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeActionModal('orderOralApplianceModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Place Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Request Documents Modal -->
+<div id="requestDocumentsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Request Documents</h2>
+      <span class="close" onclick="closeActionModal('requestDocumentsModal')">&times;</span>
+    </div>
+    
+    <form id="requestDocumentsForm">
+      <div class="form-group">
+        <label class="form-label" for="documentTypes">Document Types</label>
+        <select id="documentTypes" class="form-input" required>
+          <option value="">Select document type</option>
+          <option value="sleep_test">Sleep Test Results</option>
+          <option value="cbct_observations">CBCT Observation Report</option>
+          <option value="intraoral_scan">Intraoral Scan</option>
+          <option value="hipaa_consent">HIPAA Consent Forms</option>
+          <option value="osa_report">OSA Report</option>
+          <option value="followup_sleep_test">Follow-up Sleep Test</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="requestMessage">Message to Patient</label>
+        <textarea id="requestMessage" class="form-input form-textarea" placeholder="Message explaining what documents are needed and why" required></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeActionModal('requestDocumentsModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Send Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Send Reminder Modal -->
+<div id="sendReminderModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Send Reminder</h2>
+      <span class="close" onclick="closeActionModal('sendReminderModal')">&times;</span>
+    </div>
+    
+    <form id="sendReminderForm">
+      <div class="form-group">
+        <label class="form-label" for="reminderMessage">Reminder Message</label>
+        <textarea id="reminderMessage" class="form-input form-textarea" placeholder="Enter reminder message for the patient" required></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeActionModal('sendReminderModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Send Reminder</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Consultation Modal Functions
+function openConsultationModal() {
+  document.getElementById('consultationModal').style.display = 'block';
+  // Set default date to today
+  document.getElementById('consultationDate').value = new Date().toISOString().split('T')[0];
+}
+
+function closeConsultationModal() {
+  document.getElementById('consultationModal').style.display = 'none';
+  document.getElementById('consultationForm').reset();
+}
+
+// Consultation Completion Modal Functions
+function openCompleteConsultationModal(consultationId) {
+  document.getElementById('completeConsultationModal').style.display = 'block';
+  // Set default date to today
+  document.getElementById('completionDate').value = new Date().toISOString().split('T')[0];
+  // Store consultation ID for form submission
+  document.getElementById('completeConsultationForm').setAttribute('data-consultation-id', consultationId);
+}
+
+function closeCompleteConsultationModal() {
+  document.getElementById('completeConsultationModal').style.display = 'none';
+  document.getElementById('completeConsultationForm').reset();
+}
+
+// Handle consultation form submission
+document.getElementById('consultationForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = {
+    patient_id: PATIENT_ID,
+    consult_type: 'sleep_expert',
+    scheduled_datetime: document.getElementById('consultationDate').value + 'T' + document.getElementById('consultationTime').value,
+    doctor_name: document.getElementById('doctorName').value,
+    notes: document.getElementById('consultationNotes').value
+  };
+  
+  // Send to backend
+  fetch('/api/schedule_consultation', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Consultation scheduled successfully!');
+      closeConsultationModal();
+      // Refresh the page to update the workflow
+      location.reload();
+    } else {
+      alert('Error scheduling consultation: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error scheduling consultation. Please try again.');
+  });
+});
+
+// Handle consultation completion form submission
+document.getElementById('completeConsultationForm').addEventListener('submit', function(e) {
+  console.log('=== COMPLETE CONSULTATION FORM SUBMITTED ===');
+  e.preventDefault();
+  
+  const consultationId = this.getAttribute('data-consultation-id');
+  
+  const formData = {
+    patient_id: PATIENT_ID,
+    consultation_id: consultationId,
+    completed_datetime: document.getElementById('completionDate').value + 'T' + document.getElementById('completionTime').value,
+    doctor_name: document.getElementById('completionDoctorName').value,
+    notes: document.getElementById('completionNotes').value
+  };
+  
+  // Send to backend
+  fetch('/api/complete_consultation', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Consultation completed successfully!');
+      closeCompleteConsultationModal();
+      // Refresh the page to update the workflow
+      location.reload();
+    } else {
+      alert('Error completing consultation: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error completing consultation. Please try again.');
+  });
+});
+
+// Action Manifest Functions
+function executeSuggestedAction(actionKey, parameters) {
+  alert('DEBUG: executeSuggestedAction function called!');
+  console.log('=== EXECUTE SUGGESTED ACTION ===');
+  console.log('Action key:', actionKey);
+  console.log('Parameters:', parameters);
+  
+  // Check if this action requires a popup modal
+  if (actionKey === 'approve_osa_report') {
+    openActionModal('approveOsaReportModal', parameters);
+    return;
+  } else if (actionKey === 'order_oral_appliance') {
+    openActionModal('orderOralApplianceModal', parameters);
+    return;
+  } else if (actionKey === 'schedule_dental_consultation') {
+    console.log('Opening dental consultation modal for action:', actionKey);
+    showDentalConsultationModal();
+    return;
+  } else if (actionKey === 'complete_dental_consultation') {
+    console.log('Opening complete dental consultation modal for action:', actionKey);
+    showCompleteDentalConsultationModal();
+    return;
+  } else if (actionKey.includes('request_') && actionKey.includes('_files')) {
+    console.log('Opening requestDocumentsModal for file request action:', actionKey);
+    openActionModal('requestDocumentsModal', parameters);
+    return;
+  } else if (actionKey === 'request_hipaa_consent') {
+    console.log('Opening dynamic modal for HIPAA consent action:', actionKey);
+    showDynamicActionModal(actionKey);
+    return;
+  } else if (actionKey === 'send_reminder') {
+    openActionModal('sendReminderModal', parameters);
+    return;
+  }
+  
+  // For actions that don't need popups, execute directly
+  executeActionDirectly(actionKey, parameters);
+}
+
+function openActionModal(modalId, parameters = {}) {
+  console.log('=== OPENING MODAL ===');
+  console.log('Modal ID:', modalId);
+  console.log('Parameters:', parameters);
+  
+  // Set default values based on parameters
+  if (modalId === 'approveOsaReportModal') {
+    document.getElementById('approvalDate').value = new Date().toISOString().split('T')[0];
+    
+    // If report_id is provided in parameters, use it
+    if (parameters.report_id) {
+      document.getElementById('osaReportId').value = parameters.report_id;
+    } else {
+      // Get the current stage to find the OSA report
+      const currentStage = document.querySelector('.timeline-item.active');
+      if (currentStage) {
+        const onclickAttr = currentStage.getAttribute('onclick');
+        const match = onclickAttr && onclickAttr.match(/selectStage\('([^']+)'\)/);
+        if (match && match[1]) {
+          const stageKey = match[1];
+          console.log('Current stage key:', stageKey);
+          
+          // If we're in the OSA report stage, get the report ID from the stage files
+          if (stageKey === 'osa_report_ready') {
+            // Look for OSA report files in the current stage details
+            const stageDetails = document.getElementById('details-' + stageKey);
+            if (stageDetails) {
+              const fileElements = stageDetails.querySelectorAll('.file-item');
+              for (let fileElement of fileElements) {
+                const fileId = fileElement.getAttribute('data-file-id');
+                const fileName = fileElement.querySelector('.file-name')?.textContent;
+                if (fileId && fileName && fileName.toLowerCase().includes('osa')) {
+                  console.log('Found OSA report file:', fileName, 'ID:', fileId);
+                  document.getElementById('osaReportId').value = fileId;
+                  break;
+                }
+              }
+            }
+          }
+          
+          // If we still don't have a report ID, try to fetch it from the backend
+          if (!document.getElementById('osaReportId').value) {
+            fetch(`/api/patient/${PATIENT_ID}/osa_report_id`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.success && data.report_id) {
+                  document.getElementById('osaReportId').value = data.report_id;
+                  console.log('Fetched OSA report ID from backend:', data.report_id);
+                } else {
+                  console.log('No OSA report found for patient');
+                }
+              })
+              .catch(error => {
+                console.error('Error fetching OSA report ID:', error);
+              });
+          }
+        }
+      }
+    }
+  } else if (modalId === 'orderOralApplianceModal') {
+    document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+    if (parameters.appliance_type) {
+      document.getElementById('applianceType').value = parameters.appliance_type;
+    }
+  } else if (modalId === 'requestDocumentsModal') {
+    console.log('=== REQUEST DOCUMENTS MODAL ===');
+    console.log('Setting up request documents modal...');
+    
+    if (parameters.document_types) {
+      document.getElementById('documentTypes').value = parameters.document_types;
+    }
+    if (parameters.message) {
+      document.getElementById('requestMessage').value = parameters.message;
+    }
+    
+    // Handle HIPAA consent specifically
+    const documentType = document.getElementById('documentTypes').value;
+    console.log('Document type:', documentType);
+    console.log('Parameters action_key:', parameters.action_key);
+    
+    if (documentType === 'hipaa_consent' || parameters.action_key === 'request_hipaa_consent') {
+      console.log('HIPAA consent detected - setting document type to hipaa_consent');
+      document.getElementById('documentTypes').value = 'hipaa_consent';
+      
+      // Get patient email from data attribute
+      const patientInfoElement = document.querySelector('.patient-info');
+      let patientEmail = null;
+      
+      if (patientInfoElement) {
+        patientEmail = patientInfoElement.getAttribute('data-patient-email');
+        console.log('Found patient email from data attribute:', patientEmail);
+      }
+      
+      // Clean up the email if it exists
+      if (patientEmail && patientEmail.trim() === '') {
+        patientEmail = null;
+      }
+      
+      // Always add email field for HIPAA consent
+      let emailField = document.getElementById('patientEmail');
+      if (!emailField) {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+        
+        if (patientEmail && patientEmail.trim() !== '') {
+          // We have the email - show it as readonly
+          formGroup.innerHTML = `
+            <label class="form-label" for="patientEmail">Patient Email</label>
+            <input type="email" id="patientEmail" class="form-input" value="${patientEmail}" readonly>
+          `;
+          console.log('Email field added with pre-populated value:', patientEmail);
+        } else {
+          // No email found - show empty field for user input
+          formGroup.innerHTML = `
+            <label class="form-label" for="patientEmail">Patient Email</label>
+            <input type="email" id="patientEmail" class="form-input" placeholder="Enter patient email address">
+          `;
+          console.log('Email field added as empty for user input');
+        }
+        
+        // Insert before the message field
+        const messageField = document.getElementById('requestMessage').parentElement;
+        messageField.parentElement.insertBefore(formGroup, messageField);
+      } else {
+        // Update existing email field
+        emailField.parentElement.style.display = 'block';
+        if (patientEmail && patientEmail.trim() !== '') {
+          emailField.value = patientEmail;
+          emailField.readOnly = true;
+          console.log('Existing email field updated with value:', patientEmail);
+        }
+      }
+        } else {
+          // No email found - show empty field for user to type
+          formGroup.innerHTML = `
+            <label class="form-label" for="patientEmail">Patient Email</label>
+            <input type="email" id="patientEmail" class="form-input" placeholder="Enter patient email address">
+          `;
+          console.log('Email field added as empty for user input');
+          alert('DEBUG: Email field added as empty for user input');
+        }
+        
+        // Insert before the message field
+        const messageField = document.getElementById('requestMessage').parentElement;
+        messageField.parentElement.insertBefore(formGroup, messageField);
+      } else {
+        // Field already exists - update it
+        if (patientEmail) {
+          emailField.value = patientEmail;
+          emailField.readOnly = true;
+          console.log('Existing email field updated with value:', patientEmail);
+        } else {
+          emailField.value = '';
+          emailField.readOnly = false;
+          emailField.placeholder = 'Enter patient email address';
+          console.log('Existing email field cleared for user input');
+        }
+        emailField.parentElement.style.display = 'block';
+      }
+
+      
+      // Preload default message if not provided
+      if (!parameters.message) {
+        // Get clinic_id from current user context (this would need to be passed from backend)
+        const clinicId = 6; // This should be dynamic based on current user's clinic
+        // Use window.location.origin to get the current domain dynamically
+        const baseUrl = window.location.origin;
+        const wizardLink = `${baseUrl}/wizard/stage1_personal_info?clinic_id=${clinicId}`;
+        document.getElementById('requestMessage').value = `You have been requested by the clinic to complete the patient onboarding process. Please use the following link to complete the process before your next appointment:
+
+${wizardLink}
+
+This will include HIPAA consent forms and is required to proceed with your treatment.`;
+      }
+    }
+  } else if (modalId === 'sendReminderModal') {
+    if (parameters.message) {
+      document.getElementById('reminderMessage').value = parameters.message;
+    }
+  }
+  
+  console.log('=== DISPLAYING MODAL ===');
+  console.log('Modal ID to display:', modalId);
+  console.log('Modal element found:', document.getElementById(modalId));
+  document.getElementById(modalId).style.display = 'block';
+}
+
+function closeActionModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+  // Reset form
+  const form = document.getElementById(modalId.replace('Modal', 'Form'));
+  if (form) {
+    form.reset();
+  }
+}
+
+// executeActionDirectly function is now defined at the top of the script
+
+function showDynamicActionModal(actionKey) {
+  // Fetch action manifest to get parameters
+  fetch('/api/actions/manifest')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.actions && data.actions[actionKey]) {
+        const action = data.actions[actionKey];
+        const parameters = action.parameters || [];
+        
+        // Create modal HTML dynamically
+        const modalHTML = `
+          <div id="dynamicActionModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+            <div class="modal-dialog" style="margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; background-color: white; border-radius: 5px;">
+              <div class="modal-content">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px;">
+                  <h5 class="modal-title">${action.description || actionKey.replace('_', ' ').toUpperCase()}</h5>
+                  <button type="button" class="close" onclick="closeDynamicActionModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+                </div>
+                <div class="modal-body">
+                  <form id="dynamicActionForm">
+                    <input type="hidden" name="patient_id" value="${PATIENT_ID}">
+                    ${generateFormFields(parameters.filter(param => param !== 'patient_id'))}
+                  </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #ddd; padding-top: 15px; text-align: right;">
+                  <button type="button" class="btn btn-secondary" onclick="closeDynamicActionModal()" style="margin-right: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                  <button type="button" class="btn btn-primary" onclick="submitDynamicActionForm('${actionKey}')" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Execute Action</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        
+        // Remove existing modal if present
+        const existingModal = document.getElementById('dynamicActionModal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+        
+        // Add modal to page and show it
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Set default values
+        setDefaultValues(parameters, actionKey);
+        
+      } else {
+        // If no manifest data, execute directly
+        executeActionDirectlyFallback(actionKey, {});
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching action manifest:', error);
+      // Fallback to direct execution
+      executeActionDirectlyFallback(actionKey, {});
+    });
+}
+
+function generateFormFields(parameters) {
+  let fields = '';
+  
+  parameters.forEach(param => {
+    const fieldId = param.replace(/[^a-zA-Z0-9]/g, '_');
+    const label = param.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    
+    if (param.includes('date')) {
+      fields += `
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label for="${fieldId}">${label}:</label>
+          <input type="date" id="${fieldId}" name="${param}" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>`;
+    } else if (param.includes('time')) {
+      fields += `
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label for="${fieldId}">${label}:</label>
+          <input type="time" id="${fieldId}" name="${param}" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>`;
+    } else if (param.includes('notes') || param.includes('message')) {
+      fields += `
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label for="${fieldId}">${label}:</label>
+          <textarea id="${fieldId}" name="${param}" class="form-control" rows="3" placeholder="Enter ${label.toLowerCase()}..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+        </div>`;
+    } else {
+      fields += `
+        <div class="form-group" style="margin-bottom: 15px;">
+          <label for="${fieldId}">${label}:</label>
+          <input type="text" id="${fieldId}" name="${param}" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>`;
+    }
+  });
+  
+  return fields;
+}
+
+function setDefaultValues(parameters, actionKey) {
+  parameters.forEach(param => {
+    const fieldId = param.replace(/[^a-zA-Z0-9]/g, '_');
+    const field = document.getElementById(fieldId);
+    
+    if (field) {
+      if (param.includes('date')) {
+        field.value = new Date().toISOString().split('T')[0];
+      } else if (param.includes('doctor_name')) {
+        field.value = 'Dental Specialist';
+      } else if (param.includes('scheduled_date')) {
+        field.value = new Date().toISOString().split('T')[0];
+      } else if (param.includes('message')) {
+        // Get default message from action manifest if available
+        fetch('/api/actions/manifest')
+          .then(response => response.json())
+          .then(data => {
+            if (data.success && data.actions && data.actions[actionKey] && data.actions[actionKey].default_message) {
+              let defaultMessage = data.actions[actionKey].default_message;
+              // Replace {patient_id} placeholder with actual patient ID
+              defaultMessage = defaultMessage.replace('{patient_id}', PATIENT_ID);
+              field.value = defaultMessage;
+            } else {
+              // Fallback default message
+              field.value = `Please upload required report for patient ID ${PATIENT_ID}.`;
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching default message:', error);
+            // Fallback default message
+            field.value = `Please upload required report for patient ID ${PATIENT_ID}.`;
+          });
+      }
+    }
+  });
+}
+
+function closeDynamicActionModal() {
+  const modal = document.getElementById('dynamicActionModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function submitDynamicActionForm(actionKey) {
+  // Collect form data
+  const form = document.getElementById('dynamicActionForm');
+  const formData = new FormData(form);
+  const parameters = {};
+  
+  for (let [key, value] of formData.entries()) {
+    parameters[key] = value;
+  }
+  
+  // Execute the action
+  executeActionDirectlyFallback(actionKey, parameters);
+  
+  // Close modal
+  closeDynamicActionModal();
+}
+
+function showSleepDoctorModal() {
+  // Create modal HTML
+  const modalHTML = `
+    <div id="sleepDoctorModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+      <div class="modal-dialog" style="margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; background-color: white; border-radius: 5px;">
+        <div class="modal-content">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px;">
+            <h5 class="modal-title">Complete Sleep Doctor Followup</h5>
+            <button type="button" class="close" onclick="closeSleepDoctorModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="sleepDoctorForm">
+              <input type="hidden" name="patient_id" value="${PATIENT_ID}">
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="completion_date">Completion Date:</label>
+                <input type="date" id="completion_date" name="completion_date" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="completion_time">Completion Time:</label>
+                <input type="time" id="completion_time" name="completion_time" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="doctor_name">Doctor Name:</label>
+                <input type="text" id="doctor_name" name="doctor_name" class="form-control" value="Sleep Doctor" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="notes">Notes:</label>
+                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Enter completion notes..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer" style="border-top: 1px solid #ddd; padding-top: 15px; text-align: right;">
+            <button type="button" class="btn btn-secondary" onclick="closeSleepDoctorModal()" style="margin-right: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="submitSleepDoctorForm()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Complete Followup</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  
+  // Remove existing modal if present
+  const existingModal = document.getElementById('sleepDoctorModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // Add modal to page and show it
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Set default date to today
+  document.getElementById('completion_date').value = new Date().toISOString().split('T')[0];
+}
+
+function closeSleepDoctorModal() {
+  const modal = document.getElementById('sleepDoctorModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function showDentalConsultationModal() {
+  // Create modal HTML
+  const modalHTML = `
+    <div id="dentalConsultationModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+      <div class="modal-dialog" style="margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; background-color: white; border-radius: 5px;">
+        <div class="modal-content">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px;">
+            <h5 class="modal-title">Schedule Dental Consultation</h5>
+            <button type="button" class="close" onclick="closeDentalConsultationModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="dentalConsultationForm">
+              <input type="hidden" name="patient_id" value="${PATIENT_ID}">
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="scheduled_date">Scheduled Date:</label>
+                <input type="date" id="scheduled_date" name="scheduled_date" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="scheduled_time">Scheduled Time:</label>
+                <input type="time" id="scheduled_time" name="scheduled_time" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="doctor_name">Doctor Name:</label>
+                <input type="text" id="doctor_name" name="doctor_name" class="form-control" value="Dental Sleep Specialist" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 15px;">
+                <label for="notes">Notes:</label>
+                <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Enter consultation notes..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer" style="border-top: 1px solid #ddd; padding-top: 15px; text-align: right;">
+            <button type="button" class="btn btn-secondary" onclick="closeDentalConsultationModal()" style="margin-right: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="submitDentalConsultationForm()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Schedule Consultation</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  
+  // Remove existing modal if present
+  const existingModal = document.getElementById('dentalConsultationModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // Add modal to page and show it
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Set default date to today - with a small delay to ensure DOM is ready
+  setTimeout(() => {
+    const dateField = document.getElementById('scheduled_date');
+    if (dateField) {
+      dateField.value = new Date().toISOString().split('T')[0];
+      console.log('Set default date:', dateField.value);
+    } else {
+      console.error('Date field not found after modal creation');
+    }
+  }, 100);
+}
+
+function closeDentalConsultationModal() {
+  const modal = document.getElementById('dentalConsultationModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function submitDentalConsultationForm() {
+  console.log('=== SUBMIT DENTAL CONSULTATION FORM ===');
+  
+  // Collect form data directly from elements
+  const scheduledDate = document.getElementById('scheduled_date');
+  const scheduledTime = document.getElementById('scheduled_time');
+  const doctorName = document.getElementById('doctor_name');
+  const notes = document.getElementById('notes');
+  
+  console.log('Form elements found:', {
+    scheduledDate: scheduledDate,
+    scheduledTime: scheduledTime,
+    doctorName: doctorName,
+    notes: notes
+  });
+  
+  // Get values directly
+  const parameters = {
+    patient_id: PATIENT_ID,
+    scheduled_date: scheduledDate ? scheduledDate.value : '',
+    scheduled_time: scheduledTime ? scheduledTime.value : '',
+    doctor_name: doctorName ? doctorName.value : 'Dental Sleep Specialist',
+    notes: notes ? notes.value : ''
+  };
+  
+  console.log('Collected parameters:', parameters);
+  
+  // Validate required fields
+  if (!parameters.scheduled_date || !parameters.scheduled_time) {
+    alert('Please fill in both the scheduled date and time.');
+    console.error('Validation failed - missing required fields');
+    return;
+  }
+  
+  console.log('Validation passed, executing action with parameters:', parameters);
+  
+  // Execute the action with proper response handling
+  executeDentalConsultationAction(parameters);
+  
+  // Close modal
+  closeDentalConsultationModal();
+}
+
+function executeDentalConsultationAction(parameters) {
+  console.log('=== EXECUTING DENTAL CONSULTATION ACTION ===');
+  console.log('Parameters:', parameters);
+  
+  // Show loading state
+  const submitButton = document.querySelector('button[onclick="submitDentalConsultationForm()"]');
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Scheduling...';
+  }
+  
+  // Make the API call
+  fetch('/api/schedule_dental_consultation', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(parameters)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Consultation scheduling response:', data);
+    
+    if (data.success) {
+      alert('Consultation scheduled successfully!');
+      // Force page refresh to update action cards
+      location.reload();
+    } else {
+      alert('Error scheduling consultation: ' + (data.error || 'Unknown error'));
+      // Reset button state
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Schedule Consultation';
+      }
+    }
+  })
+  .catch(error => {
+    console.error('Error scheduling consultation:', error);
+    alert('Error scheduling consultation: ' + error.message);
+    // Reset button state
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Schedule Consultation';
+    }
+  });
+}
+
+function showCompleteDentalConsultationModal() {
+  const modalHTML = `
+    <div id="completeDentalConsultationModal" class="modal" style="display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+      <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="margin: 0; color: #333;">Complete Dental Consultation</h3>
+          <button type="button" class="close" onclick="closeCompleteDentalConsultationModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="completeDentalConsultationForm">
+            <input type="hidden" name="patient_id" value="${PATIENT_ID}">
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label for="completion_date">Completion Date:</label>
+              <input type="date" id="completion_date" name="completion_date" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label for="completion_time">Completion Time:</label>
+              <input type="time" id="completion_time" name="completion_time" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label for="doctor_name">Doctor Name:</label>
+              <input type="text" id="doctor_name" name="doctor_name" class="form-control" value="Dental Sleep Expert" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label for="notes">Notes:</label>
+              <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Enter consultation completion notes..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid #ddd; padding-top: 15px; text-align: right;">
+          <button type="button" class="btn btn-secondary" onclick="closeCompleteDentalConsultationModal()" style="margin-right: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="submitCompleteDentalConsultationForm()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Mark as Completed</button>
+        </div>
+      </div>
+    </div>`;
+  
+  // Remove existing modal if present
+  const existingModal = document.getElementById('completeDentalConsultationModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // Add modal to page and show it
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Set default date to today - with a small delay to ensure DOM is ready
+  setTimeout(() => {
+    const dateField = document.getElementById('completion_date');
+    if (dateField) {
+      dateField.value = new Date().toISOString().split('T')[0];
+      console.log('Set default completion date:', dateField.value);
+    } else {
+      console.error('Completion date field not found after modal creation');
+    }
+  }, 100);
+}
+
+function closeCompleteDentalConsultationModal() {
+  const modal = document.getElementById('completeDentalConsultationModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function submitCompleteDentalConsultationForm() {
+  console.log('=== SUBMIT COMPLETE DENTAL CONSULTATION FORM ===');
+  
+  // Collect form data directly from elements
+  const completionDate = document.getElementById('completion_date');
+  const completionTime = document.getElementById('completion_time');
+  const doctorName = document.getElementById('doctor_name');
+  const notes = document.getElementById('notes');
+  
+  console.log('Form elements found:', {
+    completionDate: completionDate,
+    completionTime: completionTime,
+    doctorName: doctorName,
+    notes: notes
+  });
+  
+  // Get values directly
+  const parameters = {
+    patient_id: PATIENT_ID,
+    completion_date: completionDate ? completionDate.value : '',
+    completion_time: completionTime ? completionTime.value : '',
+    doctor_name: doctorName ? doctorName.value : 'Dental Sleep Expert',
+    notes: notes ? notes.value : ''
+  };
+  
+  console.log('Collected parameters:', parameters);
+  
+  // Validate required fields
+  if (!parameters.completion_date || !parameters.completion_time) {
+    alert('Please fill in both the completion date and time.');
+    console.error('Validation failed - missing required fields');
+    return;
+  }
+  
+  console.log('Validation passed, executing action with parameters:', parameters);
+  
+  // Execute the action
+  executeActionDirectlyFallback('complete_dental_consultation', parameters);
+  
+  // Close modal
+  closeCompleteDentalConsultationModal();
+}
+
+function submitSleepDoctorForm() {
+  // Collect form data
+  const form = document.getElementById('sleepDoctorForm');
+  const formData = new FormData(form);
+  const parameters = {};
+  
+  for (let [key, value] of formData.entries()) {
+    parameters[key] = value;
+  }
+  
+  // Execute the action
+  executeActionDirectlyFallback('complete_sleep_doctor_followup', parameters);
+  
+  // Close modal
+  closeSleepDoctorModal();
+}
+
+function executeActionDirectlyFallback(actionKey, parameters) {
+  console.log('=== EXECUTE ACTION DIRECTLY FALLBACK ===');
+  console.log('Action key:', actionKey);
+  console.log('Parameters:', parameters);
+  
+  // Add patient_id to parameters if not present
+  if (!parameters.patient_id) {
+    parameters.patient_id = PATIENT_ID;
+  }
+  
+  // Map action keys to specific API endpoints
+  let endpoint = '/api/llm/execute_action'; // default
+  let requestData = {
+    action_key: actionKey,
+    parameters: parameters
+  };
+  
+  // Use specific endpoints for known actions
+  if (actionKey === 'complete_sleep_doctor_followup') {
+    endpoint = '/api/complete_sleep_doctor_followup';
+    requestData = parameters;
+  } else if (actionKey === 'schedule_dental_consultation') {
+    endpoint = '/api/schedule_dental_consultation';
+    requestData = parameters;
+  } else if (actionKey === 'complete_dental_consultation') {
+    endpoint = '/api/complete_dental_consultation';
+    requestData = parameters;
+  }
+  
+  console.log('Using endpoint:', endpoint);
+  console.log('Request data:', requestData);
+  console.log('Request data JSON:', JSON.stringify(requestData));
+  console.log('=== ABOUT TO MAKE FETCH REQUEST ===');
+  
+  fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestData)
+  })
+  .then(response => {
+    console.log('=== FETCH RESPONSE RECEIVED ===');
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    return response.json();
+  })
+  .then(data => {
+    console.log('=== RESPONSE DATA ===');
+    console.log('Response data:', data);
+    if (data.success) {
+      alert('Action executed successfully: ' + (data.result?.message || 'Action completed'));
+      // Refresh the page to update the workflow
+      location.reload();
+    } else {
+      alert('Error executing action: ' + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error executing action. Please try again.');
+  });
+}
+
+// Action Manifest Form Submissions
+document.getElementById('approveOsaReportForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = {
+    patient_id: PATIENT_ID,
+    report_id: document.getElementById('osaReportId').value,
+    approval_date: document.getElementById('approvalDate').value,
+    approver_name: document.getElementById('approverName').value,
+    notes: document.getElementById('approvalNotes').value
+  };
+  
+  executeActionDirectly('approve_osa_report', formData);
+  closeActionModal('approveOsaReportModal');
+});
+
+document.getElementById('orderOralApplianceForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = {
+    patient_id: PATIENT_ID,
+    appliance_type: document.getElementById('applianceType').value,
+    order_date: document.getElementById('orderDate').value,
+    notes: document.getElementById('orderNotes').value
+  };
+  
+  executeActionDirectly('order_oral_appliance', formData);
+  closeActionModal('orderOralApplianceModal');
+});
+
+// Add event listener for document type changes to show/hide email field
+document.getElementById('documentTypes').addEventListener('change', function(e) {
+  const documentType = e.target.value;
+  const emailField = document.getElementById('patientEmail');
+  
+  if (documentType === 'hipaa_consent') {
+    console.log('=== HIPAA CONSENT SELECTED ===');
+    // Get patient email from the data attribute
+    const patientInfoElement = document.querySelector('.patient-info');
+    let patientEmail = null;
+    
+    if (patientInfoElement) {
+      patientEmail = patientInfoElement.getAttribute('data-patient-email');
+      console.log('Found patient email from data attribute:', patientEmail);
+      console.log('Patient info element:', patientInfoElement);
+      console.log('All data attributes:', patientInfoElement.attributes);
+    } else {
+      console.log('❌ Patient info element not found!');
+    }
+    
+    // Create or update email field
+    if (!emailField) {
+      const formGroup = document.createElement('div');
+      formGroup.className = 'form-group';
+      
+      if (patientEmail && patientEmail.trim() !== '') {
+        // Pre-populate with patient email
+        formGroup.innerHTML = `
+          <label class="form-label" for="patientEmail">Patient Email</label>
+          <input type="email" id="patientEmail" class="form-input" value="${patientEmail}" readonly>
+        `;
+        console.log('Email field created with pre-populated value:', patientEmail);
+      } else {
+        // Show empty field for user input
+        formGroup.innerHTML = `
+          <label class="form-label" for="patientEmail">Patient Email</label>
+          <input type="email" id="patientEmail" class="form-input" placeholder="Enter patient email address">
+        `;
+        console.log('Email field created as empty for user input');
+      }
+      
+      // Insert before the message field
+      const messageField = document.getElementById('requestMessage').parentElement;
+      messageField.parentElement.insertBefore(formGroup, messageField);
+    } else {
+      // Update existing email field
+      emailField.parentElement.style.display = 'block';
+      if (patientEmail && patientEmail.trim() !== '') {
+        emailField.value = patientEmail;
+        emailField.readOnly = true;
+        console.log('Existing email field updated with value:', patientEmail);
+      }
+    }
+  } else {
+    // Hide email field for other document types
+    if (emailField) {
+      emailField.parentElement.style.display = 'none';
+    }
+  }
+});
+
+document.getElementById('requestDocumentsForm').addEventListener('submit', function(e) {
+  console.log('=== REQUEST DOCUMENTS FORM SUBMITTED ===');
+  e.preventDefault();
+  
+  const documentType = document.getElementById('documentTypes').value;
+  
+  // Create form data based on document type
+  let formData = {
+    patient_id: PATIENT_ID,
+    request_date: new Date().toISOString().split('T')[0]
+  };
+  
+  // Add patient email for HIPAA consent
+  if (documentType === 'hipaa_consent') {
+    const emailField = document.getElementById('patientEmail');
+    if (emailField && emailField.value.trim()) {
+      formData.patient_email = emailField.value.trim();
+      console.log('Using email from form field:', formData.patient_email);
+    }
+    
+    // Add message for HIPAA consent
+    const messageField = document.getElementById('requestMessage');
+    if (messageField && messageField.value.trim()) {
+      formData.message = messageField.value.trim();
+    } else {
+      formData.message = 'Please complete the patient onboarding process using the link provided.';
+    }
+  } else {
+    // For other document types, use the original format
+    formData.document_types = documentType;
+    formData.message = document.getElementById('requestMessage').value;
+  }
+  
+  // Map document type to specific action
+  let actionKey = 'request_documents'; // default
+  
+  if (documentType === 'sleep_test') {
+    actionKey = 'request_sleep_test_files';
+  } else if (documentType === 'cbct_observations') {
+    actionKey = 'request_cbct_files';
+  } else if (documentType === 'intraoral_scan') {
+    actionKey = 'request_intraoral_scan';
+  } else if (documentType === 'hipaa_consent') {
+    actionKey = 'request_hipaa_consent';
+  } else if (documentType === 'osa_report') {
+    actionKey = 'request_osa_report';
+  } else if (documentType === 'followup_sleep_test') {
+    actionKey = 'request_followup_sleep_test';
+  }
+  
+  // For all document types, use the LLM action execution system
+  console.log('=== DOCUMENT REQUEST DEBUG ===');
+  console.log('Document type:', documentType);
+  console.log('Action key:', actionKey);
+  console.log('Form data:', formData);
+  console.log('Email field exists:', !!document.getElementById('patientEmail'));
+  console.log('Email field value:', document.getElementById('patientEmail')?.value);
+  console.log('Message field value:', document.getElementById('requestMessage')?.value);
+  
+  // Ensure all required parameters are present for HIPAA consent
+  if (documentType === 'hipaa_consent') {
+    if (!formData.patient_email) {
+      alert('Error: Patient email is required. Please check if the email field is populated.');
+      return;
+    }
+    if (!formData.message) {
+      alert('Error: Message is required.');
+      return;
+    }
+  }
+  
+  executeActionDirectly(actionKey, formData);
+  closeActionModal('requestDocumentsModal');
+});
+
+document.getElementById('sendReminderForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = {
+    patient_id: PATIENT_ID,
+    message: document.getElementById('reminderMessage').value
+  };
+  
+  executeActionDirectly('send_reminder', formData);
+  closeActionModal('sendReminderModal');
+});
+
+
+
+// Function to request new AI analysis
+function requestNewAnalysis() {
+  console.log('Requesting new AI analysis');
+  
+  fetch('/api/llm/analyze_and_suggest_actions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      patient_id: PATIENT_ID,
+      current_stage: '{{ current_stage.key if current_stage else "" }}'
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('New analysis requested! Check the AI Workflow Assistant for updated recommendations.');
+      // Refresh the page to show new recommendations
+      location.reload();
+    } else {
+      alert('Error requesting analysis: ' + data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error requesting analysis. Please try again.');
+  });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const consultationModal = document.getElementById('consultationModal');
+  const completeConsultationModal = document.getElementById('completeConsultationModal');
+  
+  if (event.target === consultationModal) {
+    closeConsultationModal();
+  }
+  
+  if (event.target === completeConsultationModal) {
+    closeCompleteConsultationModal();
+  }
+}
+</script>
+{% endblock %} 

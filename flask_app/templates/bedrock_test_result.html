@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Bedrock Claude Test Results{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col s12">
+            <h2 class="center-align">
+                <i class="material-icons">psychology</i>
+                Bedrock Claude Test Results
+            </h2>
+            
+            {% if scenario %}
+                <div style="background: #fff; border: 2px solid #2196F3; border-radius: 8px; margin-bottom: 20px; padding: 16px;">
+                    <h5 class="center-align" style="color: #1565c0; font-weight: 700;">
+                        <i class="material-icons" style="vertical-align: middle; color: #1565c0;">trending_up</i>
+                        {{ scenario }} Scenario Test
+                    </h5>
+                </div>
+            {% endif %}
+
+            <!-- Stepper Progress Bar -->
+            <div class="stepper-container">
+                <div class="stepper-legend" style="margin-bottom: 8px; font-size: 0.95em;">
+                    <span style="color: #43a047; font-weight: 600;"><i class="material-icons tiny" style="vertical-align: middle;">check_circle</i> Completed</span>
+                    <span style="color: #1976d2; font-weight: 600; margin-left: 18px;"><i class="material-icons tiny" style="vertical-align: middle;">radio_button_checked</i> Current</span>
+                    <span style="color: #bdbdbd; font-weight: 600; margin-left: 18px;"><i class="material-icons tiny" style="vertical-align: middle;">radio_button_unchecked</i> Pending</span>
+                </div>
+                <div class="stepper-line">
+                    {% for stage in manifest_data %}
+                        {% set is_completed = stage.stage in patient_data.completed_stages %}
+                        {% set is_current = stage.stage == patient_data.current_stage %}
+                        <div class="stepper-step {% if is_completed %}completed{% elif is_current %}current{% else %}pending{% endif %}">
+                            <div class="stepper-circle" title="{{ stage.stage }}">
+                                {% if is_completed %}
+                                    <i class="material-icons" style="font-size: 1.2em;">check_circle</i>
+                                {% elif is_current %}
+                                    <i class="material-icons" style="font-size: 1.2em;">radio_button_checked</i>
+                                {% else %}
+                                    <i class="material-icons" style="font-size: 1.2em;">radio_button_unchecked</i>
+                                {% endif %}
+                            </div>
+                            <div class="stepper-label" title="{{ stage.description }}&#10;Next: {{ stage.next_step }}">
+                                <span style="font-weight: 600;">{{ stage.stage }}</span>
+                                <div class="stepper-prereqs">
+                                    <span style="font-size: 0.85em; color: #888;">Prereqs:</span>
+                                    <ul style="margin: 0; padding-left: 16px;">
+                                        {% for prereq in stage.prerequisites %}
+                                            <li style="font-size: 0.85em; color: #888;">{{ prereq }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% if not loop.last %}
+                            <div class="stepper-connector"></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Patient Information -->
+            <div class="card">
+                <div class="card-content" style="background: #fff; color: #111; border: 1.5px solid #e0e0e0; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 220px;">
+                            <span class="card-title" style="font-size: 1.5rem; font-weight: 700; color: #111; margin-bottom: 12px; display: block;">
+                                <i class="material-icons" style="vertical-align: middle; color: #1976d2;">person</i>
+                                Patient Information
+                            </span>
+                            <div style="margin-top: 10px;">
+                                <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Patient ID: <span style="font-weight: 400;">{{ patient_id }}</span></div>
+                                <div style="font-size: 1.1rem; font-weight: 600;">Name: <span style="font-weight: 400;">{{ patient_name }}</span></div>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 220px; text-align: right; margin-top: 18px;">
+                            <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">Test Timestamp: <span style="font-weight: 400;">{{ timestamp or 'N/A' }}</span></div>
+                            <div style="font-size: 1.1rem; font-weight: 600;">Manifest Stages: <span style="font-weight: 400;">{{ manifest_stages or 0 }}</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if success %}
+                <!-- Claude's Analysis -->
+                <div class="card">
+                    <div class="card-content" style="background: #fff; color: #222;">
+                        <span class="card-title">
+                            <i class="material-icons">smart_toy</i>
+                            Claude's Analysis
+                        </span>
+                        <div class="claude-response">
+                            <pre style="white-space: pre-wrap; font-family: 'Roboto', sans-serif; background-color: #f5f5f5; padding: 15px; border-radius: 5px; border-left: 4px solid #2196F3;">{{ claude_response }}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatment Manifest -->
+                <div class="card">
+                    <div class="card-content" style="background: #fff; color: #222;">
+                        <span class="card-title">
+                            <i class="material-icons">list_alt</i>
+                            Treatment Manifest ({{ manifest_data|length }} Stages)
+                        </span>
+                        <div class="manifest-stages">
+                            {% for stage in manifest_data %}
+                                <div class="stage-item" style="border: 1px solid #e0e0e0; margin: 10px 0; padding: 15px; border-radius: 5px;">
+                                    <h6 style="color: #2196F3; margin-top: 0;">
+                                        <i class="material-icons tiny">flag</i>
+                                        {{ stage.stage }}
+                                    </h6>
+                                    <p><strong>Description:</strong> {{ stage.description }}</p>
+                                    <p><strong>Next Step:</strong> {{ stage.next_step }}</p>
+                                    <p><strong>Prerequisites:</strong></p>
+                                    <ul style="margin-left: 20px;">
+                                        {% for prereq in stage.prerequisites %}
+                                            <li>{{ prereq }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Raw JSON Files -->
+                <div class="card">
+                    <div class="card-content" style="background: #fff; color: #222;">
+                        <span class="card-title">
+                            <i class="material-icons">code</i>
+                            Raw JSON Files
+                        </span>
+                        
+                        <ul class="tabs">
+                            <li class="tab col s6">
+                                <a href="#manifest-json" class="active">Manifest JSON</a>
+                            </li>
+                            <li class="tab col s6">
+                                <a href="#patient-json">Patient JSON</a>
+                            </li>
+                        </ul>
+                        
+                        <div id="manifest-json" class="col s12">
+                            <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 400px; overflow-y: auto;">{{ manifest_json }}</pre>
+                        </div>
+                        <div id="patient-json" class="col s12">
+                            <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 400px; overflow-y: auto;">{{ patient_json }}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Current Status -->
+                <div class="card">
+                    <div class="card-content" style="background: #fff; color: #222;">
+                        <span class="card-title">
+                            <i class="material-icons">assessment</i>
+                            Patient Current Status
+                        </span>
+                        
+                        <div class="row">
+                            <div class="col s6">
+                                <h6 style="color: #4CAF50;">
+                                    <i class="material-icons tiny">check_circle</i>
+                                    Current Stage
+                                </h6>
+                                <p class="current-stage" style="font-size: 18px; font-weight: bold; color: #4CAF50;">
+                                    {{ patient_data.current_stage }}
+                                </p>
+                            </div>
+                            <div class="col s6">
+                                <h6 style="color: #FF9800;">
+                                    <i class="material-icons tiny">arrow_forward</i>
+                                    Next Stage
+                                </h6>
+                                <p class="next-stage" style="font-size: 18px; font-weight: bold; color: #FF9800;">
+                                    {{ patient_data.next_stage }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col s6">
+                                <h6 style="color: #4CAF50;">
+                                    <i class="material-icons tiny">done_all</i>
+                                    Completed Prerequisites
+                                </h6>
+                                <ul>
+                                    {% for prereq in patient_data.completed_prerequisites %}
+                                        <li style="color: #4CAF50;">{{ prereq }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="col s6">
+                                <h6 style="color: #F44336;">
+                                    <i class="material-icons tiny">pending</i>
+                                    Pending Prerequisites
+                                </h6>
+                                <ul>
+                                    {% for prereq in patient_data.pending_prerequisites %}
+                                        <li style="color: #F44336;">{{ prereq }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col s12">
+                                <h6 style="color: #2196F3;">
+                                    <i class="material-icons tiny">history</i>
+                                    Completed Stages
+                                </h6>
+                                <div class="completed-stages">
+                                    {% for stage in patient_data.completed_stages %}
+                                        <span class="chip" style="background-color: #2196F3; color: white; margin: 2px;">
+                                            {{ stage }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if patient_data.notes %}
+                            <div class="row">
+                                <div class="col s12">
+                                    <h6 style="color: #9C27B0;">
+                                        <i class="material-icons tiny">note</i>
+                                        Notes
+                                    </h6>
+                                    <p style="font-style: italic; background-color: #f3e5f5; padding: 10px; border-radius: 5px;">
+                                        {{ patient_data.notes }}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if patient_data.diagnosis %}
+                            <div class="row">
+                                <div class="col s12">
+                                    <h6 style="color: #607D8B;">
+                                        <i class="material-icons tiny">medical_services</i>
+                                        Diagnosis Information
+                                    </h6>
+                                    <div class="diagnosis-info" style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+                                        <p><strong>OSA Severity:</strong> {{ patient_data.diagnosis.osa_severity }}</p>
+                                        <p><strong>AHI Score:</strong> {{ patient_data.diagnosis.ahi_score }}</p>
+                                        <p><strong>Recommended Appliance:</strong> {{ patient_data.diagnosis.recommended_appliance }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if patient_data.files_uploaded %}
+                            <div class="row">
+                                <div class="col s12">
+                                    <h6 style="color: #795548;">
+                                        <i class="material-icons tiny">folder</i>
+                                        Files Uploaded
+                                    </h6>
+                                    <ul>
+                                        {% for file_type, file_path in patient_data.files_uploaded.items() %}
+                                            <li style="color: #795548;">{{ file_type }}: {{ file_path }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Error Display -->
+                <div class="card" style="background: #ffebee; border: 2px solid #b71c1c;">
+                    <div class="card-content" style="color: #b71c1c;">
+                        <span class="card-title" style="color: #b71c1c; font-weight: 700;">
+                            <i class="material-icons" style="vertical-align: middle; color: #b71c1c;">error</i>
+                            Error
+                        </span>
+                        <p style="color: #b71c1c; font-weight: 500;">{{ error }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Navigation -->
+            <div class="card">
+                <div class="card-content center-align">
+                    <span class="card-title">
+                        <i class="material-icons">navigation</i>
+                        Test Navigation
+                    </span>
+                    <div class="row">
+                        <div class="col s4">
+                            <a href="{{ url_for('osaagent.test_bedrock_browser', patient_id=patient_id) }}" 
+                               class="btn waves-effect waves-light blue">
+                                <i class="material-icons left">refresh</i>
+                                Basic Test
+                            </a>
+                        </div>
+                        <div class="col s4">
+                            <a href="{{ url_for('osaagent.test_bedrock_advanced', patient_id=patient_id) }}" 
+                               class="btn waves-effect waves-light orange">
+                                <i class="material-icons left">trending_up</i>
+                                Advanced Test
+                            </a>
+                        </div>
+                        <div class="col s4">
+                            <a href="{{ url_for('main.patient_list') }}" 
+                               class="btn waves-effect waves-light green">
+                                <i class="material-icons left">list</i>
+                                Patient List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .claude-response pre {
+        max-height: 400px;
+        overflow-y: auto;
+        color: #111;
+        font-size: 1.1em;
+    }
+    
+    .stage-item:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.3s ease;
+    }
+    
+    .completed-stages .chip {
+        display: inline-block;
+        margin: 2px;
+    }
+    
+    .current-stage, .next-stage {
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f5f5f5;
+        color: #111;
+        font-weight: 600;
+    }
+    
+    .diagnosis-info {
+        border-left: 4px solid #607D8B;
+        color: #222;
+    }
+    .tabs .tab a {
+        color: #1565c0;
+        font-weight: 600;
+    }
+    .tabs .tab a.active {
+        color: #0d47a1;
+        font-weight: 700;
+    }
+    .tabs .tab a:focus, .tabs .tab a:focus.active {
+        background-color: #e3f2fd;
+        outline: none;
+    }
+    .btn, .btn-large, .btn-small {
+        font-weight: 700;
+    }
+    .stepper-container {
+        margin-bottom: 32px;
+        margin-top: 8px;
+        background: rgba(30,30,30,0.85);
+        border-radius: 10px;
+        box-shadow: 0 2px 12px 0 rgba(0,0,0,0.12);
+        padding: 18px 8px 8px 8px;
+    }
+    .stepper-legend {
+        margin-bottom: 8px;
+        font-size: 0.95em;
+        color: #fff;
+    }
+    .stepper-line {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0;
+    }
+    .stepper-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 120px;
+        max-width: 180px;
+        flex: 1 1 120px;
+        text-align: center;
+        position: relative;
+    }
+    .stepper-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
+        font-size: 1.2em;
+        background: rgba(255,255,255,0.08);
+    }
+    .stepper-step.completed .stepper-circle {
+        color: #b9f6ca;
+        background: #43a047;
+        box-shadow: 0 0 0 2px #43a04744;
+    }
+    .stepper-step.current .stepper-circle {
+        color: #fff;
+        background: #1976d2;
+        box-shadow: 0 0 0 2px #1976d244;
+    }
+    .stepper-step.pending .stepper-circle {
+        color: #e0e0e0;
+        background: #424242;
+    }
+    .stepper-label {
+        font-size: 1em;
+        margin-bottom: 2px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .stepper-prereqs {
+        margin-top: 2px;
+        font-size: 0.85em;
+        color: #e0e0e0;
+        font-weight: 400;
+    }
+    .stepper-connector {
+        width: 32px;
+        height: 2px;
+        background: linear-gradient(to right, #e0e0e0 60%, #bdbdbd 100%);
+        align-self: center;
+        margin-top: 15px;
+    }
+    @media (max-width: 900px) {
+        .stepper-line {
+            flex-wrap: wrap;
+        }
+        .stepper-step {
+            min-width: 100px;
+            max-width: 140px;
+            font-size: 0.95em;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tabs
+        var tabs = document.querySelectorAll('.tabs');
+        M.Tabs.init(tabs);
+    });
+</script>
+{% endblock %} 

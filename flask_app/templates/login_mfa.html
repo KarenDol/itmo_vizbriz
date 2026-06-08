@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vzibriz Sleep Apnea Solutions - Login</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <style>
+        /* Dark theme styling */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .login-container {
+            max-width: 400px;
+            width: 90%;
+            margin: 20px auto;
+            padding: 10px;
+        }
+
+        /* Logo styling */
+        .logo {
+            display: block;
+            max-width: 150px;
+            margin: 0 auto 20px;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .input-field input {
+            color: #e0e0e0;
+        }
+
+        .input-field input:focus {
+            border-bottom: 2px solid #03dac6;
+            box-shadow: 0 1px 0 0 #03dac6;
+        }
+
+        .input-field label {
+            color: #aaa;
+        }
+
+        .btn {
+            background-color: #03dac6 !important;
+            color: #121212 !important;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background-color: #00c4a7 !important;
+        }
+
+        .btn-secondary {
+            background-color: #6200ea !important;
+            color: #ffffff !important;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7c1aff !important;
+        }
+
+        .flash-message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        .code-input {
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            font-weight: bold;
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .resend-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #03dac6;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .resend-link:hover {
+            color: #00c4a7;
+        }
+
+        .resend-link.disabled {
+            color: #666;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .card-title {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container">
+        <!-- Logo at the top -->
+        <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Logo" class="logo">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Login Card -->
+        <div class="card">
+            <div class="card-content white-text">
+                <span class="card-title">Login into Vizbriz</span>
+                
+                <!-- Step 1: Email Input -->
+                <div id="email-step">
+                    <div class="step-indicator">Step 1 of 2: Enter your email</div>
+                    <form id="email-form" method="POST" action="{{ url_for('main.login_mfa_send_code') }}">
+                        <div class="input-field">
+                            <input id="email" name="email" type="email" class="validate" required>
+                            <label for="email">Email</label>
+                        </div>
+                        <button class="btn waves-effect waves-light" type="submit">Send Verification Code
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Step 2: Code Verification -->
+                <div id="code-step" style="display: none;">
+                    <div class="step-indicator">Step 2 of 2: Enter verification code</div>
+                    <p style="text-align: center; color: #aaa; margin-bottom: 20px;">
+                        We've sent a 6-digit verification code to <strong id="user-email"></strong>
+                    </p>
+                    <form id="code-form" method="POST" action="{{ url_for('main.login_mfa_verify') }}">
+                        <input type="hidden" id="email-hidden" name="email" value="">
+                        <div class="input-field">
+                            <input id="code" name="code" type="text" class="validate code-input" 
+                                   maxlength="6" pattern="[0-9]{6}" required 
+                                   placeholder="000000">
+                            <label for="code">Verification Code</label>
+                        </div>
+                        <button class="btn waves-effect waves-light" type="submit">Verify & Login
+                            <i class="material-icons right">check</i>
+                        </button>
+                        <div class="resend-link" id="resend-link" onclick="resendCode()">
+                            Resend Code
+                        </div>
+                        <a href="{{ url_for('main.login_mfa') }}" class="btn btn-secondary waves-effect waves-light" style="margin-top: 10px;">
+                            Use Different Email
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        // Check if we're on code verification step
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const step = urlParams.get('step');
+
+        if (step === 'verify' && email) {
+            document.getElementById('email-step').style.display = 'none';
+            document.getElementById('code-step').style.display = 'block';
+            document.getElementById('user-email').textContent = email;
+            document.getElementById('email-hidden').value = email;
+            document.getElementById('code').focus();
+        }
+
+        // Auto-format code input (numbers only, max 6 digits)
+        document.getElementById('code').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        });
+
+        // Handle email form submission
+        document.getElementById('email-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Sending... <i class="material-icons right">hourglass_empty</i>';
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    // If not JSON, try to parse as text
+                    return response.text().then(text => {
+                        throw new Error('Server returned non-JSON response: ' + text);
+                    });
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show code step
+                    document.getElementById('email-step').style.display = 'none';
+                    document.getElementById('code-step').style.display = 'block';
+                    document.getElementById('user-email').textContent = data.email;
+                    document.getElementById('email-hidden').value = data.email;
+                    document.getElementById('code').focus();
+                    
+                    // Update URL without reload
+                    window.history.pushState({}, '', '?step=verify&email=' + encodeURIComponent(data.email));
+                } else {
+                    // Show error message in a visible way
+                    const errorMessage = data.message || 'Failed to send verification code. Please try again.';
+                    
+                    // Create or update error message display
+                    let errorDiv = document.getElementById('email-error-message');
+                    if (!errorDiv) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.id = 'email-error-message';
+                        errorDiv.className = 'flash-message';
+                        errorDiv.style.backgroundColor = '#d32f2f';
+                        errorDiv.style.color = '#ffffff';
+                        errorDiv.style.marginTop = '15px';
+                        errorDiv.style.marginBottom = '15px';
+                        const emailForm = document.getElementById('email-form');
+                        emailForm.parentNode.insertBefore(errorDiv, emailForm);
+                    }
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.style.display = 'block';
+                    
+                    // Scroll to error message
+                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred: ' + (error.message || 'Please try again.'));
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            });
+        });
+
+        // Resend code function
+        function resendCode() {
+            const email = document.getElementById('email-hidden').value;
+            if (!email) return;
+
+            const resendLink = document.getElementById('resend-link');
+            resendLink.classList.add('disabled');
+            resendLink.textContent = 'Sending...';
+
+            fetch('{{ url_for("main.login_mfa_send_code") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'email=' + encodeURIComponent(email)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    resendLink.textContent = 'Code sent! Check your email.';
+                    setTimeout(() => {
+                        resendLink.textContent = 'Resend Code';
+                        resendLink.classList.remove('disabled');
+                    }, 3000);
+                } else {
+                    alert(data.message || 'Failed to resend code. Please try again.');
+                    resendLink.textContent = 'Resend Code';
+                    resendLink.classList.remove('disabled');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                resendLink.textContent = 'Resend Code';
+                resendLink.classList.remove('disabled');
+            });
+        }
+    </script>
+</body>
+</html>

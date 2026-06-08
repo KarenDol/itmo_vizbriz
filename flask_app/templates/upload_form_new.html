@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Patient Data - Dentist Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .upload-card {
+        background-color: #1e1e1e;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        max-width: 100%;
+    }
+
+    .card-title, p, label {
+        color: #e0e0e0;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+        color: #e0e0e0;
+        background-color: #2a2a2a;
+        border-bottom: 1px solid #00BAFF;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+        border-bottom: 1px solid #03dac6;
+        box-shadow: 0 1px 0 0 #03dac6;
+    }
+
+    input[type="text"].invalid,
+    input[type="date"].invalid,
+    select.invalid {
+        border-bottom: 1px solid #dc3545;
+        box-shadow: 0 1px 0 0 #dc3545;
+    }
+
+    .helper-text {
+        color: #dc3545;
+        font-size: 0.9rem;
+    }
+
+    .alert {
+        display: none;
+        position: fixed;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 80%;
+        background-color: #333;
+        color: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+    }
+
+    .alert.success {
+        background-color: #28a745;
+    }
+
+    .alert.error {
+        background-color: #dc3545;
+    }
+
+    .alert .close-btn {
+        background: none;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        float: right;
+        font-size: 1.2rem;
+    }
+
+    .modal {
+        background-color: #1e1e1e !important;
+        color: #e0e0e0 !important;
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 40%;
+        margin: auto;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal .modal-content {
+        color: #e0e0e0;
+        padding-bottom: 0;
+    }
+
+    .modal-footer .btn {
+        background-color: #03dac6 !important;
+        color: #121212 !important;
+        border: none;
+        border-radius: 5px;
+        box-shadow: none;
+    }
+
+    .modal-footer .btn:hover {
+        background-color: #04e9d5 !important;
+    }
+
+    .modal-footer {
+        background-color: transparent !important;
+        border-top: none;
+    }
+
+    .modal-overlay {
+        background-color: rgba(18, 18, 18, 0.9);
+    }
+
+    .center-align {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 100%; /* Adjust height if needed for vertical centering */
+}
+
+#submit-btn {
+    margin: 20px 0; /* Add spacing around the button */
+}
+
+.spinner div {
+        width: 18px;
+        height: 18px;
+        margin: 4px;
+        background-color: #03dac6;
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .spinner div:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+
+    .spinner div:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    .spinner div:nth-child(3) {
+        animation-delay: 0;
+    }
+
+    @keyframes bounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+        }
+        40% {
+            transform: scale(1);
+        }
+    }
+
+
+  
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row" style="margin-bottom: 0;">
+    <div class="col s12 m10 offset-m1" style="height: calc(100vh - 64px);">
+        <div class="card upload-card">
+            <div class="card-content">
+                <span class="card-title">Patient Data Entry Wizard</span>
+                <form id="upload-form" method="POST" action="{{ url_for('main.upload_new') }}">
+                    {% include 'partials/personal_information.html' %}
+                    {% include 'partials/insurance_information.html' %}
+                    {% include 'partials/sleep_questions.html' %}
+                   
+                   
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="alert-modal" class="modal">
+    <div class="modal-content">
+        <p id="modal-content"></p>
+    </div>
+    <div class="modal-footer">
+        <button class="modal-close btn waves-effect waves-light">OK</button>
+    </div>
+</div>
+<div class="spinner" id="loading-spinner"></div>
+    
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        M.FormSelect.init(document.querySelectorAll('select'));
+        M.Modal.init(document.querySelectorAll('.modal'));
+
+        const submitButton = document.getElementById('submit-btn');
+        const spinner = document.getElementById('loading-spinner');
+
+        // Initialize the Materialize datepicker
+        const dateInputs = document.querySelectorAll('.datepicker');
+        M.Datepicker.init(dateInputs, {
+            format: 'yyyy-mm-dd', // ISO format for backend compatibility
+            autoClose: true, // Automatically close after selecting a date
+            yearRange: [1920, new Date().getFullYear()], // Full year range
+            showClearBtn: true, // Add a clear button
+            firstDay: 1, // Start the week on Monday
+            defaultDate: null, // No default date
+            setDefaultDate: false, // Don't set a default date
+        });
+
+        // Show an alert in a Materialize modal
+        function showMaterialAlert(message, type = 'info') {
+            const modal = document.getElementById('alert-modal');
+            const modalContent = document.getElementById('modal-content');
+            modalContent.textContent = message;
+            M.Modal.getInstance(modal).open();
+        }
+
+        
+        // Form submission
+        document.getElementById('upload-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            if (submitButton.disabled) {
+                return;
+            }
+
+            // Disable submit button and show spinner
+            submitButton.disabled = true;
+            spinner.style.display = 'flex';
+
+            const formData = new FormData(event.target);
+
+            fetch(event.target.action, {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        window.location.href = `/patient/${data.patient_id}`;
+                    } else {
+                        console.error('Submission failed:', data.message);
+                        alert('Error: ' + (data.message || 'Unknown error occurred.'));
+                    }
+                })
+                .catch((error) => {
+                    console.error('Submission error:', error);
+                    alert('An unexpected error occurred. Please try again.');
+                })
+                .finally(() => {
+                    // Hide spinner and re-enable submit button (if necessary)
+                    spinner.style.display = 'none';
+                    submitButton.disabled = false;
+                });
+        });
+
+        // Step navigation logic
+        window.nextStep = function (step) {
+            const currentStep = document.querySelector('.form-step:not([style*="display: none"])');
+            const nextStep = document.getElementById('step-' + step);
+
+            if (currentStep && currentStep.id === 'step-1') {
+                const patientNameInput = document.getElementById('patient_name');
+                if (patientNameInput && !patientNameInput.value.trim()) {
+                    showMaterialAlert('Patient name is required before proceeding.', 'error');
+                    patientNameInput.focus();
+                    patientNameInput.classList.add('invalid');
+                    return;
+                } else if (patientNameInput) {
+                    patientNameInput.classList.remove('invalid');
+                }
+            }
+
+            if (currentStep && nextStep) {
+                currentStep.style.display = 'none';
+                nextStep.style.display = 'block';
+
+                // Show submit button only on the last step
+                if (nextStep.id === 'step-3') {
+                    submitButton.style.display = 'inline-block';
+                } else {
+                    submitButton.style.display = 'none';
+                }
+            } else {
+                console.error('Next step not found');
+            }
+        };
+
+        window.prevStep = function (step) {
+            const currentStep = document.querySelector('.form-step:not([style*="display: none"])');
+            const prevStep = document.getElementById('step-' + step);
+
+            if (currentStep && prevStep) {
+                currentStep.style.display = 'none';
+                prevStep.style.display = 'block';
+
+                // Hide the submit button when not on the last step
+                if (prevStep.id !== 'step-3') {
+                    submitButton.style.display = 'none';
+                }
+            } else {
+                console.error('Previous step not found');
+            }
+        };
+
+        // Load clinics for the current dentist
+        function loadDentistClinics() {
+            console.log('Loading dentist clinics for patient creation...');
+            
+            // Check if elements exist
+            const clinicField = document.getElementById('clinic-selection-field');
+            const clinicSelect = document.getElementById('clinic_id');
+            
+            console.log('Clinic field found:', !!clinicField);
+            console.log('Clinic select found:', !!clinicSelect);
+            console.log('Initial clinic field display:', clinicField ? clinicField.style.display : 'N/A');
+            
+            fetch('/api/dentist/clinics')
+                .then(response => {
+                    console.log('API response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Clinic data received:', data);
+                    
+                    if (data.success && data.clinics.length > 0) {
+                        // Clear existing options
+                        clinicSelect.innerHTML = '<option value="" disabled selected>Select Clinic</option>';
+                        
+                        // Add clinic options
+                        data.clinics.forEach(clinic => {
+                            const option = document.createElement('option');
+                            option.value = clinic.id;
+                            option.textContent = clinic.name;
+                            clinicSelect.appendChild(option);
+                        });
+                        
+                        // Show the clinic selection field
+                        clinicField.style.display = 'block';
+                        console.log('Clinic field display set to:', clinicField.style.display);
+                        
+                        // Re-initialize Materialize select
+                        M.FormSelect.init(clinicSelect);
+                        
+                        console.log(`Loaded ${data.clinics.length} clinics for dentist`);
+                    } else {
+                        console.log('No clinics found or error loading clinics');
+                        // Hide the field if no clinics found
+                        clinicField.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading clinics:', error);
+                });
+        }
+
+        // Load clinics when page loads
+        console.log('Page loaded, calling loadDentistClinics...');
+        loadDentistClinics();
+
+        // Manage conditional field visibility
+        function manageVisibility(selectId, fieldId, expectedValue) {
+            const select = document.getElementById(selectId);
+            const field = document.getElementById(fieldId);
+            if (select && field) {
+                select.addEventListener('change', function () {
+                    field.style.display = this.value === expectedValue ? 'block' : 'none';
+                });
+            }
+        }
+
+        manageVisibility('snoring', 'snoring_other_field', 'other');
+        manageVisibility('daytime_sleepiness', 'daytime_sleepiness_other_field', 'other');
+        manageVisibility('sleep_study', 'sleep_study_date_field', 'yes');
+        manageVisibility('sleep_study', 'sleep_study_doctor_field', 'yes');
+        manageVisibility('cpap_intolerant', 'cpap_intolerant_other_field', 'other');
+    });
+</script>
+
+   
+{% endblock %}

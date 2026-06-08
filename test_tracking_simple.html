@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tracking Test</title>
+</head>
+<body>
+    <h1>Tracking Test Page</h1>
+    <button onclick="testTracking()">Test Tracking</button>
+    <div id="result"></div>
+
+    <script src="/js/engagement_tracking.js"></script>
+    <script>
+        let engagementTracker;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing tracking...');
+            
+            try {
+                engagementTracker = new EngagementTracker();
+                console.log('EngagementTracker created successfully');
+                
+                // Test page view tracking
+                engagementTracker.trackPageView('test_page', { test: true });
+                console.log('Page view tracking called');
+                
+            } catch (error) {
+                console.error('Error initializing tracking:', error);
+                document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
+            }
+        });
+        
+        function testTracking() {
+            if (engagementTracker) {
+                engagementTracker.trackCTAClick('test_button', 'Test Button', { test: true });
+                document.getElementById('result').innerHTML = '✅ Tracking test sent!';
+            } else {
+                document.getElementById('result').innerHTML = '❌ EngagementTracker not initialized';
+            }
+        }
+    </script>
+</body>
+</html> 

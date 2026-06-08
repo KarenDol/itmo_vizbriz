@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vizbriz Sleep Apnea Assessment - Advanced</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <meta name="theme-color" content="#3498db">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container { 
+      background: #fff; 
+      border-radius: 20px; 
+      max-width: 900px; 
+      margin: auto; 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: url('{{ url_for('static', filename='images/header-bg.png') }}') center center no-repeat, #061a4d;
+      background-size: cover;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      position: relative;
+    }
+
+    .logo {
+      height: 70.8px;
+      width: auto;
+      vertical-align: middle;
+      margin-bottom: 20px;
+    }
+
+    .dso-logo {
+      height: 90px;
+      width: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* No extra background or padding since logo has white bg */
+      margin-left: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dso-logo img {
+      max-height: 90px;
+      max-width: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .dso-logo {
+        margin-left: 0;
+        height: 70px;
+      }
+      .dso-logo img {
+        max-height: 70px;
+      }
+    }
+
+    .logos-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .logos-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .dso-logo {
+        margin-left: 0;
+        height: 50px;
+      }
+      
+      .logo {
+        height: 60px;
+      }
+    }
+
+    .header h1 {
+      font-size: 3.3em;
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.5em;
+      opacity: 0.9;
+    }
+
+    .quiz-section {
+      padding: 40px;
+    }
+
+    /* Step Indicator */
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .step-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #e1e8ed;
+      margin: 0 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+
+    .step-dot.active {
+      background: #3498db;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .step-dot.completed {
+      background: #27ae60;
+      color: white;
+    }
+
+    /* Form Steps */
+    .form-step {
+      display: none;
+    }
+
+    .form-step.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.1em;
+      line-height: 1.4;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 15px 18px;
+      border: 2px solid #e1e8ed;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+      line-height: 1.5;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #3498db;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    /* Enhanced Select Styling */
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      background-size: 16px;
+      padding-right: 45px;
+    }
+
+    .form-group select option {
+      padding: 12px;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* Multiple Select Styling */
+    .form-group select[multiple] {
+      min-height: 120px;
+      background-image: none;
+      padding-right: 18px;
+    }
+
+    .form-group select[multiple] option {
+      padding: 10px 12px;
+      margin: 2px 0;
+      border-radius: 6px;
+      background: white;
+      border: 1px solid #e1e8ed;
+    }
+
+    .form-group select[multiple] option:checked {
+      background: #3498db;
+      color: white;
+    }
+
+    /* Checkbox Group Styling */
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border: 2px solid #e1e8ed;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: white;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .checkbox-item:hover {
+      background: #f0f8ff;
+      transform: translateX(3px);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #3498db;
+    }
+
+    .checkbox-item label {
+      margin: 0;
+      cursor: pointer;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .checkbox-item input[type="checkbox"]:checked + label {
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      color: white;
+      padding: 18px 40px;
+      border: none;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 30px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+      color: white;
+      padding: 18px 40px;
+      border: none;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 15px;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .button-group .submit-btn {
+      margin-top: 0;
+      flex: 2;
+    }
+
+    .button-group .btn-secondary {
+      flex: 1;
+    }
+
+    .content-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin: 25px 0;
+      border-left: 5px solid #3498db;
+    }
+
+    .content-section h4 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+      font-weight: 600;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #666;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Results Section */
+    .results-section {
+      padding: 40px;
+      display: none;
+    }
+
+    /* Modal Styles (from basic quiz) */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 40px;
+      border: none;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      text-align: center;
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .close-btn {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close-btn:hover,
+    .close-btn:focus {
+      color: #000;
+      text-decoration: none;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e1e8ed;
+      margin-bottom: 30px;
+    }
+
+    .tab {
+      padding: 15px 30px;
+      background: #f8f9fa;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.3s ease;
+      border-radius: 10px 10px 0 0;
+      margin-right: 5px;
+    }
+
+    .tab.active {
+      background: #3498db;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 10px;
+      min-height: 400px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .risk-badge {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .risk-low { background: #d4edda; color: #155724; }
+    .risk-moderate { background: #fff3cd; color: #856404; }
+    .risk-high { background: #f8d7da; color: #721c24; }
+
+    .score-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 20px 0;
+    }
+
+    .email-preview {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .ai-prompt {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 20px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .ai-response {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #3498db;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .symptoms-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .symptoms-list li {
+      padding: 10px 15px;
+      margin: 5px 0;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .red-flag {
+      background: #f8d7da;
+      color: #721c24;
+      border-left: 4px solid #dc3545;
+    }
+
+    .supporting-symptom {
+      background: #d1ecf1;
+      color: #0c5460;
+      border-left: 4px solid #17a2b8;
+    }
+
+    @media (max-width: 768px) {
+      .container { margin: 10px; }
+      .quiz-section, .results-section { padding: 20px; }
+      .tabs { flex-direction: column; }
+      .tab { margin-right: 0; margin-bottom: 5px; }
+    }
+
+    .cta-section {
+      text-align: center;
+      margin: 30px 0;
+      padding: 30px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 15px;
+      border: 2px solid #dee2e6;
+    }
+    
+    .cta-section h4 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+    
+    .cta-section p {
+      color: #6c757d;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 15px 30px;
+      text-decoration: none;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 5px;
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .cta-button:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logos-container">
+        <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Vizbriz Logo" class="logo">
+        {% if dso and dso.logo_url %}
+        <img src="{{ url_for('static', filename='images/' + dso.logo_url) }}" alt="{{ dso.name }} Logo" class="dso-logo">
+        {% endif %}
+      </div>
+      <h1>Advanced Sleep Assessment</h1>
+      <p>Phase 2 - Detailed Evaluation</p>
+      {% if dso %}
+      
+      {% endif %}
+    </div>
+
+    <!-- Quiz Form -->
+    <div class="quiz-section" id="quizSection">
+      <!-- Phase Indicator -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="step1-dot">1</div>
+        <div class="step-dot" id="step2-dot">2</div>
+        <div class="step-dot" id="step3-dot">3</div>
+      </div>
+
+      <!-- Phase 1: Introduction -->
+      <div id="step1" class="form-step active">
+        <div style="text-align: center; padding: 40px 20px;">
+          <h2 style="color: #2c3e50; margin-bottom: 30px; font-size: 2.5em;">🟣 Ready to Go Deeper?</h2>
+          
+          <div style="background: #f8f9fa; padding: 40px; border-radius: 15px; margin: 30px 0; border-left: 6px solid #3498db;">
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              Thanks for completing the first step — now let's take it further.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              This next section dives a bit deeper into your sleep patterns, lifestyle, and daily health.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              It only takes a few more minutes and can help paint a clearer picture of what's really going on.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              Even small details can make a big difference — especially when it comes to finding the right solution for you.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 30px;">
+              <strong>Let's keep going. Your health is worth it.</strong>
+            </p>
+          </div>
+          
+          <button type="button" class="submit-btn" onclick="nextStep()" style="font-size: 1.3em; padding: 20px 50px;">
+            🚀 Start Phase 1
+          </button>
+        </div>
+      </div>
+
+      <!-- Phase 1: Sleep Patterns & TMJ Symptoms -->
+      <div id="step2" class="form-step">
+        <h2 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">Phase 1: Sleep Patterns & TMJ Symptoms</h2>
+        
+        <div class="content-section">
+          <h4>🔸 Sleep Patterns & Quality</h4>
+          
+          <div class="form-group">
+            <label>How long does it usually take you to fall asleep?</label>
+            <textarea name="fall_asleep_time" placeholder="e.g., 15 minutes, 30 minutes, etc."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Average hours of sleep at night:</label>
+            <textarea name="average_sleep_hours" placeholder="e.g., 7 hours, 6-8 hours, etc."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you have trouble falling asleep again after waking during the night?</label>
+            <select name="trouble_falling_asleep_again">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you breathe through your mouth at night?</label>
+            <select name="mouth_breathing" onchange="toggleMouthBreathingText(this)">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+              <option value="dont_know">Don't know</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="mouth_breathing_text" style="display: none;">
+            <label>Please describe:</label>
+            <textarea name="mouth_breathing_description" placeholder="Please describe your mouth breathing..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you feel sleepy or tired during the day?</label>
+            <select name="day_sleepy" onchange="toggleDaySleepyText(this)">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="day_sleepy_text" style="display: none;">
+            <label>Please describe:</label>
+            <textarea name="day_sleepy_description" placeholder="Please describe your daytime sleepiness..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you snooze or take naps during the day?</label>
+            <select name="napping">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you wake up frequently to urinate at night?</label>
+            <select name="night_urination">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="content-section">
+          <h4>🔸 Jaw / TMJ / Bruxism Symptoms</h4>
+          
+          <div class="form-group">
+            <label>Do you have TMJ (jaw joint) problems?</label>
+            <select name="tmj_problems">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you experience jaw joint or chewing muscle pain when you wake up?</label>
+            <select name="jaw_pain_morning">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Have you noticed increased tooth sensitivity or worn teeth?</label>
+            <select name="worn_teeth">
+              <option value="">Select an option</option>
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Do you experience any of the following? (Select all that apply)</label>
+            <div class="checkbox-group">
+              <div class="checkbox-item">
+                <input type="checkbox" id="ear_pain" name="ear_symptoms" value="ear_pain" onchange="toggleTMJDescription()">
+                <label for="ear_pain">Ear pain</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="tinnitus" name="ear_symptoms" value="tinnitus" onchange="toggleTMJDescription()">
+                <label for="tinnitus">Tinnitus (ringing in ears)</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="vertigo" name="ear_symptoms" value="vertigo" onchange="toggleTMJDescription()">
+                <label for="vertigo">Vertigo (dizziness)</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="ear_none" name="ear_symptoms" value="none" onchange="toggleTMJDescription()">
+                <label for="ear_none">None of the above</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group" id="tmj_description_text" style="display: none;">
+            <label>If you answered "Yes" to any of the above, please describe briefly:</label>
+            <textarea name="tmj_description" placeholder="Please describe your TMJ or jaw symptoms..."></textarea>
+          </div>
+        </div>
+
+        <div class="button-group">
+                  <button type="button" class="btn-secondary" onclick="prevStep()">Back to Introduction</button>
+        <button type="button" class="submit-btn" onclick="nextStep()">Continue to Phase 2</button>
+        </div>
+      </div>
+
+      <!-- Phase 2: Lifestyle Factors + All the rest -->
+      <div id="step3" class="form-step">
+        <h2 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">🟣 Ready to Go Deeper?</h2>
+        
+        <div style="background: #f8f9fa; padding: 30px; border-radius: 15px; margin: 30px 0; border-left: 6px solid #3498db; text-align: center;">
+          <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+            Thanks for completing the first step — now let's take it further.
+          </p>
+          <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+            This next section dives a bit deeper into your sleep patterns, lifestyle, and daily health.
+          </p>
+          <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+            It only takes a few more minutes and can help paint a clearer picture of what's really going on.
+          </p>
+          <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+            Even small details can make a big difference — especially when it comes to finding the right solution for you.
+          </p>
+          <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 0;">
+            <strong>Let's keep going. Your health is worth it.</strong>
+          </p>
+        </div>
+        
+        <form id="advancedQuizForm">
+          <!-- Hidden email field for form submission -->
+          <input type="hidden" name="patient_email" value="{{ patient_email or '' }}">
+
+          <!-- Lifestyle -->
+          <div class="content-section">
+            <h4>🔸 Lifestyle Factors</h4>
+            
+            <div class="form-group">
+              <label>Do you smoke or use tobacco products?</label>
+              <select name="tobacco">
+                <option value="">Select an option</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>How often do you consume alcohol?</label>
+              <select name="alcohol_use">
+                <option value="">Select an option</option>
+                <option value="none">None</option>
+                <option value="1_2">1–2 drinks per week</option>
+                <option value="3_6">3–6 drinks per week</option>
+                <option value="daily">Daily or heavy use</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Do you regularly use sedatives or sleeping pills?</label>
+              <select name="sedatives" onchange="toggleSedativesText(this)">
+                <option value="">Select an option</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            
+            <div class="form-group" id="sedatives_text" style="display: none;">
+              <label>Which ones and how often?</label>
+              <textarea name="sedatives_description" placeholder="Please specify which sedatives/sleep pills and how often you use them..."></textarea>
+            </div>
+          </div>
+
+          <!-- Family history -->
+          <div class="content-section">
+            <h4>🔸 Family History</h4>
+            
+            <div class="form-group">
+              <label>Is there a family history of sleep apnea or other sleep-related disorders?</label>
+              <select name="family_history">
+                <option value="">Select an option</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Personal treatment goals -->
+          <div class="content-section">
+            <h4>🔸 Personal Treatment Goals</h4>
+            
+            <div class="form-group">
+              <label>What are your primary treatment goals? (Select all that apply)</label>
+              <div class="checkbox-group">
+                <div class="checkbox-item">
+                  <input type="checkbox" id="stop_snoring" name="goals" value="stop_snoring">
+                  <label for="stop_snoring">Stop snoring</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="improve_daytime_sleepiness" name="goals" value="improve_daytime_sleepiness">
+                  <label for="improve_daytime_sleepiness">Improve daytime sleepiness</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="improve_daytime_energy" name="goals" value="improve_daytime_energy">
+                  <label for="improve_daytime_energy">Improve daytime energy</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="improve_sleep_quality" name="goals" value="improve_sleep_quality">
+                  <label for="improve_sleep_quality">Improve sleep quality</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="reduce_gasping" name="goals" value="reduce_gasping">
+                  <label for="reduce_gasping">Reduce gasping for air while sleeping</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="reduce_health_risks" name="goals" value="reduce_health_risks">
+                  <label for="reduce_health_risks">Reduce health risks</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="relieve_tmj_pain" name="goals" value="relieve_tmj_pain">
+                  <label for="relieve_tmj_pain">Relieve pain in the temporomandibular joint (TMJ)</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="relieve_jaw_muscle_pain" name="goals" value="relieve_jaw_muscle_pain">
+                  <label for="relieve_jaw_muscle_pain">Relieve pain in the jaw muscles (masticatory muscles)</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="relieve_ear_pain_tinnitus" name="goals" value="relieve_ear_pain_tinnitus">
+                  <label for="relieve_ear_pain_tinnitus">Relieve ear pain or ringing (tinnitus)</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="improve_morning_headaches" name="goals" value="improve_morning_headaches">
+                  <label for="improve_morning_headaches">Improve morning headaches</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="improve_teeth_clenching_grinding" name="goals" value="improve_teeth_clenching_grinding">
+                  <label for="improve_teeth_clenching_grinding">Improve teeth clenching or grinding</label>
+                </div>
+                <div class="checkbox-item">
+                  <input type="checkbox" id="other" name="goals" value="other" onchange="toggleOtherGoalText(this)">
+                  <label for="other">Other</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group" id="other_goal_text" style="display: none;">
+              <label>Please describe your other treatment goals:</label>
+              <textarea name="other_goal_description" placeholder="Please describe what other aspects of your sleep or health you'd like to improve..."></textarea>
+            </div>
+          </div>
+
+          <!-- Additional comments -->
+          <div class="content-section">
+            <h4>🔸 Additional Notes</h4>
+            
+            <div class="form-group">
+              <label>Please share any other information about your sleep, symptoms, or concerns that might help us understand your situation.</label>
+              <textarea name="extra_notes" placeholder="Any additional comments or concerns"></textarea>
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button type="button" class="btn-secondary" onclick="prevStep()">Back to Phase 1</button>
+            <button type="submit" class="submit-btn">Submit Advanced Assessment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Loading Section -->
+    <div id="loading" class="loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Analyzing your responses...</p>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="results-section">
+      <!-- Custom Modal (from basic quiz) -->
+      <div id="customModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn" onclick="closeModal()">&times;</span>
+          <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">Thank You!</h2>
+          <p style="font-size: 18px; text-align: center; line-height: 1.6; color: #6c757d;">
+            Thank you for completing the advanced sleep assessment. One of our dental sleep experts will contact you shortly to discuss your results and explore the best treatment options for you.
+          </p>
+          <p style="font-size: 16px; text-align: center; line-height: 1.6; color: #6c757d; margin-top: 20px;">
+            We appreciate your commitment to better sleep and health!
+          </p>
+        </div>
+      </div>
+      
+      <!-- Patient Results (Only Section Visible) -->
+      <div id="patientResults"></div>
+      
+      <!-- Hidden sections - not displayed to users -->
+      <div id="quizAnalysis" style="display: none;"></div>
+      <div id="aiAnalysis" style="display: none;"></div>
+      <div id="patientEmail" style="display: none;"></div>
+      <div id="doctorEmail" style="display: none;"></div>
+    </div>
+  </div>
+
+      <!-- Include engagement tracking -->
+    <script src="{{ url_for('static', filename='js/engagement_tracking.js') }}"></script>
+
+    <script>
+        // Set default clinic ID for tracking
+        window.defaultClinicId = {{ default_clinic_id or 1 }};
+    // Conditional field toggle functions
+    function toggleMouthBreathingText(select) {
+      const textField = document.getElementById('mouth_breathing_text');
+      if (select.value === 'yes') {
+        textField.style.display = 'block';
+      } else {
+        textField.style.display = 'none';
+      }
+    }
+    
+    function toggleDaySleepyText(select) {
+      const textField = document.getElementById('day_sleepy_text');
+      if (select.value === 'yes') {
+        textField.style.display = 'block';
+      } else {
+        textField.style.display = 'none';
+      }
+    }
+    
+    function toggleTMJDescription() {
+      const checkboxes = document.querySelectorAll('input[name="ear_symptoms"]');
+      const textField = document.getElementById('tmj_description_text');
+      const noneCheckbox = document.getElementById('ear_none');
+      
+      let anyChecked = false;
+      checkboxes.forEach(checkbox => {
+        if (checkbox.checked && checkbox.value !== 'none') {
+          anyChecked = true;
+        }
+      });
+      
+      // Show text field if any symptoms are checked (except "none")
+      if (anyChecked) {
+        textField.style.display = 'block';
+        // Uncheck "none" if other symptoms are selected
+        if (noneCheckbox.checked) {
+          noneCheckbox.checked = false;
+        }
+      } else {
+        textField.style.display = 'none';
+      }
+      
+      // If "none" is checked, uncheck all other options
+      if (noneCheckbox.checked) {
+        checkboxes.forEach(checkbox => {
+          if (checkbox.value !== 'none') {
+            checkbox.checked = false;
+          }
+        });
+        textField.style.display = 'none';
+      }
+    }
+    
+    function toggleSedativesText(select) {
+      const textField = document.getElementById('sedatives_text');
+      if (select.value === 'yes') {
+        textField.style.display = 'block';
+      } else {
+        textField.style.display = 'none';
+      }
+    }
+    
+    function toggleOtherGoalText(checkbox) {
+      const textField = document.getElementById('other_goal_text');
+      if (checkbox.checked) {
+        textField.style.display = 'block';
+      } else {
+        textField.style.display = 'none';
+      }
+    }
+
+    // Step navigation functions
+    function nextStep() {
+      const currentStep = getCurrentStep();
+      console.log('nextStep called, current step:', currentStep);
+      
+      if (currentStep === 1) {
+        console.log('Moving from step 1 to step 2');
+        document.getElementById('step1-dot').classList.remove('active');
+        document.getElementById('step2-dot').classList.add('active');
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        console.log('Step 2 should now be visible');
+        
+        // Track progression to step 2
+        trackPageView('stage_b_step_2', { step_number: 2, step_name: 'sleep_patterns' });
+      } else if (currentStep === 2) {
+        console.log('Moving from step 2 to step 3');
+        document.getElementById('step2-dot').classList.remove('active');
+        document.getElementById('step3-dot').classList.add('active');
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step3').classList.add('active');
+        console.log('Step 3 should now be visible');
+        
+        // Scroll to top of the form when step 3 loads
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Focus on the first form element in step 3 after a brief delay
+        setTimeout(() => {
+          const firstInput = document.querySelector('#step3 select, #step3 input, #step3 textarea');
+          if (firstInput) {
+            firstInput.focus();
+          }
+        }, 500);
+        
+        // Track progression to step 3
+        trackPageView('stage_b_step_3', { step_number: 3, step_name: 'detailed_questions' });
+      }
+    }
+
+    function prevStep() {
+      const currentStep = getCurrentStep();
+      console.log('prevStep called, current step:', currentStep);
+      
+      if (currentStep === 3) {
+        console.log('Moving from step 3 to step 2');
+        document.getElementById('step3-dot').classList.remove('active');
+        document.getElementById('step2-dot').classList.add('active');
+        document.getElementById('step3').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        
+        // Track backward navigation to step 2
+        trackPageView('stage_b_step_2_back', { step_number: 2, step_name: 'sleep_patterns', direction: 'backward' });
+      } else if (currentStep === 2) {
+        console.log('Moving from step 2 to step 1');
+        document.getElementById('step2-dot').classList.remove('active');
+        document.getElementById('step1-dot').classList.add('active');
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+        
+        // Track backward navigation to step 1
+        trackPageView('stage_b_step_1_back', { step_number: 1, step_name: 'introduction', direction: 'backward' });
+      }
+    }
+
+    function getCurrentStep() {
+      if (document.getElementById('step1').classList.contains('active')) return 1;
+      if (document.getElementById('step2').classList.contains('active')) return 2;
+      if (document.getElementById('step3').classList.contains('active')) return 3;
+      return 1;
+    }
+
+    // Function to collect all form data from all four phases
+    function collectAllFormData() {
+      const answers = {};
+      
+      // Collect data from Step 2 (Sleep Patterns)
+      const step2Elements = document.querySelectorAll('#step2 input, #step2 select, #step2 textarea');
+      step2Elements.forEach(element => {
+        if (element.name) {
+          if (element.type === 'checkbox') {
+            // Handle checkboxes - collect all checked values for the same name
+            if (!answers[element.name]) {
+              answers[element.name] = [];
+            }
+            if (element.checked) {
+              answers[element.name].push(element.value);
+            }
+          } else if (element.type === 'select-multiple') {
+            // Handle multiple select
+            const selectedOptions = Array.from(element.selectedOptions).map(option => option.value);
+            answers[element.name] = selectedOptions;
+          } else {
+            answers[element.name] = element.value;
+          }
+        }
+      });
+      
+      // Collect data from Step 3 (form elements in the form)
+      const form = document.getElementById('advancedQuizForm');
+      const formData = new FormData(form);
+      
+      // Handle checkboxes first for step 3
+      const step3Checkboxes = form.querySelectorAll('input[type="checkbox"]');
+      step3Checkboxes.forEach(checkbox => {
+        if (checkbox.name) {
+          if (!answers[checkbox.name]) {
+            answers[checkbox.name] = [];
+          }
+          if (checkbox.checked) {
+            answers[checkbox.name].push(checkbox.value);
+          }
+        }
+      });
+      
+      // Handle other form elements
+      formData.forEach((value, key) => {
+        const element = form.querySelector(`[name="${key}"]`);
+        if (element) {
+          if (element.type === 'checkbox') {
+            // Skip - already handled above
+            return;
+          } else if (element.type === 'select-multiple') {
+            const selectedOptions = Array.from(element.selectedOptions).map(option => option.value);
+            answers[key] = selectedOptions;
+          } else {
+            answers[key] = value;
+          }
+        }
+      });
+      
+      return answers;
+    }
+
+    // Form submission
+    document.getElementById('advancedQuizForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      console.log('Advanced quiz form submitted');
+      
+      // Track form submission
+      const patientEmail = collectAllFormData().patient_email || '';
+      trackCTAClick('submit_stage_b', 'advanced_quiz', patientEmail);
+      
+      // Show loading
+      document.getElementById('quizSection').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      
+      // Collect data from all phases
+      const answers = collectAllFormData();
+      console.log('Collected form data:', answers);
+
+      // Check if email was passed in URL (indicating this came from basic quiz)
+      const urlParams = new URLSearchParams(window.location.search);
+      const emailFromUrl = urlParams.get('email');
+      const dsoIdFromUrl = urlParams.get('dso_id');
+      const isStandalone = !emailFromUrl; // Standalone mode only if no email in URL
+      
+      const payload = {
+        patient_email: answers.patient_email,
+        clinic_email: 'default@vizbriz.com',
+        answers: answers,
+        standalone: isStandalone,  // Only standalone if no email passed from basic quiz
+        dso_id: dsoIdFromUrl ? parseInt(dsoIdFromUrl) : 1  // Get dso_id from URL or default to 1
+      };
+
+      try {
+        const res = await fetch('/analyze_quiz_part_b', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        
+        // Hide loading, show results
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Track results page view
+        trackPageView('stage_b_results', { step_number: 4, step_name: 'results_page', quiz_completed: true });
+        
+        if (data.success) {
+          // Populate Patient Results Tab
+          document.getElementById('patientResults').innerHTML = `
+            <div class="content-section">
+              <h4>📋 Your Advanced Sleep Assessment Results</h4>
+              <div style="background: white; padding: 20px; border-radius: 10px; border-left: 4px solid #3498db;">
+                <div class="risk-badge risk-${data.risk_level.toLowerCase()}">${data.risk_level} Risk</div>
+                <p style="font-size: 16px; line-height: 1.6; margin: 20px 0;"><strong>Assessment Summary:</strong></p>
+                <div style="white-space: pre-line; font-size: 16px; line-height: 1.6;">${data.risk_message || data.risk_explanation}</div>
+              </div>
+            </div>
+            
+            <div class="cta-section">
+              <h4>Recommended Actions</h4>
+              <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                ${generateCTAButtons(data.cta_buttons || [], data.risk_level)}
+              </div>
+            </div>
+          `;
+
+          // Hidden sections are not populated - only patientResults is shown
+
+        } else {
+          // Track error results page
+          trackPageView('stage_b_results_error', { step_number: 4, step_name: 'results_error', quiz_completed: false, error: data.error });
+          
+          document.getElementById('patientResults').innerHTML = `
+            <div class="content-section">
+              <h4>❌ Error</h4>
+              <p>${data.error || 'An error occurred while processing your assessment.'}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Track network/submission error
+        trackPageView('stage_b_results_error', { step_number: 4, step_name: 'results_network_error', quiz_completed: false, error: error.message });
+        
+        document.getElementById('patientResults').innerHTML = `
+          <div class="content-section">
+            <h4>❌ Error</h4>
+            <p>An error occurred while submitting your assessment. Please try again.</p>
+          </div>
+        `;
+      }
+    });
+
+    function generateCTAButtons(ctaButtons, riskLevel) {
+      // Only show consultation button for advanced quiz
+      return `
+        <button class="cta-button" onclick="scheduleMeeting()" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); padding: 18px 35px; font-size: 18px; border-radius: 30px; box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);">
+          👨‍⚕️ Schedule a Consult
+        </button>
+      `;
+    }
+    
+    async function scheduleMeeting() {
+      // Track CTA click
+      const patientEmail = collectAllFormData().patient_email || '';
+      trackCTAClick('consult_dental_team', 'advanced_quiz', patientEmail);
+      
+      // Auto-register consultation request - backend will lookup patient data
+      try {
+        const consultationData = {
+          email: patientEmail,
+          comment: 'Auto-registered via advanced quiz consultation button. Patient completed comprehensive sleep assessment and requested consultation with dental sleep team.'
+        };
+        
+        const response = await fetch('/api/consultation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(consultationData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Show immediate alert confirmation
+          alert('✅ Thank You! Your consultation request has been submitted successfully. Our dental sleep team will contact you shortly.');
+          
+          // Also log to console for debugging
+          console.log('✅ Consultation API Success:', result);
+        } else {
+          // Show error alert
+          console.error('❌ Consultation API Error:', result);
+          alert('❌ Sorry, there was an issue submitting your request. Please try again or contact us directly.');
+          throw new Error(result.error || 'Failed to submit consultation request');
+        }
+        
+      } catch (error) {
+        console.error('❌ Consultation API Network Error:', error);
+        // Show simple error alert
+        alert('❌ Sorry, there was an issue submitting your request. Please try again or contact us directly.');
+      }
+    }
+
+    function scheduleSleepTest() {
+      // Track CTA click  
+      const patientEmail = collectAllFormData().patient_email || '';
+      trackCTAClick('schedule_sleep_test', 'advanced_quiz', patientEmail);
+      window.open('https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75', '_blank');
+    }
+
+    // Tab functionality
+    function showTab(tabName) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      
+      // Show selected tab content
+      document.getElementById(tabName + '-tab').classList.add('active');
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+    }
+
+    // Modal functions (from basic quiz)
+    function openModal() {
+      document.getElementById('customModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('customModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById('customModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, initializing advanced quiz...');
+      
+      // Track page view for Stage B (Advanced Quiz) - Step 1
+      trackPageView('stage_b_step_1', { step_number: 1, step_name: 'introduction' });
+      
+      console.log('Phase 1 should be visible');
+    });
+  </script>
+</body>
+</html> 

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STL Viewer - {{ file_name }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            max-width: 300px;
+        }
+        
+        #controls h3 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #controls .patient-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        button {
+            padding: 10px 16px;
+            border: none;
+            background: #2196F3;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #1976D2;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button.secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        button.secondary:hover {
+            background: #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        #loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 12px;
+            color: #666;
+            max-width: 200px;
+        }
+        
+        #info div {
+            margin: 4px 0;
+        }
+        
+        .error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .error h3 {
+            color: #f44336;
+            margin-bottom: 12px;
+        }
+        
+        .error p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <div style="color: #666; font-size: 14px;">Loading 3D model...</div>
+    </div>
+    
+    <div id="controls" style="display: none;">
+        <h3>
+            <span style="font-size: 24px;">🦷</span>
+            STL Viewer
+        </h3>
+        <div class="patient-info">
+            <div><strong>Patient:</strong> {{ patient_name }}</div>
+            <div><strong>File:</strong> {{ file_name }}</div>
+        </div>
+        <div class="control-group">
+            <button onclick="resetView()">
+                <span>🔄</span> Reset View
+            </button>
+            <button onclick="toggleWireframe()">
+                <span>📐</span> Toggle Wireframe
+            </button>
+            <button onclick="changeColor()">
+                <span>🎨</span> Change Color
+            </button>
+            <button onclick="screenshot()" class="secondary">
+                <span>📸</span> Screenshot
+            </button>
+            <button onclick="window.close()" class="secondary">
+                <span>✕</span> Close
+            </button>
+        </div>
+    </div>
+    
+    <div id="info" style="display: none;">
+        <div><strong>Controls:</strong></div>
+        <div>• Left click + drag: Rotate</div>
+        <div>• Right click + drag: Pan</div>
+        <div>• Scroll: Zoom</div>
+        <div id="model-stats"></div>
+    </div>
+    
+    <script>
+        let scene, camera, renderer, controls, mesh;
+        let wireframe = false;
+        const colors = [0x2196F3, 0x4CAF50, 0xFF9800, 0xE91E63, 0x9C27B0, 0x00BCD4];
+        let currentColorIndex = 0;
+        
+        init();
+        animate();
+        
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf5f5f5);
+            scene.fog = new THREE.Fog(0xf5f5f5, 200, 500);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                45, 
+                window.innerWidth / window.innerHeight, 
+                0.1, 
+                2000
+            );
+            camera.position.set(0, 0, 150);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                preserveDrawingBuffer: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.rotateSpeed = 0.7;
+            controls.zoomSpeed = 1.2;
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight1.position.set(1, 1, 1);
+            directionalLight1.castShadow = true;
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight2.position.set(-1, -0.5, -1);
+            scene.add(directionalLight2);
+            
+            // Grid helper
+            const gridHelper = new THREE.GridHelper(200, 20, 0xcccccc, 0xe0e0e0);
+            gridHelper.position.y = -50;
+            scene.add(gridHelper);
+            
+            // Load STL
+            const loader = new THREE.STLLoader();
+            loader.load(
+                '{{ stl_url }}',
+                function(geometry) {
+                    // Success
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('controls').style.display = 'block';
+                    document.getElementById('info').style.display = 'block';
+                    
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: colors[0], 
+                        specular: 0x222222, 
+                        shininess: 100,
+                        flatShading: false
+                    });
+                    
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    
+                    // Center geometry
+                    geometry.center();
+                    geometry.computeBoundingBox();
+                    geometry.computeVertexNormals();
+                    
+                    // Auto-scale to fit view
+                    const box = geometry.boundingBox;
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 80 / maxDim;
+                    mesh.scale.set(scale, scale, scale);
+                    
+                    scene.add(mesh);
+                    
+                    // Update stats
+                    const vertices = geometry.attributes.position.count;
+                    const faces = vertices / 3;
+                    document.getElementById('model-stats').innerHTML = `
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                            <div><strong>Model Info:</strong></div>
+                            <div>Vertices: ${vertices.toLocaleString()}</div>
+                            <div>Faces: ${Math.floor(faces).toLocaleString()}</div>
+                        </div>
+                    `;
+                },
+                function(xhr) {
+                    // Progress
+                    const percent = Math.floor((xhr.loaded / xhr.total) * 100);
+                    document.querySelector('#loading .spinner + div').textContent = 
+                        `Loading 3D model... ${percent}%`;
+                },
+                function(error) {
+                    // Error
+                    document.getElementById('loading').innerHTML = `
+                        <div class="error">
+                            <h3>❌ Error Loading Model</h3>
+                            <p>Could not load the STL file. Please try again or contact support.</p>
+                            <button onclick="window.close()">Close</button>
+                        </div>
+                    `;
+                    console.error('Error loading STL:', error);
+                }
+            );
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        function resetView() {
+            camera.position.set(0, 0, 150);
+            controls.reset();
+            if (mesh) {
+                mesh.rotation.set(0, 0, 0);
+            }
+        }
+        
+        function toggleWireframe() {
+            if (mesh) {
+                wireframe = !wireframe;
+                mesh.material.wireframe = wireframe;
+            }
+        }
+        
+        function changeColor() {
+            if (mesh) {
+                currentColorIndex = (currentColorIndex + 1) % colors.length;
+                mesh.material.color.setHex(colors[currentColorIndex]);
+            }
+        }
+        
+        function screenshot() {
+            try {
+                const link = document.createElement('a');
+                link.download = '{{ file_name }}_screenshot.png';
+                link.href = renderer.domElement.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                alert('Screenshot failed. Please try again.');
+                console.error('Screenshot error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
+

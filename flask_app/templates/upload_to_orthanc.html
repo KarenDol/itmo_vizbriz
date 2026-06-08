@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Files to Orthanc</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .section h2 {
+            color: #34495e;
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        input[type="number"], input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .progress {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .progress.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .progress.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .progress.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .progress.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: white;
+            margin-top: 10px;
+        }
+        
+        .file-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .error-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .error-item {
+            color: #721c24;
+            margin-bottom: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .instructions {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #0c5460;
+        }
+        
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 Upload Files to Orthanc</h1>
+        
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ul>
+                <li><strong>Patient ID:</strong> Enter the patient ID to associate the files with</li>
+                <li><strong>File Paths:</strong> Enter one file path per line (full paths to .dcm files)</li>
+                <li><strong>Multi-frame DICOM:</strong> Files will be automatically detected and split into individual slices</li>
+                <li><strong>Compression:</strong> Compressed DICOM files will be automatically decompressed</li>
+                <li><strong>Progress:</strong> Real-time progress updates will be shown during upload</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>📁 File System Upload to Orthanc</h2>
+            <p>Upload DICOM files directly from your file system to Orthanc. Multi-frame files will be automatically split!</p>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="patient_id">Patient ID:</label>
+                    <input type="number" id="patient_id" name="patient_id" required placeholder="Enter patient ID">
+                </div>
+                
+                <div class="form-group">
+                    <label for="file_paths">File Paths (one per line):</label>
+                    <textarea id="file_paths" name="file_paths" rows="10" required 
+                              placeholder="C:\path\to\file1.dcm&#10;C:\path\to\file2.dcm&#10;C:\path\to\file3.dcm"></textarea>
+                </div>
+                
+                <button type="submit" id="uploadBtn">🚀 Start Upload to Orthanc</button>
+            </form>
+            
+            <div id="progress" class="progress" style="display: none;">Idle</div>
+            
+            <div id="stats" class="stats" style="display: none;">
+                <div class="stat-card">
+                    <h3>📊 Total Files</h3>
+                    <div class="value" id="totalFiles">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>✅ Processed</h3>
+                    <div class="value" id="processedFiles">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>⚠️ Skipped</h3>
+                    <div class="value" id="skippedFiles">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>❌ Errors</h3>
+                    <div class="value" id="errorFiles">0</div>
+                </div>
+            </div>
+            
+            <div id="errorList" class="error-list" style="display: none;">
+                <h3>❌ Error Details:</h3>
+                <div id="errorItems"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const patientId = document.getElementById('patient_id').value;
+            const filePathsText = document.getElementById('file_paths').value;
+            const progress = document.getElementById('progress');
+            const button = document.getElementById('uploadBtn');
+            const stats = document.getElementById('stats');
+            const errorList = document.getElementById('errorList');
+            
+            // Parse file paths
+            const filePaths = filePathsText.split('\n')
+                .map(path => path.trim())
+                .filter(path => path.length > 0);
+            
+            if (filePaths.length === 0) {
+                alert('Please enter at least one file path');
+                return;
+            }
+            
+            // Show progress and disable button
+            progress.style.display = 'block';
+            progress.className = 'progress info';
+            progress.textContent = '⏳ Starting upload process...';
+            button.disabled = true;
+            
+            // Hide previous results
+            stats.style.display = 'none';
+            errorList.style.display = 'none';
+            
+            // Send request
+            fetch('/filemgmt/upload_files_to_orthanc', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    patient_id: patientId,
+                    file_paths: filePaths
+                })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return res.text().then(text => {
+                        throw new Error(`Expected JSON response but got: ${text.substring(0, 200)}...`);
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    progress.className = 'progress success';
+                    progress.innerHTML = `✅ Upload completed successfully!<br>
+                    Processed: ${data.processed_files} files<br>
+                    Total: ${data.total_files} files<br>
+                    Skipped: ${data.skipped_files} non-DICOM files`;
+                    
+                    // Show statistics
+                    document.getElementById('totalFiles').textContent = data.total_files;
+                    document.getElementById('processedFiles').textContent = data.processed_files;
+                    document.getElementById('skippedFiles').textContent = data.skipped_files;
+                    document.getElementById('errorFiles').textContent = data.errors.length;
+                    stats.style.display = 'grid';
+                    
+                    // Show errors if any
+                    if (data.errors && data.errors.length > 0) {
+                        const errorItems = document.getElementById('errorItems');
+                        errorItems.innerHTML = '';
+                        data.errors.forEach(error => {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-item';
+                            errorDiv.textContent = `${error.file}: ${error.error}`;
+                            errorItems.appendChild(errorDiv);
+                        });
+                        errorList.style.display = 'block';
+                    }
+                } else {
+                    progress.className = 'progress error';
+                    progress.textContent = `❌ Failed: ${data.message}`;
+                }
+            })
+            .catch(err => {
+                progress.className = 'progress error';
+                progress.textContent = `❌ Error: ${err.message}`;
+                console.error('Upload error:', err);
+            })
+            .finally(() => {
+                button.disabled = false;
+            });
+        });
+        
+        // Add some helpful placeholder text
+        document.getElementById('file_paths').addEventListener('focus', function() {
+            if (this.value === '') {
+                this.placeholder = 'C:\\path\\to\\file1.dcm\nC:\\path\\to\\file2.dcm\nC:\\path\\to\\file3.dcm\n\n(Enter one file path per line)';
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,454 @@
+/* Base Styles */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;  /* or 100% if you prefer */
+    background-color: #1e1e1e;
+    
+    }
+
+/* Title and Button Container */
+#title-container {
+    padding: 10px;
+    min-width: auto;
+    gap: 8px;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Space between logo and title */
+}
+
+.title-logo {
+    width: 30px;
+}
+
+#title-container h1 {
+    font-size: 24px;
+    margin: 0;
+    color: #ffffff;
+}
+
+/* Button Row */
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Space between buttons */
+}
+
+/* Shared base styles for both buttons */
+.small-button,
+.green-button {
+  width: 180px;           /* Same fixed width */
+  padding: 10px 15px;
+  margin: 8px 0;         /* Add vertical margin */
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  /* Remove or override any previously set `height` or `min-width` here */
+}
+
+/* Specific color styles */
+.small-button {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.green-button {
+  background-color: #28a745;
+  color: #fff;
+}
+
+
+
+.green-button:hover {
+    background-color: #218838;
+}
+
+/* Main Content Layout */
+#main-content {
+  display: flex;
+  flex: 1;         /* Fill the rest of the screen */
+  position: relative;
+  background-color: #1e1e1e;
+ }
+
+/* ---- Left Panel (File List + Title) ---- */
+#file-list-container {
+    flex-basis: 250px;
+    background-color: #1e1e1e;
+    color: #fff;
+    overflow-y: auto; /* Allow scrolling */
+    box-sizing: border-box;
+    padding: 20px;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    border-right: 1px solid #444;
+    height: 100%; /* Full height */
+}
+
+  #file-list-container.hidden {
+    flex-basis: 0;   /* collapse to zero */
+    padding: 0;      /* remove padding so it fully collapses */
+    }
+  
+  /* Just some styling for the file-list content */
+#file-list p {
+    margin: 10px 0;
+  }
+
+/* File List Section */
+#file-list {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+    max-height: calc(100vh - 150px); /* Increased height, accounting for header */
+    padding: 10px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+#file-list h2 {
+    font-size: 18px;
+    color: #bb86fc;
+    text-align: center;
+    margin: 0 0 10px 0; /* Add spacing below the title */
+    flex-shrink: 0; /* Prevent the title from collapsing */
+}
+
+#file-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    height: auto; /* Ensure it stretches to the container height */
+    display: flex; /* Ensure it's not shrinking due to flexbox */
+    flex-direction: column; /* Ensure items stack vertically */
+}
+
+
+/* Prevent shrinking of list items */
+#file-list li {
+    padding: 8px;
+    margin: 2px 0;
+    cursor: pointer;
+    border-radius: 3px;
+    background-color: #292929;
+    color: #e0e0e0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#file-list li:hover,
+#file-list li.active {
+    background-color: #444;
+    color: #bb86fc;
+}
+
+#file-list.hidden {
+    flex: 0 0 0; /* Reduce width to 0 */
+    width: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+}
+
+/* File Selection */
+#files {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#files li {
+    cursor: pointer;
+    padding: 5px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+#files li:hover {
+    background-color: #444;
+    color: #bb86fc;
+}
+
+#files li.selected {
+    background-color: #007BFF;
+    color: white;
+    border-color: #0056b3;
+}
+
+/* Viewer Section */
+/* Viewer Section (Always Visible) */
+#viewer {
+    flex: 1; /* Use remaining space */
+    background-color: #000;
+    position: sticky; /* Remains visible when scrolling */
+    top: 0;
+    height: 100vh; /* Full height */
+    overflow: hidden; /* Prevent scrolling */
+}
+
+dicom-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    background-color: transparent;
+}
+
+/* Right Panel (Controls) */
+#controls-container {
+    flex-basis: 300px;
+    background-color: #1e1e1e;
+    color: #fff;
+    overflow-y: auto; /* Allow scrolling */
+    box-sizing: border-box;
+    padding: 15px;
+    -webkit-overflow-scrolling: touch;
+    height: 100vh; /* Full height */
+    border-left: 1px solid #444;
+}
+
+
+.controls-wrapper {
+    min-height: 100%;
+    padding-bottom: 50px; /* Account for scrolling */
+}
+
+
+/* Ensure proper spacing between control sections */
+#controls-container h3 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+#controls-container label {
+    display: block;
+    margin-bottom: 5px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+#controls-container input[type="range"] {
+    width: 100%;
+    background: #333;
+    height: 6px;
+    border-radius: 3px;
+    outline: none;
+}
+
+#controls-container input[type="color"] {
+    width: 100%;
+    height: 30px;
+    border: none;
+    background: none;
+}
+
+#controls-container select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: #292929;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    border-radius: 4px;
+}
+
+ 
+#controls-container.hidden {
+    flex-basis: 0;        /* Collapses it */
+    padding: 0;
+    overflow: hidden;
+  }
+
+.toggle-button {
+    position: fixed;
+    top: 10px;
+    z-index: 9999;
+    background: #ddd;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+   border-radius: 4px;
+  }
+
+
+/* Position the left toggle button */
+#toggle-file-list {
+    left: 10px;
+  }
+
+/* Position the right toggle button */
+#toggle-controls {
+    right: 10px;
+  }
+  
+  .file-item {
+    margin: 10px 0;
+    padding: 8px;
+    margin: 12px 0;
+}
+
+  /* Fix text overflow in file list */
+.file-item label {
+    font-size: 16px;
+    padding: 12px 15px;
+    display: block;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Increase clickable area */
+.file-item input[type="checkbox"] + label {
+    padding: 15px 20px 15px 40px;
+    margin: 8px 0;
+    font-size: 18px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.file-item input[type="checkbox"]:checked + label {
+    background-color: #3a3a3a;
+    border-left: 4px solid #bb86fc;
+}
+
+/* File source badges */
+.file-source {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.file-source.files {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.file-source.adminfiles {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+/* File type badges */
+.file-type {
+    display: inline-block;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: 600;
+}
+
+.file-type.stl {
+    background-color: #6b7280;
+    color: white;
+}
+
+.file-type.glb {
+    background-color: #059669;
+    color: white;
+}
+
+.file-type.ply {
+    background: linear-gradient(135deg, #ec4899, #f97316);
+    color: white;
+    animation: colorPulse 2s ease-in-out infinite;
+}
+
+@keyframes colorPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+/* Responsive Layout */
+@media (max-width: 768px) {
+    #main-content {
+        flex-direction: column; /* Stack sections vertically */
+    }
+
+    .controls-wrapper.active,
+    #file-list-container.active {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 90%;
+        height: 100dvh;
+        z-index: 1000;
+        background-color: #1e1e1e;
+        overflow-y: auto;
+    }
+    
+    /* On mobile, you can still start them visible by default. */
+    #file-list-container,
+    #controls-container {
+        flex-basis: auto;
+        height: auto;
+        max-height: calc(100vh - 60px); /* Leave space for header */
+        overflow-y: auto;
+    }
+    #viewer {
+        height: calc(100vh - 120px); /* Adjust for toggles */
+    }
+    #file-list {
+        flex: 1;
+        height: calc(100dvh - 150px);  /* Subtract header height */
+        overflow-y: auto;
+        padding-bottom: 30px;
+    }
+   /* Ensure list items are properly sized */
+   .file-item {
+    margin: 12px 0;
+    width: 100%;
+}
+/* Toggle buttons visible */
+.toggle-button {
+    display: block;
+}
+
+#file-list-container.hidden,
+#controls-container.hidden {
+    display: none; /* Hide when toggled */
+}
+
+}
+
+    
+     
+
+/* Loading Spinner */
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px; /* Size of the spinner */
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3); /* Light border for contrast */
+    border-top: 5px solid #ffffff; /* Spinner's moving part */
+    border-radius: 50%; /* Make it a circle */
+    animation: spin 1s linear infinite; /* Spinning animation */
+    display: none; /* Initially hidden */
+    z-index: 1000; /* Ensure it appears above everything else */
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}

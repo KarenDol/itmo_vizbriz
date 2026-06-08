@@ -1,0 +1,1066 @@
+{
+  "metadata": {
+    "id": "vizbriz_square_followup_v1",
+    "version": "1.0",
+    "default_language": "en",
+    "languages": [
+      "en",
+      "he"
+    ],
+    "quiz_mode": "followup",
+    "intro": {
+      "title_en": "VizBriz SQUARE Sleep Quality and Appliance Response Evaluation Follow-Up Questionnaire",
+      "subtitle_en": "This questionnaire is designed to help us understand your experience since starting oral appliance therapy.",
+      "body_en": "Your responses will help us evaluate changes in your sleep, daytime symptoms, snoring, and overall treatment experience, and determine whether any adjustments may be beneficial. Please answer all questions as accurately as possible. There are no right or wrong answers. All questions are required except Question 24. Your name and email are provided automatically from your personalized link.",
+      "title_he": "הערכת איכות שינה ותגובה לטיפול באמצעות התקן דנטלי",
+      "subtitle_he": "שאלון זה נועד לעזור לנו להבין את החוויה שלך מאז התחלת להשתמש בהתקן הדנטלי.",
+      "body_he": "התשובות שלך יסייעו לנו להעריך שינויים בשינה, בתסמינים במהלך היום, בנחירות ובחוויה הכללית מהטיפול, ולבחון האם יש צורך בהתאמות נוספות. אנא השב/י על כל השאלות בצורה המדויקת ביותר האפשרית. אין תשובות נכונות או לא נכונות."
+    },
+    "display_groups": {
+      "Section_Treatment": {
+        "title": "Treatment Information",
+        "title_he": "מידע על הטיפול"
+      },
+      "Section_1": {
+        "title": "1. Oral Appliance Use",
+        "title_he": "שימוש בהתקן"
+      },
+      "Section_2": {
+        "title": "2. Sleep and Daytime Symptoms",
+        "title_he": "שינה ותסמינים במהלך היום"
+      },
+      "Section_3": {
+        "title": "3. Snoring",
+        "title_he": "נחירות"
+      },
+      "Section_4": {
+        "title": "4. Additional Information",
+        "title_he": "מידע נוסף"
+      }
+    },
+    "section_title_he": {
+      "Treatment Information": "מידע על הטיפול",
+      "1. Oral Appliance Use": "שימוש בהתקן",
+      "2. Sleep and Daytime Symptoms": "שינה ותסמינים במהלך היום",
+      "3. Snoring": "נחירות",
+      "4. Additional Information": "מידע נוסף"
+    }
+  },
+  "questions": [
+    {
+      "qid": "TREATMENT_START",
+      "section": "Treatment Information",
+      "display_group": "Section_Treatment",
+      "type": "text",
+      "input": "textarea",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "When did you first start using your oral appliance? Please enter a date or approximate timeframe (for example: 15/05/2026, May 2026, about 3 months ago).",
+      "title_he": "מתי התחלת להשתמש בהתקן הדנטלי? אנא ציין/י תאריך או פרק זמן משוער (לדוגמה: 15/05/2026, מאי 2026, לפני כ־3 חודשים)"
+    },
+    {
+      "qid": "FU_Q1",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1_2",
+          "label": "1–2 nights",
+          "label_he": "1-2 לילות"
+        },
+        {
+          "value": "3_4",
+          "label": "3–4 nights",
+          "label_he": "3-4 לילות"
+        },
+        {
+          "value": "5_6",
+          "label": "5–6 nights",
+          "label_he": "5-6 לילות"
+        },
+        {
+          "value": "every_night",
+          "label": "Every night",
+          "label_he": "כל לילה"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "1. How many nights per week are you using the appliance?",
+      "title_he": "1. בכמה לילות בשבוע את/ה משתמש/ת בהתקן?"
+    },
+    {
+      "qid": "FU_Q2",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1_or_less",
+          "label": "1 hour or less",
+          "label_he": "שעה אחת או פחות"
+        },
+        {
+          "value": "2_3",
+          "label": "2–3 hours",
+          "label_he": "2-3 שעות"
+        },
+        {
+          "value": "4_5",
+          "label": "4–5 hours",
+          "label_he": "4-5 שעות"
+        },
+        {
+          "value": "6_or_more",
+          "label": "6 hours or more",
+          "label_he": "6 שעות או יותר"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "2. On average, how many hours per night are you wearing it?",
+      "title_he": "2. בממוצע, כמה שעות בלילה את/ה משתמש/ת בהתקן?"
+    },
+    {
+      "qid": "FU_Q3",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure",
+          "label_he": "לא בטוח/ה"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "3. Are you performing the recommended jaw muscle exercises and using the morning occlusal guide daily?",
+      "title_he": "3. האם את/ה מבצע/ת מדי יום את תרגילי הלסת המומלצים ומשתמש/ת בסד הבוקר?"
+    },
+    {
+      "qid": "FU_Q4",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "no_change",
+          "label": "No change",
+          "label_he": "ללא שינוי"
+        },
+        {
+          "value": "slight",
+          "label": "Slight improvement",
+          "label_he": "שיפור קל"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate improvement",
+          "label_he": "שיפור בינוני"
+        },
+        {
+          "value": "significant",
+          "label": "Significant improvement",
+          "label_he": "שיפור משמעותי"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "4. Since starting the oral appliance, how much better do you feel during the day, in terms of energy, focus, or mood?",
+      "title_he": "4. מאז התחלת להשתמש בהתקן, עד כמה חל שיפור בתחושתך במהלך היום מבחינת אנרגיה, ריכוז או מצב רוח?"
+    },
+    {
+      "qid": "FU_Q5",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "multi_choice",
+      "input": "multi_choice",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "dry_mouth",
+          "label": "Extreme dry mouth upon waking",
+          "label_he": "יובש קיצוני בפה בעת ההתעוררות"
+        },
+        {
+          "value": "excess_saliva",
+          "label": "Excessive saliva or drooling during the night",
+          "label_he": "ריור מוגבר במהלך הלילה"
+        },
+        {
+          "value": "jaw_pain",
+          "label": "Persistent jaw pain near your ear(s) that lasts all day",
+          "label_he": "כאב מתמשך במפרק הלסת באזור האוזן הנמשך לאורך היום"
+        },
+        {
+          "value": "cheek_pain",
+          "label": "Muscle pain in your cheek area(s) that lasts all day",
+          "label_he": "כאבי שרירים באזור הלחיים הנמשכים לאורך היום"
+        },
+        {
+          "value": "teeth_align",
+          "label": "Changes in how your teeth align (fit together)",
+          "label_he": "שינוי באופן שבו השיניים נסגרות זו על זו"
+        },
+        {
+          "value": "teeth_tender",
+          "label": "Teeth tenderness upon removal",
+          "label_he": "רגישות בשיניים בעת הסרת ההתקן"
+        },
+        {
+          "value": "irritation",
+          "label": "Irritation or sharpness from the appliance on your gums, tongue, or other soft parts of your mouth",
+          "label_he": "גירוי או שפשוף של החניכיים, הלשון או רקמות אחרות בפה כתוצאה מההתקן"
+        },
+        {
+          "value": "appliance_moves",
+          "label": "Appliance moves out of place during the night",
+          "label_he": "ההתקן זז ממקומו במהלך הלילה"
+        },
+        {
+          "value": "none",
+          "label": "None of the above",
+          "label_he": "אף אחד מהנ\"ל"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "5. Since starting the oral appliance, have you experienced any of the following?",
+      "title_he": "5. מאז התחלת להשתמש בהתקן, האם חווית אחד או יותר מהדברים הבאים?"
+    },
+    {
+      "qid": "FU_Q6",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא"
+        },
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "6. Have you reported any of these side effects to your dentist or dental team, and were any adjustments made?",
+      "title_he": "6. האם דיווחת לרופא השיניים או לצוות המרפאה על תופעות אלו, והאם בוצעו התאמות?"
+    },
+    {
+      "qid": "FU_Q6a",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.FU_Q6 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please describe:",
+      "title_he": "אם כן, אנא פרט/י:"
+    },
+    {
+      "qid": "FU_Q7",
+      "section": "1. Oral Appliance Use",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "not_at_all",
+          "label": "Not at all satisfied",
+          "label_he": "כלל לא מרוצה"
+        },
+        {
+          "value": "slightly",
+          "label": "Slightly satisfied",
+          "label_he": "מעט מרוצה"
+        },
+        {
+          "value": "moderately",
+          "label": "Moderately satisfied",
+          "label_he": "מרוצה במידה בינונית"
+        },
+        {
+          "value": "very",
+          "label": "Very satisfied",
+          "label_he": "מרוצה מאוד"
+        },
+        {
+          "value": "extremely",
+          "label": "Extremely satisfied",
+          "label_he": "מרוצה ביותר"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "7. Overall, how satisfied are you with the treatment so far?",
+      "title_he": "7. עד כמה את/ה מרוצה מהטיפול עד כה?"
+    },
+    {
+      "qid": "FU_Q8",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "8. During the past month, how long (in minutes) has it usually taken you to fall asleep each night?",
+      "suffix_en": "minutes",
+      "title_he": "8. במהלך החודש האחרון, כמה זמן בדרך כלל לקח לך להירדם?",
+      "suffix_he": "דקות"
+    },
+    {
+      "qid": "FU_Q9",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "9. During the past month, how many hours of actual sleep did you get at night? (This may be different than the number of hours you spend in bed.)",
+      "suffix_en": "hours",
+      "title_he": "9. במהלך החודש האחרון, כמה שעות שינה בפועל ישנת בלילה? (ייתכן שמספר זה שונה ממספר השעות שבילית במיטה)",
+      "suffix_he": "שעות"
+    },
+    {
+      "qid": "FU_Q10",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_poor",
+          "label": "Very poor",
+          "label_he": "גרועה מאוד"
+        },
+        {
+          "value": "poor",
+          "label": "Poor",
+          "label_he": "גרועה"
+        },
+        {
+          "value": "fair",
+          "label": "Fair",
+          "label_he": "בינונית"
+        },
+        {
+          "value": "good",
+          "label": "Good",
+          "label_he": "טובה"
+        },
+        {
+          "value": "very_good",
+          "label": "Very good",
+          "label_he": "טובה מאוד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "10. How would you rate the overall quality of your sleep during the past month?",
+      "title_he": "10. כיצד היית מדרג/ת את איכות השינה הכללית שלך במהלך החודש האחרון?"
+    },
+    {
+      "qid": "FU_Q11",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_low",
+          "label": "Very low",
+          "label_he": "נמוכה מאוד"
+        },
+        {
+          "value": "low",
+          "label": "Low",
+          "label_he": "נמוכה"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "label_he": "בינונית"
+        },
+        {
+          "value": "high",
+          "label": "High",
+          "label_he": "גבוהה"
+        },
+        {
+          "value": "very_high",
+          "label": "Very high",
+          "label_he": "גבוהה מאוד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "11. How would you rate your typical energy level during the day?",
+      "title_he": "11. כיצד היית מדרג/ת את רמת האנרגיה שלך במהלך היום?"
+    },
+    {
+      "qid": "FU_Q12",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_poor",
+          "label": "Very poor",
+          "label_he": "גרועה מאוד"
+        },
+        {
+          "value": "poor",
+          "label": "Poor",
+          "label_he": "גרועה"
+        },
+        {
+          "value": "fair",
+          "label": "Fair",
+          "label_he": "בינונית"
+        },
+        {
+          "value": "good",
+          "label": "Good",
+          "label_he": "טובה"
+        },
+        {
+          "value": "very_good",
+          "label": "Very good",
+          "label_he": "טובה מאוד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "12. How restful or deep does your sleep usually feel?",
+      "title_he": "12. עד כמה השינה שלך מרגישה עמוקה ומרעננת?"
+    },
+    {
+      "qid": "FU_Q13",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never",
+          "label_he": "אף פעם"
+        },
+        {
+          "value": "less_week",
+          "label": "Less than once a week",
+          "label_he": "פחות מפעם בשבוע"
+        },
+        {
+          "value": "once_twice",
+          "label": "Once or twice a week",
+          "label_he": "פעם או פעמיים בשבוע"
+        },
+        {
+          "value": "three_plus",
+          "label": "Three or more times a week",
+          "label_he": "שלוש פעמים בשבוע או יותר"
+        },
+        {
+          "value": "every_day",
+          "label": "Every day",
+          "label_he": "כל יום"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "13. During the past month, how often have you had trouble falling asleep within 30 minutes?",
+      "title_he": "13. במהלך החודש האחרון, באיזו תדירות התקשת להירדם בתוך 30 דקות?"
+    },
+    {
+      "qid": "FU_Q14",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never",
+          "label_he": "אף פעם"
+        },
+        {
+          "value": "less_week",
+          "label": "Less than once a week",
+          "label_he": "פחות מפעם בשבוע"
+        },
+        {
+          "value": "once_twice",
+          "label": "Once or twice a week",
+          "label_he": "פעם או פעמיים בשבוע"
+        },
+        {
+          "value": "three_plus",
+          "label": "Three or more times a week",
+          "label_he": "שלוש פעמים בשבוע או יותר"
+        },
+        {
+          "value": "every_day",
+          "label": "Every day",
+          "label_he": "כל יום"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "14. During the past month, how often have you woken up during the night or early morning and had trouble getting back to sleep?",
+      "title_he": "14. במהלך החודש האחרון, באיזו תדירות התעוררת בלילה או מוקדם בבוקר והתקשית להירדם מחדש?"
+    },
+    {
+      "qid": "FU_Q15",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never",
+          "label_he": "אף פעם"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "label_he": "לעיתים נדירות"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "label_he": "לפעמים"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "label_he": "לעיתים קרובות"
+        },
+        {
+          "value": "always",
+          "label": "Always",
+          "label_he": "תמיד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "15. How often do you feel excessively sleepy or drowsy during the day?",
+      "title_he": "15. באיזו תדירות את/ה מרגיש/ה ישנוניות או עייפות מוגברת במהלך היום?"
+    },
+    {
+      "qid": "FU_Q16",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never",
+          "label_he": "אף פעם"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "label_he": "לעיתים נדירות"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "label_he": "לפעמים"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "label_he": "לעיתים קרובות"
+        },
+        {
+          "value": "always",
+          "label": "Always",
+          "label_he": "תמיד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "16. How often do you wake up feeling tired or unrefreshed, even after a full night's sleep?",
+      "title_he": "16. באיזו תדירות את/ה מתעורר/ת עייף/ה או לא רענן/ה גם לאחר לילה מלא של שינה?"
+    },
+    {
+      "qid": "FU_Q17",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never",
+          "label_he": "אף פעם"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "label_he": "לעיתים נדירות"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "label_he": "לפעמים"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "label_he": "לעיתים קרובות"
+        },
+        {
+          "value": "always",
+          "label": "Always",
+          "label_he": "תמיד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "17. Do you ever wake up gasping for air, coughing, or with a choking sensation during sleep?",
+      "title_he": "17. האם את/ה מתעורר/ת במהלך השינה עם תחושת חנק, שיעול או מחסור באוויר?"
+    },
+    {
+      "qid": "FU_Q18",
+      "section": "2. Sleep and Daytime Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "never",
+          "label": "Never",
+          "label_he": "אף פעם"
+        },
+        {
+          "value": "rarely",
+          "label": "Rarely",
+          "label_he": "לעיתים נדירות"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes",
+          "label_he": "לפעמים"
+        },
+        {
+          "value": "often",
+          "label": "Often",
+          "label_he": "לעיתים קרובות"
+        },
+        {
+          "value": "always",
+          "label": "Always",
+          "label_he": "תמיד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "18. How often do you wake up to urinate during the night?",
+      "title_he": "18. באיזו תדירות את/ה מתעורר/ת בלילה לצורך מתן שתן?"
+    },
+    {
+      "qid": "FU_Q19",
+      "section": "3. Snoring",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "dont_snore",
+          "label": "I don't snore",
+          "label_he": "איני נוחר/ת"
+        },
+        {
+          "value": "mild",
+          "label": "Mild",
+          "label_he": "קלות"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "label_he": "בינוניות"
+        },
+        {
+          "value": "loud",
+          "label": "Loud",
+          "label_he": "חזקות"
+        },
+        {
+          "value": "very_loud",
+          "label": "Very loud",
+          "label_he": "חזקות מאוד"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure",
+          "label_he": "איני בטוח/ה"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "19. How would you describe your snoring (if any)?",
+      "title_he": "19. כיצד היית מתאר/ת את הנחירות שלך (אם קיימות)?"
+    },
+    {
+      "qid": "FU_Q20",
+      "section": "3. Snoring",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "no_change",
+          "label": "No change",
+          "label_he": "ללא שינוי"
+        },
+        {
+          "value": "slight",
+          "label": "Slight improvement",
+          "label_he": "שיפור קל"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate improvement",
+          "label_he": "שיפור בינוני"
+        },
+        {
+          "value": "significant",
+          "label": "Significant improvement",
+          "label_he": "שיפור משמעותי"
+        },
+        {
+          "value": "stopped",
+          "label": "Snoring has stopped completely",
+          "label_he": "הנחירות פסקו לחלוטין"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "20. Compared to before starting the appliance, has your snoring changed?",
+      "title_he": "20. בהשוואה לתקופה שלפני השימוש בהתקן, כיצד השתנו הנחירות שלך?"
+    },
+    {
+      "qid": "FU_Q21",
+      "section": "3. Snoring",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "mild",
+          "label": "Mild",
+          "label_he": "קלות"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate",
+          "label_he": "בינוניות"
+        },
+        {
+          "value": "loud",
+          "label": "Loud",
+          "label_he": "חזקות"
+        },
+        {
+          "value": "very_loud",
+          "label": "Very loud",
+          "label_he": "חזקות מאוד"
+        },
+        {
+          "value": "sleep_alone",
+          "label": "Not applicable / I sleep alone",
+          "label_he": "לא רלוונטי / אני ישן/ה לבד"
+        },
+        {
+          "value": "no_mention",
+          "label": "No one has mentioned anything",
+          "label_he": "אף אחד לא העיר על כך"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "21. How would others (partner, family, friend) currently describe your snoring (if they've mentioned it)?",
+      "title_he": "21. כיצד אנשים אחרים (בן/בת זוג, בן משפחה או חבר) מתארים כיום את הנחירות שלך (אם העירו עליהן)?"
+    },
+    {
+      "qid": "FU_Q22",
+      "section": "3. Snoring",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "no_change",
+          "label": "No change",
+          "label_he": "ללא שינוי"
+        },
+        {
+          "value": "slightly",
+          "label": "Slightly improved",
+          "label_he": "שיפור קל"
+        },
+        {
+          "value": "much",
+          "label": "Much improved",
+          "label_he": "שיפור משמעותי"
+        },
+        {
+          "value": "stopped",
+          "label": "Snoring has stopped completely",
+          "label_he": "הנחירות פסקו לחלוטין"
+        },
+        {
+          "value": "sleep_alone",
+          "label": "Not applicable / I sleep alone",
+          "label_he": "לא רלוונטי / אני ישן/ה לבד"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "22. Since starting the appliance, has anyone (partner, family, friend) commented on changes in your snoring?",
+      "title_he": "22. האם מישהו (בן/בת זוג, בן משפחה או חבר) העיר על שינוי בנחירות מאז התחלת להשתמש בהתקן?"
+    },
+    {
+      "qid": "FU_Q23",
+      "section": "4. Additional Information",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes",
+          "label_he": "כן"
+        },
+        {
+          "value": "no",
+          "label": "No",
+          "label_he": "לא"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "23. Are you currently using any additional treatment for sleep or breathing? (e.g., CPAP, mouth taping, nasal strips or cones, positional aids, sleep aids)",
+      "title_he": "23. האם את/ה משתמש/ת כיום בטיפול נוסף כלשהו לשינה או לנשימה? (לדוגמה: CPAP, מדבקות פה, סטריפים או קונוסים לאף, אביזרי תנוחה, תרופות לשינה)"
+    },
+    {
+      "qid": "FU_Q23a",
+      "section": "4. Additional Information",
+      "display_group": "Section_4",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.FU_Q23 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please describe:",
+      "title_he": "אם כן, אנא פרט/י:"
+    },
+    {
+      "qid": "FU_Q24",
+      "section": "4. Additional Information",
+      "display_group": "Section_4",
+      "type": "text",
+      "input": "textarea",
+      "required": false,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "24. Is there anything else you'd like to share about your sleep, symptoms, or anything that might help us better understand your experience?",
+      "title_he": "24. האם יש דבר נוסף שתרצה/י לשתף לגבי השינה שלך, התסמינים שלך, או כל מידע אחר שעשוי לעזור לנו להבין טוב יותר את החוויה שלך?"
+    }
+  ]
+}

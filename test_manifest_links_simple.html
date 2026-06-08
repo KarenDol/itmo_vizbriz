@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manifest Links Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-link:hover {
+            background: #0056b3;
+        }
+        .test-link.clinical {
+            background: #28a745;
+        }
+        .test-link.clinical:hover {
+            background: #1e7e34;
+        }
+        .test-link.both {
+            background: #ffc107;
+            color: #212529;
+        }
+        .test-link.both:hover {
+            background: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manifest Links Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Standard target="_blank" links</h2>
+        <p>These links use the standard HTML target="_blank" attribute:</p>
+        <a href="/patient_workflow_test/24579?manifest=validation" target="_blank" class="test-link">
+            📋 Validation Manifest (target="_blank")
+        </a>
+        <a href="/patient_workflow_test/24579?manifest=clinical" target="_blank" class="test-link clinical">
+            🏥 Clinical Manifest (target="_blank")
+        </a>
+        <a href="/patient_workflow_test/24579?manifest=both" target="_blank" class="test-link both">
+            🔄 Both Manifests (target="_blank")
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: JavaScript window.open() links</h2>
+        <p>These links use JavaScript window.open() to force new tab:</p>
+        <a href="/patient_workflow_test/24579?manifest=validation" 
+           onclick="window.open(this.href, '_blank'); return false;" 
+           class="test-link">
+            📋 Validation Manifest (window.open)
+        </a>
+        <a href="/patient_workflow_test/24579?manifest=clinical" 
+           onclick="window.open(this.href, '_blank'); return false;" 
+           class="test-link clinical">
+            🏥 Clinical Manifest (window.open)
+        </a>
+        <a href="/patient_workflow_test/24579?manifest=both" 
+           onclick="window.open(this.href, '_blank'); return false;" 
+           class="test-link both">
+            🔄 Both Manifests (window.open)
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Event listener approach</h2>
+        <p>These links use JavaScript event listeners:</p>
+        <a href="/patient_workflow_test/24579?manifest=validation" class="test-link js-link">
+            📋 Validation Manifest (event listener)
+        </a>
+        <a href="/patient_workflow_test/24579?manifest=clinical" class="test-link clinical js-link">
+            🏥 Clinical Manifest (event listener)
+        </a>
+        <a href="/patient_workflow_test/24579?manifest=both" class="test-link both js-link">
+            🔄 Both Manifests (event listener)
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Button approach</h2>
+        <p>These use buttons instead of links:</p>
+        <button onclick="window.open('/patient_workflow_test/24579?manifest=validation', '_blank')" class="test-link">
+            📋 Validation Manifest (button)
+        </button>
+        <button onclick="window.open('/patient_workflow_test/24579?manifest=clinical', '_blank')" class="test-link clinical">
+            🏥 Clinical Manifest (button)
+        </button>
+        <button onclick="window.open('/patient_workflow_test/24579?manifest=both', '_blank')" class="test-link both">
+            🔄 Both Manifests (button)
+        </button>
+    </div>
+    
+    <script>
+        // Test 3: Event listener approach
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsLinks = document.querySelectorAll('.js-link');
+            jsLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Opening link:', this.href);
+                    window.open(this.href, '_blank');
+                });
+            });
+        });
+        
+        // Log all link clicks for debugging
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                console.log('Link clicked:', e.target.href);
+                console.log('Target attribute:', e.target.getAttribute('target'));
+            }
+        });
+    </script>
+</body>
+</html> 

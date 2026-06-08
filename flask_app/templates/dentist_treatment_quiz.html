@@ -1,0 +1,1094 @@
+{% extends "base.html" %}
+
+{% block title %}Dentist Questionnaire - Vizbriz{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .patient-selector {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+        }
+        .quiz-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .question-group {
+            margin-bottom: 20px;
+        }
+        .aux-input {
+            margin-top: 10px;
+            padding-left: 20px;
+            border-left: 3px solid #007bff;
+        }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333 !important;
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: #666 !important;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        /* Main page styling for clean white background */
+        body {
+            background-color: #f5f5f5 !important;
+        }
+        
+        .container {
+            background-color: white !important;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Clean typography */
+        h1, h2, h3, h4, h5, h6 {
+            color: #333 !important;
+            font-weight: 600 !important;
+        }
+        
+        p, label, .form-label {
+            color: #333 !important;
+            font-weight: 400 !important;
+        }
+        
+        .question-group label {
+            color: #333 !important;
+            font-weight: 500 !important;
+            font-size: 14px !important;
+        }
+        
+        .form-control, .form-select, input, select, textarea {
+            color: #333 !important;
+            background-color: white !important;
+            border: 1px solid #ddd !important;
+        }
+        
+        .form-control:focus, .form-select:focus, input:focus, select:focus, textarea:focus {
+            border-color: #007bff !important;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25) !important;
+        }
+        
+        /* Quiz question styling */
+        .question-group {
+            background: white !important;
+            padding: 15px !important;
+            margin-bottom: 15px !important;
+            border: 1px solid #e9ecef !important;
+            border-radius: 6px !important;
+        }
+        
+        .question-group h5, .question-group h6 {
+            color: #333 !important;
+            font-weight: 600 !important;
+            margin-bottom: 10px !important;
+        }
+        
+        .question-group label {
+            color: #333 !important;
+            font-weight: 500 !important;
+            margin-bottom: 5px !important;
+        }
+        
+        .question-group input[type="radio"], .question-group input[type="checkbox"] {
+            margin-right: 8px !important;
+        }
+        
+        .question-group .form-check-label {
+            color: #333 !important;
+            font-weight: 400 !important;
+        }
+        
+        /* Make unit text more visible */
+        .text-muted {
+            color: #666 !important;
+            font-weight: 500 !important;
+            font-size: 14px !important;
+        }
+        
+        /* Specific styling for unit indicators */
+        small.text-muted {
+            color: #555 !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            margin-top: 5px !important;
+            display: block !important;
+        }
+        
+        /* Fix radio buttons and checkboxes (keep z-index below header nav: z-index 1500 in base.html) */
+        input[type="radio"], input[type="checkbox"] {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1 !important;
+            width: 16px !important;
+            height: 16px !important;
+            margin: 0 8px 0 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: none !important;
+            cursor: pointer !important;
+            -webkit-appearance: radio !important;
+            -moz-appearance: radio !important;
+            appearance: radio !important;
+            pointer-events: auto !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+        }
+        
+        input[type="checkbox"] {
+            -webkit-appearance: checkbox !important;
+            -moz-appearance: checkbox !important;
+            appearance: checkbox !important;
+        }
+        
+        .form-check {
+            display: block !important;
+            margin-bottom: 10px !important;
+        }
+        
+        .form-check-input {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1 !important;
+            margin-right: 8px !important;
+        }
+        
+        .form-check-label {
+            display: inline-block !important;
+            cursor: pointer !important;
+            color: #333 !important;
+            font-weight: 400 !important;
+        }
+        
+        /* Override any Materialize interference */
+        .form-check input[type="radio"],
+        .form-check input[type="checkbox"] {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 1 !important;
+            width: auto !important;
+            height: auto !important;
+            margin: 0 8px 0 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: none !important;
+            cursor: pointer !important;
+            -webkit-appearance: radio !important;
+            -moz-appearance: radio !important;
+            appearance: radio !important;
+        }
+        
+        .form-check input[type="checkbox"] {
+            -webkit-appearance: checkbox !important;
+            -moz-appearance: checkbox !important;
+            appearance: checkbox !important;
+        }
+        
+        /* Override Materialize CSS for select elements */
+        .form-select {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 40px !important;
+            padding: 10px !important;
+            margin: 0 !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 6px !important;
+            background-color: white !important;
+            background-image: none !important;
+            color: #333 !important;
+            font-size: 14px !important;
+            font-family: inherit !important;
+            line-height: 1.5 !important;
+            -webkit-appearance: menulist !important;
+            -moz-appearance: menulist !important;
+            appearance: menulist !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+            transform: none !important;
+            transition: none !important;
+            animation: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+            mask: none !important;
+            clip-path: none !important;
+            shape-outside: none !important;
+            shape-margin: 0 !important;
+            shape-image-threshold: 0 !important;
+            clip: auto !important;
+            float: none !important;
+            clear: none !important;
+            top: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            left: auto !important;
+            margin-top: 0 !important;
+            margin-right: 0 !important;
+            margin-bottom: 0 !important;
+            margin-left: 0 !important;
+            padding-top: 10px !important;
+            padding-right: 10px !important;
+            padding-bottom: 10px !important;
+            padding-left: 10px !important;
+            border-top: 1px solid #ced4da !important;
+            border-right: 1px solid #ced4da !important;
+            border-bottom: 1px solid #ced4da !important;
+            border-left: 1px solid #ced4da !important;
+            border-radius: 6px !important;
+            background-color: white !important;
+            background-image: none !important;
+            background-repeat: no-repeat !important;
+            background-position: 0 0 !important;
+            background-size: auto !important;
+            background-attachment: scroll !important;
+            background-clip: border-box !important;
+            background-origin: padding-box !important;
+            color: #333 !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            outline: none !important;
+            resize: none !important;
+            tabindex: 0 !important;
+            role: combobox !important;
+            aria-expanded: false !important;
+            aria-haspopup: listbox !important;
+            aria-autocomplete: none !important;
+            aria-readonly: false !important;
+            aria-required: false !important;
+            aria-invalid: false !important;
+            aria-describedby: none !important;
+            aria-labelledby: none !important;
+            aria-controls: none !important;
+            aria-owns: none !important;
+            aria-activedescendant: none !important;
+            aria-selected: false !important;
+            aria-checked: false !important;
+            aria-pressed: false !important;
+            aria-sort: none !important;
+            aria-live: off !important;
+            aria-atomic: false !important;
+            aria-relevant: none !important;
+            aria-busy: false !important;
+            aria-disabled: false !important;
+            aria-hidden: false !important;
+            aria-modal: false !important;
+            aria-multiline: false !important;
+            aria-multiselectable: false !important;
+            aria-orientation: vertical !important;
+            aria-setsize: 0 !important;
+            aria-posinset: 0 !important;
+            aria-level: 0 !important;
+            aria-rowcount: 0 !important;
+            aria-rowindex: 0 !important;
+            aria-rowspan: 0 !important;
+            aria-colcount: 0 !important;
+            aria-colindex: 0 !important;
+            aria-colspan: 0 !important;
+            aria-rowindextext: none !important;
+            aria-colindextext: none !important;
+            aria-valuemin: 0 !important;
+            aria-valuemax: 0 !important;
+            aria-valuenow: 0 !important;
+            aria-valuetext: none !important;
+            aria-current: false !important;
+            aria-flowto: none !important;
+        }
+        
+        .form-select:focus {
+            outline: none !important;
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+        }
+        
+        /* Ensure no Materialize interference */
+        .patient-selector {
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        
+        .patient-selector::after {
+            display: none !important;
+        }
+        
+        .patient-selector::before {
+            display: none !important;
+        }
+        
+        /* Autocomplete styling */
+        .autocomplete-container {
+            position: relative;
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333 !important;
+            font-weight: 400;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.highlighted {
+            background-color: #f8f9fa;
+            color: #000 !important;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-item strong {
+            color: #007bff;
+            font-weight: 600;
+        }
+        
+        .patient-id-display {
+            font-size: 0.9em;
+            color: #555 !important;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 20px;">
+    <div class="row">
+        <div class="col s12">
+            <h1 class="page-title">Dentist Questionnaire</h1>
+            <p class="page-subtitle">Complete dentist questionnaire for patient assessment</p>
+        </div>
+    </div>
+        <!-- Patient Selection Section -->
+        <div class="patient-selector">
+            <h4 class="mb-3">
+                <i class="fas fa-user-md"></i>
+                Select Patient
+            </h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="patient-autocomplete" class="form-label required-field">
+                        Patient
+                    </label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="patient-autocomplete" class="form-control" placeholder="Type patient name or ID..." autocomplete="off">
+                        <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+                    </div>
+                    <small class="text-muted">Start typing to search for a patient</small>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button id="load-quiz-btn" class="btn btn-primary" disabled>
+                        Load Quiz Form
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Form Section (initially hidden) -->
+        <div id="quiz-form-container" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <span class="badge bg-info" id="selected-patient-info"></span>
+                </div>
+            </div>
+
+            <form id="dentist-treatment-quiz-form" onsubmit="return false;">
+                <input type="hidden" id="patient-id" name="patient_id">
+                <input type="hidden" id="quiz-language" name="language">
+
+                <!-- Quiz sections will be dynamically loaded here -->
+                <div id="quiz-sections"></div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="button" class="btn btn-success" onclick="submitQuiz()">
+                        <i class="fas fa-save"></i>
+                        Submit Quiz
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Thank You Message Section (initially hidden) -->
+        <div id="thank-you-container" style="display: none;">
+            <div class="quiz-section text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745;"></i>
+                </div>
+                <h2 class="mb-3" style="color: #28a745;">Thank You!</h2>
+                <p class="lead mb-4">Your dentist treatment assessment has been successfully submitted.</p>
+                <p class="text-muted">The assessment has been saved and will be available in the patient's history.</p>
+                <div class="mt-4">
+                    <button class="btn btn-primary" onclick="resetQuiz()">
+                        <i class="fas fa-plus"></i> Create New Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="text-center" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+    <script>
+        // Force select elements to be visible and functional
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize patient data from template
+            {% for patient in patients %}
+            allPatients.push({
+                id: {{ patient.id }},
+                name: {{ patient.name|tojson }},
+                searchText: {{ (patient.name|lower ~ " " ~ patient.id|string)|tojson }}
+            });
+            {% endfor %}
+            
+            // Initialize autocomplete elements
+            autocompleteInput = document.getElementById('patient-autocomplete');
+            autocompleteDropdown = document.getElementById('autocomplete-dropdown');
+            patientIdInput = document.getElementById('patient-id');
+            loadBtn = document.getElementById('load-quiz-btn');
+            
+            // Setup autocomplete event listeners
+            setupAutocomplete();
+            
+            // Override Materialize CSS for select elements
+            const selectElements = document.querySelectorAll('.form-select');
+            selectElements.forEach(function(select) {
+                select.style.cssText = `
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    position: relative !important;
+                    z-index: 10 !important;
+                    width: 100% !important;
+                    height: auto !important;
+                    min-height: 40px !important;
+                    padding: 10px !important;
+                    margin: 0 !important;
+                    border: 1px solid #ced4da !important;
+                    border-radius: 6px !important;
+                    background-color: white !important;
+                    background-image: none !important;
+                    color: #333 !important;
+                    font-size: 14px !important;
+                    font-family: inherit !important;
+                    line-height: 1.5 !important;
+                    -webkit-appearance: menulist !important;
+                    -moz-appearance: menulist !important;
+                    appearance: menulist !important;
+                    box-shadow: none !important;
+                    cursor: pointer !important;
+                `;
+            });
+            
+            // Additional fix after a short delay to override Materialize
+            setTimeout(function() {
+                selectElements.forEach(function(select) {
+                    select.style.cssText = `
+                        display: block !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        position: relative !important;
+                        z-index: 10 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        min-height: 40px !important;
+                        padding: 10px !important;
+                        margin: 0 !important;
+                        border: 1px solid #ced4da !important;
+                        border-radius: 6px !important;
+                        background-color: white !important;
+                        background-image: none !important;
+                        color: #333 !important;
+                        font-size: 14px !important;
+                        font-family: inherit !important;
+                        line-height: 1.5 !important;
+                        -webkit-appearance: menulist !important;
+                        -moz-appearance: menulist !important;
+                        appearance: menulist !important;
+                        box-shadow: none !important;
+                        cursor: pointer !important;
+                    `;
+                });
+                
+                // Fix radio buttons and checkboxes with more aggressive overrides
+                const radioButtons = document.querySelectorAll('input[type="radio"]');
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                
+                [...radioButtons, ...checkboxes].forEach(function(input) {
+                    // Remove any Materialize classes
+                    input.classList.remove('filled-in', 'with-gap');
+                    
+                    // Force native appearance (z-index must stay < header z-index 1500)
+                    input.style.cssText = `
+                        display: inline-block !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        position: relative !important;
+                        z-index: 1 !important;
+                        width: 16px !important;
+                        height: 16px !important;
+                        margin: 0 8px 0 0 !important;
+                        padding: 0 !important;
+                        border: none !important;
+                        background: none !important;
+                        cursor: pointer !important;
+                        -webkit-appearance: ${input.type === 'radio' ? 'radio' : 'checkbox'} !important;
+                        -moz-appearance: ${input.type === 'radio' ? 'radio' : 'checkbox'} !important;
+                        appearance: ${input.type === 'radio' ? 'radio' : 'checkbox'} !important;
+                        pointer-events: auto !important;
+                        user-select: none !important;
+                        -webkit-user-select: none !important;
+                        -moz-user-select: none !important;
+                        -ms-user-select: none !important;
+                    `;
+                    
+                    // Force click events to work
+                    input.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        this.checked = !this.checked;
+                    });
+                    
+                    // Force change events
+                    input.addEventListener('change', function(e) {
+                        e.stopPropagation();
+                    });
+                });
+            }, 100);
+        });
+
+        // Function to fix all form elements
+        function fixFormElements() {
+            const allInputs = document.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+            allInputs.forEach(function(input) {
+                // Remove Materialize classes
+                input.classList.remove('filled-in', 'with-gap');
+                
+                // Force native styling (z-index must stay < header z-index 1500)
+                input.style.cssText = `
+                    display: inline-block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    position: relative !important;
+                    z-index: 1 !important;
+                    width: 16px !important;
+                    height: 16px !important;
+                    margin: 0 8px 0 0 !important;
+                    padding: 0 !important;
+                    border: none !important;
+                    background: none !important;
+                    cursor: pointer !important;
+                    -webkit-appearance: ${input.type === 'radio' ? 'radio' : 'checkbox'} !important;
+                    -moz-appearance: ${input.type === 'radio' ? 'radio' : 'checkbox'} !important;
+                    appearance: ${input.type === 'radio' ? 'radio' : 'checkbox'} !important;
+                    pointer-events: auto !important;
+                `;
+                
+                // Ensure click events work
+                input.onclick = function(e) {
+                    e.stopPropagation();
+                    return true;
+                };
+            });
+        }
+
+        // Quiz structure data
+        const quizStructures = {
+            en: {{ english_quiz_structure | tojson }},
+            he: {{ hebrew_quiz_structure | tojson }}
+        };
+
+        let currentLanguage = 'en';  // Default to English
+        let currentPatientId = null;
+        let allPatients = []; // Store all patient data for autocomplete
+        let highlightedIndex = -1;
+        let filteredPatients = [];
+
+        // Autocomplete functionality - will be initialized in DOMContentLoaded
+        let autocompleteInput, autocompleteDropdown, patientIdInput, loadBtn;
+
+        function filterPatients(searchTerm) {
+            if (!searchTerm || searchTerm.length < 1) {
+                return [];
+            }
+            const term = searchTerm.toLowerCase();
+            return allPatients.filter(patient => 
+                patient.searchText.includes(term)
+            ).slice(0, 10); // Limit to 10 results
+        }
+
+        function renderAutocompleteSuggestions(patients) {
+            if (!autocompleteDropdown || !autocompleteInput) return;
+            
+            if (patients.length === 0) {
+                autocompleteDropdown.innerHTML = '<div class="autocomplete-item">No patients found</div>';
+                autocompleteDropdown.classList.add('show');
+                return;
+            }
+
+            const searchTerm = autocompleteInput.value.toLowerCase();
+            autocompleteDropdown.innerHTML = patients.map((patient, index) => {
+                const nameMatch = patient.name.toLowerCase().includes(searchTerm);
+                const nameParts = patient.name.split(new RegExp(`(${searchTerm})`, 'gi'));
+                const highlightedName = nameParts.map(part => 
+                    part.toLowerCase() === searchTerm ? `<strong>${part}</strong>` : part
+                ).join('');
+
+                return `
+                    <div class="autocomplete-item" data-patient-id="${patient.id}" data-patient-name="${patient.name}" data-index="${index}">
+                        ${highlightedName}<span class="patient-id-display">(ID: ${patient.id})</span>
+                    </div>
+                `;
+            }).join('');
+
+            autocompleteDropdown.classList.add('show');
+            highlightedIndex = -1;
+        }
+
+        function selectPatient(patientId, patientName) {
+            currentPatientId = patientId;
+            if (patientIdInput) patientIdInput.value = patientId;
+            if (autocompleteInput) autocompleteInput.value = `${patientName} (ID: ${patientId})`;
+            if (autocompleteDropdown) autocompleteDropdown.classList.remove('show');
+            if (loadBtn) loadBtn.disabled = false;
+            highlightedIndex = -1;
+        }
+
+        function clearSelection() {
+            currentPatientId = null;
+            if (patientIdInput) patientIdInput.value = '';
+            if (loadBtn) loadBtn.disabled = true;
+            if (autocompleteDropdown) autocompleteDropdown.classList.remove('show');
+        }
+
+        function setupAutocomplete() {
+            if (!autocompleteInput || !autocompleteDropdown) return;
+            
+            // Input event handler
+            autocompleteInput.addEventListener('input', function() {
+            const searchTerm = this.value.trim();
+            
+            if (!searchTerm) {
+                clearSelection();
+                return;
+            }
+
+            // Check if the input matches a selected patient format
+            const match = this.value.match(/^(.+?)\s*\(ID:\s*(\d+)\)$/);
+            if (match) {
+                const [, name, id] = match;
+                const patient = allPatients.find(p => p.id == id && p.name === name);
+                if (patient) {
+                    selectPatient(patient.id, patient.name);
+                    return;
+                }
+            }
+
+                // Filter and show suggestions
+                filteredPatients = filterPatients(searchTerm);
+                renderAutocompleteSuggestions(filteredPatients);
+            });
+
+            // Click on autocomplete item
+            autocompleteDropdown.addEventListener('click', function(e) {
+                const item = e.target.closest('.autocomplete-item');
+                if (item) {
+                    const patientId = item.dataset.patientId;
+                    const patientName = item.dataset.patientName;
+                    selectPatient(patientId, patientName);
+                }
+            });
+
+            // Keyboard navigation
+            autocompleteInput.addEventListener('keydown', function(e) {
+                if (!autocompleteDropdown.classList.contains('show')) {
+                    return;
+                }
+
+                const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('highlighted', idx === highlightedIndex);
+                    });
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    highlightedIndex = Math.max(highlightedIndex - 1, -1);
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('highlighted', idx === highlightedIndex);
+                    });
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (highlightedIndex >= 0 && items[highlightedIndex]) {
+                        const item = items[highlightedIndex];
+                        const patientId = item.dataset.patientId;
+                        const patientName = item.dataset.patientName;
+                        selectPatient(patientId, patientName);
+                    }
+                } else if (e.key === 'Escape') {
+                    autocompleteDropdown.classList.remove('show');
+                    highlightedIndex = -1;
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.autocomplete-container')) {
+                    autocompleteDropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // Load quiz form
+        document.getElementById('load-quiz-btn').addEventListener('click', function() {
+            if (currentPatientId) {
+                loadQuizForm();
+            }
+        });
+
+        function loadQuizForm() {
+            if (!currentPatientId) {
+                alert('Please select a patient first.');
+                return;
+            }
+            
+            // Get patient name from autocomplete input or find in allPatients
+            const autocompleteValue = autocompleteInput ? autocompleteInput.value : '';
+            let patientName = '';
+            const patient = allPatients.find(p => p.id == currentPatientId);
+            if (patient) {
+                patientName = patient.name;
+            } else {
+                // Fallback: extract from input value
+                const match = autocompleteValue.match(/^(.+?)\s*\(ID:/);
+                patientName = match ? match[1] : autocompleteValue;
+            }
+            
+            // Update hidden fields
+            document.getElementById('patient-id').value = currentPatientId;
+            document.getElementById('quiz-language').value = currentLanguage;
+            document.getElementById('selected-patient-info').textContent = `Patient: ${patientName} (ID: ${currentPatientId})`;
+            
+            // Show quiz form
+            document.getElementById('quiz-form-container').style.display = 'block';
+            document.getElementById('loading-spinner').style.display = 'block';
+            
+            // Generate quiz form
+            generateQuizForm();
+            
+            // Hide loading spinner
+            setTimeout(() => {
+                document.getElementById('loading-spinner').style.display = 'none';
+            }, 500);
+        }
+
+        function generateQuizForm() {
+            const quizStructure = quizStructures[currentLanguage];
+            console.log('Quiz structure for language:', currentLanguage, quizStructure);
+            
+            const container = document.getElementById('quiz-sections');
+            container.innerHTML = '';
+
+            if (!quizStructure || !quizStructure.sections) {
+                console.error('Quiz structure is missing or invalid:', quizStructure);
+                container.innerHTML = '<div class="alert alert-danger">Error loading quiz structure</div>';
+                return;
+            }
+
+            quizStructure.sections.forEach(section => {
+                console.log('Generating section:', section.section_title, 'with', section.questions.length, 'questions');
+                
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'quiz-section';
+                sectionDiv.innerHTML = `
+                    <h4 class="mb-3">${section.section_title || 'Untitled Section'}</h4>
+                    <div class="section-questions">
+                        ${generateQuestions(section.questions)}
+                    </div>
+                `;
+                container.appendChild(sectionDiv);
+            });
+            
+            // Debug: Log all form fields that will be created
+            setTimeout(() => {
+                const form = document.getElementById('dentist-treatment-quiz-form');
+                const allInputs = form.querySelectorAll('input, textarea, select');
+                console.log('Total form fields created:', allInputs.length);
+                allInputs.forEach((input, index) => {
+                    console.log(`Field ${index + 1}:`, input.name, input.type, input.value);
+                });
+                
+                // Fix all form elements after they're created
+                fixFormElements();
+            }, 100);
+        }
+
+        function generateQuestions(questions) {
+            return questions.map(question => {
+                const requiredClass = question.required ? 'required-field' : '';
+                const requiredAttr = question.required ? 'required' : '';
+                
+                let inputHtml = '';
+                
+                switch (question.type) {
+                    case 'text':
+                        inputHtml = `<input type="text" class="form-control" name="${question.question_id}" ${requiredAttr}>`;
+                        break;
+                    case 'number':
+                        inputHtml = `<input type="number" class="form-control" name="${question.question_id}" ${requiredAttr}>`;
+                        break;
+                    case 'textarea':
+                        inputHtml = `<textarea class="form-control" name="${question.question_id}" rows="3" ${requiredAttr}></textarea>`;
+                        break;
+                    case 'yes_no':
+                        inputHtml = `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="${question.question_id}" value="yes" id="${question.question_id}_yes" ${requiredAttr}>
+                                <label class="form-check-label" for="${question.question_id}_yes">
+                                    ${currentLanguage === 'en' ? 'Yes' : 'כן'}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="${question.question_id}" value="no" id="${question.question_id}_no" ${requiredAttr}>
+                                <label class="form-check-label" for="${question.question_id}_no">
+                                    ${currentLanguage === 'en' ? 'No' : 'לא'}
+                                </label>
+                            </div>
+                        `;
+                        break;
+                    case 'single_select':
+                        const options = Array.isArray(question.options) ? question.options : question.options.split('|');
+                        inputHtml = `<select class="form-select" name="${question.question_id}" ${requiredAttr}>
+                            <option value="">${currentLanguage === 'en' ? '-- Select --' : '-- בחר --'}</option>
+                            ${options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                        </select>`;
+                        break;
+                    case 'multi_select':
+                        const multiOptions = Array.isArray(question.options) ? question.options : question.options.split('|');
+                        inputHtml = multiOptions.map(option => `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="${question.question_id}" value="${option}" id="${question.question_id}_${option}">
+                                <label class="form-check-label" for="${question.question_id}_${option}">${option}</label>
+                            </div>
+                        `).join('');
+                        break;
+                }
+
+                // Add auxiliary input if specified
+                if (question.aux_input) {
+                    inputHtml += `
+                        <div class="aux-input">
+                            <label class="form-label">${question.aux_label}</label>
+                            <input type="text" class="form-control" name="${question.question_id}_aux">
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="question-group">
+                        <label class="form-label ${requiredClass}">${question.question_label || 'Untitled Question'}</label>
+                        ${inputHtml}
+                        ${question.unit ? `<small class="text-muted">${question.unit}</small>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+
+
+
+        // Function to show thank you message
+        function showThankYouMessage() {
+            // Hide the patient selector
+            document.querySelector('.patient-selector').style.display = 'none';
+            // Hide the quiz form
+            document.getElementById('quiz-form-container').style.display = 'none';
+            // Show the thank you message
+            document.getElementById('thank-you-container').style.display = 'block';
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Function to submit the quiz
+        function submitQuiz() {
+            // Prevent any default form submission
+            event.preventDefault();
+            
+            if (!currentPatientId) {
+                alert('Please select a patient first.');
+                return;
+            }
+            
+            const form = document.getElementById('dentist-treatment-quiz-form');
+            const formData = new FormData(form);
+            const quizData = {};
+            
+            // Collect form data
+            for (let [key, value] of formData.entries()) {
+                if (key === 'patient_id' || key === 'language') {
+                    continue; // Skip hidden fields
+                }
+                
+                // Handle multi-select fields
+                if (quizData[key]) {
+                    if (!Array.isArray(quizData[key])) {
+                        quizData[key] = [quizData[key]];
+                    }
+                    quizData[key].push(value);
+                } else {
+                    quizData[key] = value;
+                }
+            }
+            
+            // Also collect checkbox values
+            const checkedCheckboxes = form.querySelectorAll('input[type="checkbox"]:checked');
+            checkedCheckboxes.forEach(checkbox => {
+                const questionId = checkbox.name;
+                if (!quizData[questionId]) {
+                    quizData[questionId] = [];
+                }
+                if (!Array.isArray(quizData[questionId])) {
+                    quizData[questionId] = [quizData[questionId]];
+                }
+                if (!quizData[questionId].includes(checkbox.value)) {
+                    quizData[questionId].push(checkbox.value);
+                }
+            });
+
+            console.log('Submitting quiz data:', {
+                patient_id: parseInt(currentPatientId),
+                language: currentLanguage,
+                quiz_data: quizData
+            });
+
+            // Submit to server
+            fetch('{{ url_for("conversion_quiz_agent.submit_dentist_treatment_quiz") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: parseInt(currentPatientId),
+                    language: currentLanguage,
+                    quiz_data: quizData
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    // Show thank you message instead of redirecting
+                    showThankYouMessage();
+                } else {
+                    const msg = data.error
+                        || (Array.isArray(data.errors) && data.errors.length
+                            ? data.errors.join('\n')
+                            : null)
+                        || 'Unknown error';
+                    alert('Error submitting quiz: ' + msg);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting quiz: ' + error.message);
+            });
+        }
+
+        // Function to reset the quiz and start over
+        function resetQuiz() {
+            // Hide thank you message
+            document.getElementById('thank-you-container').style.display = 'none';
+            // Hide quiz form
+            document.getElementById('quiz-form-container').style.display = 'none';
+            // Show patient selector
+            document.querySelector('.patient-selector').style.display = 'block';
+            // Clear autocomplete input
+            if (autocompleteInput) autocompleteInput.value = '';
+            if (patientIdInput) patientIdInput.value = '';
+            if (autocompleteDropdown) autocompleteDropdown.classList.remove('show');
+            document.getElementById('load-quiz-btn').disabled = true;
+            // Reset form
+            document.getElementById('dentist-treatment-quiz-form').reset();
+            // Clear quiz sections
+            document.getElementById('quiz-sections').innerHTML = '';
+            // Reset current patient
+            currentPatientId = null;
+            highlightedIndex = -1;
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "wizard_base.html" %}
+{% block content %}
+<script>
+    // Debug: Log backend-provided context variables to the browser console
+    console.log('clinic:', '{{ clinic_dict|tojson|safe }}');
+    console.log('personal_info:', {{ personal_info|tojson|safe }});
+</script>
+<div class="container">
+    <h2>Personal Information</h2>
+    <!-- JavaScript to set progress bar to 20% -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof updateProgressBar === 'function') {
+                updateProgressBar(20);
+            } else {
+                console.error('updateProgressBar function is not defined.');
+            }
+        });
+    </script>
+
+    <!-- Add this temporarily for debugging -->
+    <div style="display: none;">
+        Current DSO: {{ current_user.DSO }}
+    </div>
+
+    <form id="stage1-form" action="/wizard/stage1_personal_info" method="POST" enctype="multipart/form-data">
+        <!-- Personal information fields -->
+        <div class="mb-3">
+            <label for="first-name" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="first-name" name="first_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="middle-name" class="form-label">Middle Name</label>
+            <input type="text" class="form-control" id="middle-name" name="middle_name">
+        </div>
+        <div class="mb-3">
+            <label for="last-name" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="last-name" name="last_name" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">Phone Number</label>
+            <input type="tel" class="form-control" id="phone" name="phone" required>
+        </div>
+        <div class="mb-3">
+            <label for="dob" class="form-label">Date of Birth</label>
+            <input type="date" class="form-control" id="dob" name="dob" required>
+        </div>
+        <div class="mb-3">
+            <label for="gender" class="form-label">Gender</label>
+            <select class="form-select" id="gender" name="gender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <!-- Driver's License Upload Fields -->
+        <div class="mb-3">a
+            <label for="driver-license-front" class="form-label">Upload Driver's License (Front)</label>
+            <input type="file" class="form-control" id="driver-license-front" name="driver_license_front">
+        </div>
+        <div class="mb-3">
+            <label for="driver-license-back" class="form-label">Upload Driver's License (Back)</label>
+            <input type="file" class="form-control" id="driver-license-back" name="driver_license_back">
+        </div>
+
+        <!-- Insurance Card Upload Fields -->
+        <div class="mb-3">
+            <label for="insurance-front" class="form-label">Upload Insurance Card (Front)</label>
+            <input type="file" class="form-control" id="insurance-front" name="insurance_front">
+        </div>
+        <div class="mb-3">
+            <label for="insurance-back" class="form-label">Upload Insurance Card (Back)</label>
+            <input type="file" class="form-control" id="insurance-back" name="insurance_back" >
+        </div>
+
+        <!-- Next button aligned to the right -->
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

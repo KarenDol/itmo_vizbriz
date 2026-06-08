@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Workflow - {{ patient.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        .progress-custom {
+            height: 25px;
+            border-radius: 15px;
+        }
+        .stage-badge {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+        }
+        .action-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .patient-summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h2 mb-0">
+                        <i class="bi bi-person-heart text-primary"></i>
+                        Patient Workflow - {{ patient.name }}
+                    </h1>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary btn-sm" onclick="viewManifest()">
+                            <i class="bi bi-file-text"></i> View Manifest
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="viewWorkflowGuidelines()">
+                            <i class="bi bi-book"></i> Workflow Guide
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Summary Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card patient-summary-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="card-title mb-3">
+                                    <i class="bi bi-person-circle"></i>
+                                    {{ patient.name }}
+                                </h4>
+                                <p class="mb-2"><strong>ID:</strong> {{ patient.id }}</p>
+                                <p class="mb-2"><strong>Email:</strong> {{ patient.email }}</p>
+                                <p class="mb-2"><strong>Phone:</strong> {{ patient.phone }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2"><strong>Status:</strong> 
+                                    <span class="badge bg-success">Active</span>
+                                </p>
+                                <p class="mb-2"><strong>Progress:</strong> {{ completed_stages }} of {{ total_stages }} stages completed</p>
+                                <p class="mb-2"><strong>Completion:</strong> {{ progress_percentage|int }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card action-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up"></i>
+                            Treatment Progress
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress progress-custom mb-3">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ progress_percentage }}%" 
+                                 aria-valuenow="{{ progress_percentage }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {{ progress_percentage|int }}%
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            {% for stage in manifest_data.stage_manifest %}
+                            <div class="col-md-3 mb-2">
+                                <div class="text-center">
+                                    <span class="badge stage-badge {{ 'bg-success' if stage.value == 'yes' else 'bg-danger' }}">
+                                        {{ stage.stage_name }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card action-card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning"></i>
+                            Available Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for action in eligible_actions %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 card-hover">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="bi bi-gear"></i>
+                                            {{ action.label }}
+                                        </h6>
+                                        <p class="card-text text-muted">{{ action.ai_guidance }}</p>
+                                        
+                                        {% if action.ui_type == 'button' %}
+                                        <button class="btn btn-primary" onclick="executeAction('{{ action.endpoint }}', '{{ action.action_key }}')">
+                                            <i class="bi bi-play-circle"></i> Execute Action
+                                        </button>
+                                        {% elif action.ui_type == 'form' %}
+                                        <button class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#{{ action.action_key }}Form">
+                                            <i class="bi bi-calendar-plus"></i> {{ action.label }}
+                                        </button>
+                                        <div class="collapse mt-3" id="{{ action.action_key }}Form">
+                                            <form onsubmit="executeForm(event, '{{ action.endpoint }}', '{{ action.action_key }}')">
+                                                {% for field in action.input_fields %}
+                                                <div class="mb-3">
+                                                    <label class="form-label">{{ field }}</label>
+                                                    <input type="text" name="{{ field }}" class="form-control" required>
+                                                </div>
+                                                {% endfor %}
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="bi bi-check-circle"></i> Submit
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% elif action.ui_type == 'upload_link' %}
+                                        <a href="{{ action.upload_link }}" target="_blank" class="btn btn-info">
+                                            <i class="bi bi-upload"></i> Upload Files
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="actionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="bi bi-info-circle text-primary me-2"></i>
+                <strong class="me-auto">Action Result</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Action completed successfully!
+            </div>
+        </div>
+    </div>
+
+    <!-- Manifest Modal -->
+    <div class="modal fade" id="manifestModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Execution Manifest</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="manifestContent" class="bg-light p-3 rounded"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // JavaScript functions for action execution
+        function executeAction(endpoint, actionKey) {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action_key: actionKey,
+                    patient_id: {{ patient.id }}
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Action executed successfully!', 'success');
+                } else {
+                    showToast('Error executing action: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            })
+            .catch(error => {
+                showToast('Error executing action: ' + error.message, 'danger');
+            });
+        }
+
+        function executeForm(event, endpoint, actionKey) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            data.action_key = actionKey;
+            data.patient_id = {{ patient.id }};
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Form submitted successfully!', 'success');
+                } else {
+                    showToast('Error submitting form: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            })
+            .catch(error => {
+                showToast('Error submitting form: ' + error.message, 'danger');
+            });
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('actionToast');
+            const toastBody = document.getElementById('toastMessage');
+            toastBody.textContent = message;
+            toast.classList.remove('bg-success', 'bg-danger', 'bg-warning');
+            toast.classList.add('bg-' + type);
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+
+        function viewManifest() {
+            const manifestContent = document.getElementById('manifestContent');
+            manifestContent.textContent = JSON.stringify({{ manifest_data | tojson | safe }}, null, 2);
+            const modal = new bootstrap.Modal(document.getElementById('manifestModal'));
+            modal.show();
+        }
+
+        function viewWorkflowGuidelines() {
+            alert('Workflow Guidelines:\n\n1. Complete stages in order\n2. Each action updates the patient status\n3. Progress is tracked automatically\n4. Use action buttons to advance workflow');
+        }
+    </script>
+</body>
+</html> 

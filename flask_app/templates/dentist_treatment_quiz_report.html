@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "הערכת טיפול דנטלי" if language == 'he' else "Dentist Treatment Assessment" }}</title>
+    <style>
+        {{ report_css|safe }}
+    </style>
+</head>
+<body class="{{ 'hebrew' if language == 'he' else '' }}">
+    <div class="container">
+        <h1 class="title">{{ "הערכת טיפול דנטלי" if language == 'he' else "Dentist Treatment Assessment" }}</h1>
+        
+        <div class="patient-info">
+            <h2>{{ "מידע על המטופל" if language == 'he' else "Patient Information" }}</h2>
+            <table class="info-table">
+                <tr>
+                    <td><strong>{{ "שם:" if language == 'he' else "Name:" }}</strong></td>
+                    <td>{{ patient.name or ("לא סופק" if language == 'he' else "Not provided") }}</td>
+                </tr>
+                <tr>
+                    <td><strong>{{ "אימייל:" if language == 'he' else "Email:" }}</strong></td>
+                    <td>{{ patient.email }}</td>
+                </tr>
+                <tr>
+                    <td><strong>{{ "טלפון:" if language == 'he' else "Phone:" }}</strong></td>
+                    <td>{{ patient.phone or ("לא סופק" if language == 'he' else "Not provided") }}</td>
+                </tr>
+                <tr>
+                    <td><strong>{{ "תאריך הערכה:" if language == 'he' else "Assessment Date:" }}</strong></td>
+                    <td>{{ quiz_entry.created_at.strftime("%B %d, %Y") }}</td>
+                </tr>
+                <tr>
+                    <td><strong>{{ "רופא שיניים:" if language == 'he' else "Dentist:" }}</strong></td>
+                    <td>{{ quiz_entry.dentist.name if quiz_entry.dentist else ("לא צוין" if language == 'he' else "Not specified") }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="assessment-responses">
+            <h2>{{ "תגובות הערכה" if language == 'he' else "Assessment Responses" }}</h2>
+            
+            {% for section in sections %}
+                <div class="section">
+                    <h3 class="section-title">{{ section.title }}</h3>
+                    
+                    {% for question in section.questions %}
+                        <div class="question">
+                            <div class="question-label">{{ question.label }}</div>
+                            <div class="answer">{{ question.answer }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="print-instructions">
+            <p><strong>To save as PDF:</strong> Use your browser's Print function (Ctrl+P / Cmd+P) and select "Save as PDF" as the destination.</p>
+            <button onclick="window.print()" class="print-btn">Print / Save as PDF</button>
+        </div>
+        
+        <div class="footer">
+            Generated on {{ current_time }}
+        </div>
+    </div>
+</body>
+</html>

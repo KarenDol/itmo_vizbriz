@@ -1,0 +1,1310 @@
+"
+{% extends 'base.html' %}
+
+{% block title %}OSA Guidelines - Vizbriz{% endblock %}
+
+{% block extra_css %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<style>
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.osa-guidelines-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.vizbriz-logo {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.vizbriz-logo img {
+    height: 60px;
+    width: auto;
+    max-width: 300px;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-bottom: 0;
+    font-weight: 400;
+}
+
+.osa-phase {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.osa-phase:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.phase-header {
+    margin-bottom: 24px;
+}
+
+.phase-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.phase-subtitle {
+    font-size: 0.95rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.osa-step {
+    margin-bottom: 28px;
+    padding: 24px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #3498db;
+    transition: all 0.2s ease;
+}
+
+.osa-step:hover {
+    background: #f0f2f5;
+    transform: translateX(4px);
+}
+
+.osa-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.step-title::before {
+    content: "Step";
+    background: #3498db;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-right: 12px;
+}
+
+.step-description {
+    font-size: 0.95rem;
+    color: #495057;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.qr-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.qr-container {
+    text-align: center;
+    min-width: 200px;
+}
+
+.qr-code {
+    width: 180px;
+    height: 180px;
+    border: 2px solid #dee2e6;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.qr-code:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.qr-caption {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+.direct-link {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.direct-link a,
+.direct-link button {
+    display: inline-block;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+    width: 200px;
+    text-align: center;
+}
+
+.direct-link a:hover,
+.direct-link button:hover {
+    background: #2980b9;
+    text-decoration: none;
+}
+
+.step-details {
+    flex: 1;
+}
+
+.step-details ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #495057;
+}
+
+.step-details li {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.step-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e9ecef;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.step-time {
+    font-weight: 500;
+}
+
+.step-responsible {
+    font-weight: 500;
+}
+
+/* Action button styling for dentist questionnaire */
+.step-actions {
+    margin: 20px 0;
+}
+
+.action-button {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.action-button:hover {
+    background: #5a6fd8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+}
+
+/* Phase-specific colors */
+.phase-initial {
+    border-left: 4px solid #9b59b6;
+}
+
+.phase-initial .osa-step {
+    border-left-color: #9b59b6;
+}
+
+.phase-initial .step-title::before {
+    background: #9b59b6;
+}
+
+.phase-diagnostic {
+    border-left: 4px solid #3498db;
+}
+
+.phase-diagnostic .osa-step {
+    border-left-color: #3498db;
+}
+
+.phase-diagnostic .step-title::before {
+    background: #3498db;
+}
+
+.phase-planning {
+    border-left: 4px solid #27ae60;
+}
+
+.phase-planning .osa-step {
+    border-left-color: #27ae60;
+}
+
+.phase-planning .step-title::before {
+    background: #27ae60;
+}
+
+.phase-implementation {
+    border-left: 4px solid #e67e22;
+}
+
+.phase-implementation .osa-step {
+    border-left-color: #e67e22;
+}
+
+.phase-implementation .step-title::before {
+    background: #e67e22;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .osa-guidelines-container {
+        padding: 20px 10px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .osa-phase {
+        padding: 20px;
+    }
+    
+    .qr-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .qr-container {
+        min-width: auto;
+    }
+}
+
+/* QR Code Modal Styles */
+.qr-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.qr-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.qr-modal img {
+    max-width: 100%;
+    max-height: 70vh;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qr-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.qr-modal-close:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.qr-modal-title {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.send-email-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.send-email-btn:hover {
+    background: #c0392b;
+}
+
+.email-form {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.email-form.show {
+    display: block;
+}
+
+.email-form h4 {
+    color: #222;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.email-form input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    color: #222;
+    background: #fff;
+}
+
+.email-form input[type="email"]::placeholder {
+    color: #555;
+    opacity: 1;
+    font-weight: 500;
+}
+
+.email-form button[type="submit"] {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background 0.2s;
+}
+
+.email-form button[type="submit"]:hover {
+    background: #b71c1c;
+}
+
+.email-form button[type="submit"]:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.email-form button[type="button"] {
+    background: #6c757d;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.email-form button[type="button"]:hover {
+    background: #5a6268;
+}
+
+.email-error-message {
+    color: #d32f2f;
+    background: #ffebee;
+    border: 2px solid #f44336;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-align: left;
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+}
+
+/* Patient Search and Email Input Styling */
+.patient-search-container {
+    margin-bottom: 15px;
+}
+
+.patient-search-container label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+/* Override Materialize CSS for patient search selects */
+.patient-search-container select {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 40px !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    background-color: white !important;
+    background-image: none !important;
+    color: #333 !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+    line-height: 1.5 !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    mask: none !important;
+    clip-path: none !important;
+    shape-outside: none !important;
+    shape-margin: 0 !important;
+    shape-image-threshold: 0 !important;
+    clip: auto !important;
+    float: none !important;
+    clear: none !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    padding-top: 10px !important;
+    padding-right: 10px !important;
+    padding-bottom: 10px !important;
+    padding-left: 10px !important;
+    border-top: 1px solid #ced4da !important;
+    border-right: 1px solid #ced4da !important;
+    border-bottom: 1px solid #ced4da !important;
+    border-left: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    background-color: white !important;
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: 0 0 !important;
+    background-size: auto !important;
+    background-attachment: scroll !important;
+    background-clip: border-box !important;
+    background-origin: padding-box !important;
+    color: #333 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    outline: none !important;
+    resize: none !important;
+    tabindex: 0 !important;
+    role: combobox !important;
+    aria-expanded: false !important;
+    aria-haspopup: listbox !important;
+    aria-autocomplete: none !important;
+    aria-readonly: false !important;
+    aria-required: false !important;
+    aria-invalid: false !important;
+    aria-describedby: none !important;
+    aria-labelledby: none !important;
+    aria-controls: none !important;
+    aria-owns: none !important;
+    aria-activedescendant: none !important;
+    aria-selected: false !important;
+    aria-checked: false !important;
+    aria-pressed: false !important;
+    aria-sort: none !important;
+    aria-live: off !important;
+    aria-atomic: false !important;
+    aria-relevant: none !important;
+    aria-busy: false !important;
+    aria-disabled: false !important;
+    aria-hidden: false !important;
+    aria-modal: false !important;
+    aria-multiline: false !important;
+    aria-multiselectable: false !important;
+    aria-orientation: vertical !important;
+    aria-setsize: 0 !important;
+    aria-posinset: 0 !important;
+    aria-level: 0 !important;
+    aria-rowcount: 0 !important;
+    aria-rowindex: 0 !important;
+    aria-rowspan: 0 !important;
+    aria-colcount: 0 !important;
+    aria-colindex: 0 !important;
+    aria-colspan: 0 !important;
+    aria-rowindextext: none !important;
+    aria-colindextext: none !important;
+    aria-valuemin: 0 !important;
+    aria-valuemax: 0 !important;
+    aria-valuenow: 0 !important;
+    aria-valuetext: none !important;
+    aria-current: false !important;
+    aria-flowto: none !important;
+}
+
+.patient-search-container select:focus {
+    outline: none !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Ensure no Materialize interference */
+.patient-search-container {
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.patient-search-container::after {
+    display: none !important;
+}
+
+.patient-search-container::before {
+    display: none !important;
+}
+
+.email-input-container {
+    margin-bottom: 15px;
+}
+
+.email-input-container label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+.email-input-container input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+.email-input-container input[type="email"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Visual feedback for auto-filled email */
+.email-auto-filled {
+    background-color: #e8f5e8 !important;
+    border-color: #28a745 !important;
+}
+
+.email-manual-entry {
+    background-color: #fff3cd !important;
+    border-color: #ffc107 !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="osa-guidelines-container">
+    <div class="page-header">
+        <div class="vizbriz-logo">
+            <img src="{{ url_for('static', filename='branding/vizbriz_logo.svg') }}" alt="Vizbriz Logo">
+        </div>
+        <h1 class="page-title">Vizbriz OSA Patient Management</h1>
+        <p class="page-subtitle">Complete workflow guide from initial diagnosis through therapy completion</p>
+    </div>
+
+    <!-- Phase 1: Initial Assessment -->
+    <div class="osa-phase phase-initial">
+        <div class="phase-header">
+            <h2 class="phase-title">Phase 1: Initial Assessment</h2>
+            <p class="phase-subtitle">Patient screening and initial evaluation</p>
+        </div>
+        
+        <div class="osa-step step-1">
+            <div class="step-title">1: Initial Sleep Apnea Detection</div>
+            <div class="step-description">Patient completes Vizbriz questionnaire via QR code</div>
+            <div class="step-details">
+                <ul>
+                    <li>Patient scans QR code for sleep test questionnaire</li>
+                    <li>Patient completes Vizbriz questionnaire online</li>
+                </ul>
+            </div>
+            <div class="qr-section">
+                <div class="qr-container">
+                    <img src="{{ url_for('wizard.osa_guidelines_qr_code') }}" alt="Dynamic QR Code" class="qr-code" onclick="enlargeQR(this)" style="cursor: pointer;">
+                    <div class="qr-caption">Patient completes Vizbriz questionnaire via QR code</div>
+                    <div class="direct-link">
+                        <a href="/quiz?dso_id={{ dso_id }}" target="_blank">📋 Direct Link</a>
+                        <a href="#" onclick="enlargeQR(document.querySelector('.qr-container img'))">📋 Press to enlarge</a>
+                        <button onclick="showEmailForm('quiz')" class="send-email-btn">📧 Send to Patient</button>
+                    </div>
+                </div>
+            </div>
+            <div class="step-meta">
+                <span class="step-time">⏱️ 10 minutes</span>
+                <span class="step-responsible">👤 Patient/Vizbriz</span>
+            </div>
+            
+            <!-- Email form for quiz -->
+            <div id="emailFormQuiz" class="email-form">
+                <div id="quizEmailError" class="email-error-message" style="display:none;"></div>
+                <form method="POST" onsubmit="return validateEmail('quiz')">
+                    <h4>Send Quiz Link to Patient</h4>
+                    
+                    <!-- Patient Search Section -->
+                    <div class="patient-search-container">
+                        <label for="patient_search_quiz">Search Patient (Optional)</label>
+                        <select id="patient_search_quiz" name="patient_search_quiz" class="form-control">
+                            <option value="">Select a patient...</option>
+                        </select>
+                        <input type="hidden" id="selected_patient_id_quiz" name="selected_patient_id">
+                    </div>
+                    
+                    <!-- Email Input Section -->
+                    <div class="email-input-container">
+                        <label for="patient_email_quiz">Patient Email *</label>
+                        <input type="email" name="patient_email" id="patient_email_quiz" placeholder="Enter patient's email address" required>
+                        <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                    </div>
+                    
+                    <button type="submit">Send Email</button>
+                    <button type="button" onclick="hideEmailForm('quiz')">Cancel</button>
+                    <input type="hidden" name="link_type" value="quiz">
+                </form>
+            </div>
+        </div>
+
+        <div class="osa-step step-2">
+            <div class="step-title">2: Vizbriz Review & Recommendation</div>
+            <div class="step-description">Vizbriz analyzes questionnaire and provides next steps</div>
+            <div class="step-details">
+                <ul>
+                    <li>Automated analysis of questionnaire responses</li>
+                    <li>Recommendations for additional analysis</li>
+                    <li>Patient registration wizard for signing all required forms</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 24 hours</span>
+                    <span class="step-responsible">👤 Vizbriz</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Phase 2: Diagnostic Phase -->
+    <div class="osa-phase phase-diagnostic">
+        <div class="phase-header">
+            <h2 class="phase-title">Phase 2: Diagnostic Phase</h2>
+            <p class="phase-subtitle">Consultation, imaging and sleep specialist evaluation</p>
+        </div>
+        
+        <div class="osa-step step-3">
+            <div class="step-title">3: Sleep Specialist Referral</div>
+            <div class="step-description">Refer to iSleep partners with online scheduling</div>
+            <div class="step-details">
+                <ul>
+                    <li>Online scheduling virtual interview with sleep expert through iSleep platform</li>
+                </ul>
+            </div>
+            <div class="qr-section">
+                <div class="qr-container">
+                    <img src="{{ url_for('wizard.medicare_qr_code') }}?v=2" alt="Insurance Package QR Code" class="qr-code" onclick="enlargeQR(this)" style="cursor: pointer;">
+                    <div class="qr-caption">Insurance Package</div>
+                    <div class="direct-link">
+                        <a href="https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75" target="_blank">📋 Direct Link</a>
+                        <a href="#" onclick="enlargeQR(this.parentElement.parentElement.querySelector('img'))">📋 Press to enlarge</a>
+                        <button onclick="showEmailForm('medicare')" class="send-email-btn">📧 Send to Patient</button>
+                    </div>
+                </div>
+                <div class="qr-container">
+                    <img src="{{ url_for('wizard.full_package_qr_code') }}" alt="Full Package QR Code" class="qr-code" onclick="enlargeQR(this)" style="cursor: pointer;">
+                    <div class="qr-caption">Full Package</div>
+                    <div class="direct-link">
+                        <a href="https://portal.isleepemr.com/booking/create-appointment/?booking=67d8f750532ff1ecaaf98700" target="_blank">📋 Direct Link</a>
+                        <a href="#" onclick="enlargeQR(this.parentElement.parentElement.querySelector('img'))">📋 Press to enlarge</a>
+                        <button onclick="showEmailForm('full_package')" class="send-email-btn">📧 Send to Patient</button>
+                    </div>
+                </div>
+            </div>
+            <div class="step-meta">
+                <span class="step-time">⏱️ Same day</span>
+                <span class="step-responsible">👤 iSleep/Sleep Specialist</span>
+            </div>
+            
+            <!-- Email forms for Medicare and Full Package -->
+            <div id="emailFormMedicare" class="email-form">
+                <div id="medicareEmailError" class="email-error-message" style="display:none;"></div>
+                <form method="POST" onsubmit="return validateEmail('medicare')">
+                    <h4>Send Medicare Package Link to Patient</h4>
+                    
+                    <!-- Patient Search Section -->
+                    <div class="patient-search-container">
+                        <label for="patient_search_medicare">Search Patient (Optional)</label>
+                        <select id="patient_search_medicare" name="patient_search_medicare" class="form-control">
+                            <option value="">Select a patient...</option>
+                        </select>
+                        <input type="hidden" id="selected_patient_id_medicare" name="selected_patient_id">
+                    </div>
+                    
+                    <!-- Email Input Section -->
+                    <div class="email-input-container">
+                        <label for="patient_email_medicare">Patient Email *</label>
+                        <input type="email" name="patient_email" id="patient_email_medicare" placeholder="Enter patient's email address" required>
+                        <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                    </div>
+                    
+                    <button type="submit">Send Email</button>
+                    <button type="button" onclick="hideEmailForm('medicare')">Cancel</button>
+                    <input type="hidden" name="link_type" value="medicare">
+                </form>
+            </div>
+            
+            <div id="emailFormFullPackage" class="email-form">
+                <div id="fullPackageEmailError" class="email-error-message" style="display:none;"></div>
+                <form method="POST" onsubmit="return validateEmail('full_package')">
+                    <h4>Send Full Package Link to Patient</h4>
+                    
+                    <!-- Patient Search Section -->
+                    <div class="patient-search-container">
+                        <label for="patient_search_full_package">Search Patient (Optional)</label>
+                        <select id="patient_search_full_package" name="patient_search_full_package" class="form-control">
+                            <option value="">Select a patient...</option>
+                        </select>
+                        <input type="hidden" id="selected_patient_id_full_package" name="selected_patient_id">
+                    </div>
+                    
+                    <!-- Email Input Section -->
+                    <div class="email-input-container">
+                        <label for="patient_email_full_package">Patient Email *</label>
+                        <input type="email" name="patient_email" id="patient_email_full_package" placeholder="Enter patient's email address" required>
+                        <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                    </div>
+                    
+                    <button type="submit">Send Email</button>
+                    <button type="button" onclick="hideEmailForm('full_package')">Cancel</button>
+                    <input type="hidden" name="link_type" value="full_package">
+                </form>
+            </div>
+        </div>
+
+        <div class="osa-step step-4">
+            <div class="step-title">4: Sleep Test</div>
+            <div class="step-description">Home sleep test and results review</div>
+            <div class="step-details">
+                <ul>
+                    <li>Patient completes test at home</li>
+                    <li>Results reviewed with Sleep Specialist</li>
+                    <li>OSA diagnosis confirmation</li>
+                    <li>Treatment recommendations</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 1 night + 72 hours processing + 30 minutes review</span>
+                    <span class="step-responsible">👤 Sleep Lab/Sleep Specialist</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="osa-step step-5">
+            <div class="step-title">5: Free Dental Sleep Medicine Consultation</div>
+            <div class="step-description">Complimentary consultation with dental sleep medicine specialist</div>
+            <div class="step-details">
+                <ul>
+                    <li>Review of sleep questionnaire results</li>
+                    <li>Discussion of sleep apnea symptoms and concerns</li>
+                    <li>Explanation of dental sleep medicine treatment options</li>
+                    <li>Assessment of candidacy for oral appliance therapy</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 30 minutes</span>
+                    <span class="step-responsible">👤 Dentist</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="osa-step step-6">
+            <div class="step-title">6: CBCT and Intraoral Scans</div>
+            <div class="step-description">Imaging if patient doesn't have recent scans</div>
+            <div class="step-details">
+                <ul>
+                    <li>CBCT scan for Airway Related Structure Analysis</li>
+                    <li>Intraoral scans for appliance planning</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 1 hour</span>
+                    <span class="step-responsible">👤 Dental Office</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dentist Questionnaire - Last step in Phase 2 -->
+        <div class="osa-step step-7">
+            <div class="step-title">7: Dentist Questionnaire</div>
+            <div class="step-description">Complete dentist questionnaire for Patient Assessment</div>
+            <div class="step-details">
+                <ul>
+                    <li>Comprehensive dental assessment questionnaire</li>
+                    <li>Patient-specific treatment planning</li>
+                    <li>Clinical evaluation and recommendations</li>
+                </ul>
+            </div>
+            <div class="step-actions">
+                <a href="{{ url_for('conversion_quiz_agent.show_dentist_treatment_quiz') }}" class="action-button primary">
+                    📋 Complete Dentist Questionnaire
+                </a>
+            </div>
+            <div class="step-meta">
+                <span class="step-time">⏱️ 15 minutes</span>
+                <span class="step-responsible">👤 Dentist</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 3: Treatment Planning -->
+    <div class="osa-phase phase-planning">
+        <div class="phase-header">
+            <h2 class="phase-title">Phase 3: Treatment Planning</h2>
+            <p class="phase-subtitle">Device recommendation and approval</p>
+        </div>
+        
+        <div class="osa-step step-8">
+            <div class="step-title">8: Vizbriz Comprehensive Report</div>
+            <div class="step-description">Analysis, oral appliance recommendation and dentist approval</div>
+            <div class="step-details">
+                <ul>
+                    <li>Dentist reviews and approves treatment plan</li>
+                    <li>Patient consultation and treatment plan approval</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 24-48 hours + Same day approval</span>
+                    <span class="step-responsible">👤 Vizbriz/Dentist</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="osa-step step-9">
+            <div class="step-title">9: Device Ordering through Vizbriz Platform</div>
+            <div class="step-description">Oral appliance fabrication</div>
+            <div class="step-details">
+                <ul>
+                    <li>Delivery to dental office</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 2 weeks</span>
+                    <span class="step-responsible">👤 Lab/Manufacturer</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 4: Treatment Implementation -->
+    <div class="osa-phase phase-implementation">
+        <div class="phase-header">
+            <h2 class="phase-title">Phase 4: Treatment Implementation</h2>
+            <p class="phase-subtitle">Device fabrication, fitting, and follow-up</p>
+        </div>
+        
+        <div class="osa-step step-10">
+            <div class="step-title">10: Device Delivery</div>
+            <div class="step-description">Initial appliance fitting and adjustments</div>
+            <div class="step-details">
+                <ul>
+                    <li>Patient education on use and care</li>
+                    <li>Initial comfort assessment</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 1 hour</span>
+                    <span class="step-responsible">👤 Dentist</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="osa-step step-11">
+            <div class="step-title">11: One Month Follow-up</div>
+            <div class="step-description">Progress evaluation and adjustments</div>
+            <div class="step-details">
+                <ul>
+                    <li>Comfort and compliance assessment</li>
+                    <li>Appliance adjustments if needed</li>
+                    <li>Symptom improvement evaluation</li>
+                </ul>
+                <div class="step-meta">
+                    <span class="step-time">⏱️ 30 minutes</span>
+                    <span class="step-responsible">👤 Dentist</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="qr-modal">
+    <div class="qr-modal-content">
+        <button class="qr-modal-close" onclick="closeQRModal()">&times;</button>
+        <div class="qr-modal-title" id="qrModalTitle">QR Code</div>
+        <img id="qrModalImage" src="" alt="Enlarged QR Code">
+    </div>
+</div>
+
+<script>
+function enlargeQR(imgElement) {
+    const modal = document.getElementById('qrModal');
+    const modalImg = document.getElementById('qrModalImage');
+    const modalTitle = document.getElementById('qrModalTitle');
+    
+    // Set the image source
+    modalImg.src = imgElement.src;
+    
+    // Set the title based on the alt text
+    modalTitle.textContent = imgElement.alt;
+    
+    // Show the modal
+    modal.style.display = 'block';
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function closeQRModal() {
+    const modal = document.getElementById('qrModal');
+    modal.style.display = 'none';
+    
+    // Restore body scroll
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('qrModal');
+    if (event.target === modal) {
+        closeQRModal();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeQRModal();
+    }
+});
+
+// Email functionality
+function showEmailForm(linkType) {
+    // Hide all email forms first
+    hideAllEmailForms();
+    
+    // Show the specific email form
+    let formId = 'emailForm' + linkType.charAt(0).toUpperCase() + linkType.slice(1);
+    if (linkType === 'full_package') {
+        formId = 'emailFormFullPackage';
+    }
+    const form = document.getElementById(formId);
+    if (form) {
+        form.classList.add('show');
+    }
+}
+
+function hideEmailForm(linkType) {
+    let formId = 'emailForm' + linkType.charAt(0).toUpperCase() + linkType.slice(1);
+    if (linkType === 'full_package') {
+        formId = 'emailFormFullPackage';
+    }
+    const form = document.getElementById(formId);
+    if (form) {
+        form.classList.remove('show');
+        // Clear the email input
+        const emailInput = form.querySelector('input[type="email"]');
+        if (emailInput) {
+            emailInput.value = '';
+        }
+        // Clear patient search selections
+        const patientSearch = form.querySelector('select[id^="patient_search_"]');
+        const patientIdInput = form.querySelector('input[id^="selected_patient_id_"]');
+        if (patientSearch) {
+            patientSearch.value = '';
+        }
+        if (patientIdInput) {
+            patientIdInput.value = '';
+        }
+        // Clear patient selection styling
+        if (emailInput) {
+            emailInput.classList.remove('email-auto-filled', 'email-manual-entry');
+        }
+        // Hide any error messages
+        const errorDiv = form.querySelector('.email-error-message');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+    }
+}
+
+function hideAllEmailForms() {
+    const forms = ['emailFormQuiz', 'emailFormMedicare', 'emailFormFullPackage'];
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.classList.remove('show');
+        }
+    });
+}
+
+function validateEmail(linkType) {
+    let formId = 'emailForm' + linkType.charAt(0).toUpperCase() + linkType.slice(1);
+    if (linkType === 'full_package') {
+        formId = 'emailFormFullPackage';
+    }
+    
+    const form = document.getElementById(formId);
+    const emailInput = form.querySelector('input[type="email"]');
+    const errorDiv = form.querySelector('.email-error-message');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Clear any previous error
+    errorDiv.style.display = 'none';
+    
+    // Get email value
+    const email = emailInput.value.trim();
+    
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email) {
+        errorDiv.textContent = 'Please enter an email address.';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    if (!emailRegex.test(email)) {
+        errorDiv.textContent = 'Please enter a valid email address (e.g., user@example.com).';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // If validation passes, show loading state and submit the form
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+    }
+    
+    return true;
+}
+
+// Patient search functionality
+$(document).ready(function() {
+    // Force select elements to be visible and functional
+    $('.patient-search-container select').each(function() {
+        $(this).css({
+            'display': 'block',
+            'visibility': 'visible',
+            'opacity': '1',
+            'position': 'relative',
+            'z-index': '10'
+        });
+    });
+    
+    // Additional fix after a short delay to override Materialize
+    setTimeout(function() {
+        $('.patient-search-container select').each(function() {
+            $(this).css({
+                'display': 'block !important',
+                'visibility': 'visible !important',
+                'opacity': '1 !important',
+                'position': 'relative !important',
+                'z-index': '10 !important'
+            });
+        });
+    }, 100);
+    
+    // Initialize patient search for all forms
+    initializePatientSearch('quiz');
+    initializePatientSearch('medicare');
+    initializePatientSearch('full_package');
+});
+
+function initializePatientSearch(formType) {
+    const patientSearch = document.getElementById(`patient_search_${formType}`);
+    const emailInput = document.getElementById(`patient_email_${formType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${formType}`);
+    
+    if (patientSearch) {
+        // Load patients when page loads
+        loadPatientsForForm(formType);
+        
+        // Handle patient selection
+        patientSearch.addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+                const patient = JSON.parse(selectedValue);
+                selectPatientForForm(formType, patient);
+            } else {
+                // Clear selection
+                clearPatientSelection(formType);
+            }
+        });
+    }
+}
+
+function loadPatientsForForm(formType) {
+    const select = document.getElementById(`patient_search_${formType}`);
+    if (!select) return;
+    
+    fetch(`{{ url_for('wizard.get_patients_for_select') }}`)
+        .then(response => response.json())
+        .then(data => {
+            select.innerHTML = '<option value="">Select a patient...</option>';
+            
+            if (data.patients && data.patients.length > 0) {
+                const sortedPatients = data.patients.sort((a, b) => a.name.localeCompare(b.name));
+                
+                sortedPatients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(patient);
+                    option.textContent = `${patient.name} (ID: ${patient.id})`;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading patients:', error);
+        });
+}
+
+function selectPatientForForm(formType, patient) {
+    const emailInput = document.getElementById(`patient_email_${formType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${formType}`);
+    
+    // Set patient ID
+    if (patientIdInput) {
+        patientIdInput.value = patient.id;
+    }
+    
+    // Auto-fill email if available
+    if (emailInput && patient.email) {
+        emailInput.value = patient.email;
+        emailInput.classList.add('email-auto-filled');
+        emailInput.classList.remove('email-manual-entry');
+    } else if (emailInput) {
+        // Clear email if no patient email available
+        emailInput.value = '';
+        emailInput.classList.add('email-manual-entry');
+        emailInput.classList.remove('email-auto-filled');
+    }
+}
+
+function clearPatientSelection(formType) {
+    const emailInput = document.getElementById(`patient_email_${formType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${formType}`);
+    
+    if (patientIdInput) {
+        patientIdInput.value = '';
+    }
+    
+    if (emailInput) {
+        emailInput.classList.remove('email-auto-filled', 'email-manual-entry');
+    }
+}
+</script>
+{% endblock %} 

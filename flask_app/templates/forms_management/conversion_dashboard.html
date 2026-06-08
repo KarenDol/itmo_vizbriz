@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block title %}Conversion Funnel Dashboard{% endblock %}
+
+{% block content %}
+<!-- Material Design CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">OSA Conversion Funnel Dashboard</h1>
+                <p class="dashboard-subtitle">Monitor and analyze your OSA patient conversion metrics in real-time</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card total-consultations">
+            <div class="metric-icon">
+                <i class="material-icons">forum</i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value">{{ summary_stats.total_consultations }}</div>
+                <div class="metric-label">Consultation Requests</div>
+                <div class="metric-change">
+                    <span class="change-indicator positive">+{{ summary_stats.recent_consultations }}</span>
+                    <span class="change-text">this week</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card total-quizzes">
+            <div class="metric-icon">
+                <i class="material-icons">assignment</i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value">{{ summary_stats.total_quizzes }}</div>
+                <div class="metric-label">Quiz Submissions</div>
+                <div class="metric-change">
+                    <span class="change-indicator positive">+{{ summary_stats.recent_quizzes }}</span>
+                    <span class="change-text">this week</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card total-patients">
+            <div class="metric-icon">
+                <i class="material-icons">people</i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value">{{ summary_stats.total_new_patients }}</div>
+                <div class="metric-label">New Patients</div>
+                <div class="metric-change">
+                    <span class="change-indicator neutral">{{ summary_stats.dso_associations }}</span>
+                    <span class="change-text">DSO networks</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card pending-consultations">
+            <div class="metric-icon">
+                <i class="material-icons">schedule</i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value">{{ summary_stats.pending_consultations }}</div>
+                <div class="metric-label">Pending Actions</div>
+                <div class="metric-change">
+                    <span class="change-indicator urgent">Needs attention</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="actions-panel">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="actions-grid">
+            <a href="{{ url_for('forms_mgmt.consultation_requests') }}" class="action-card consultation-action">
+                <div class="action-icon">
+                    <i class="material-icons">chat</i>
+                </div>
+                <div class="action-content">
+                    <h3>Manage Consultations</h3>
+                    <p>Review and respond to consultation requests</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="material-icons">arrow_forward</i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('conversion_quiz_agent.quiz_dashboard') }}" class="action-card simple-dashboard-action">
+                <div class="action-icon">
+                    <i class="material-icons">dashboard</i>
+                </div>
+                <div class="action-content">
+                    <h3>Quiz Dashboard</h3>
+                    <p>View all quiz submissions with CTA tracking</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="material-icons">arrow_forward</i>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('conversion_quiz_agent.funnel_analytics') }}" class="action-card funnel-analytics-action">
+                <div class="action-icon">
+                    <i class="material-icons">trending_up</i>
+                </div>
+                <div class="action-content">
+                    <h3>📊 Funnel Analytics</h3>
+                    <p>Comprehensive conversion flow analysis through all quiz phases and CTAs</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="material-icons">arrow_forward</i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Data Visualization Section -->
+    <div class="data-section">
+        <div class="data-row">
+            <!-- Recent Consultations -->
+            <div class="data-card recent-consultations">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="material-icons">recent_actors</i>
+                        Recent Consultation Requests
+                    </h3>
+                    <a href="{{ url_for('forms_mgmt.consultation_requests') }}" class="view-all-btn">
+                        View All <i class="material-icons">arrow_forward</i>
+                    </a>
+                </div>
+                <div class="card-content">
+                    {% if recent_consultations %}
+                        <div class="data-list">
+                            {% for consultation in recent_consultations %}
+                            <div class="list-item">
+                                <div class="item-avatar">
+                                    <div class="avatar-circle">{{ consultation.name[0].upper() if consultation.name else 'U' }}</div>
+                                </div>
+                                <div class="item-content">
+                                    <div class="item-primary">
+                                        <a href="{{ url_for('forms_mgmt.consultation_request_detail', request_id=consultation.id) }}" class="item-name">
+                                            {{ consultation.name }}
+                                        </a>
+                                    </div>
+                                    <div class="item-secondary">{{ consultation.email }}</div>
+                                </div>
+                                <div class="item-meta">
+                                    <div class="status-badge status-{{ consultation.status }}">
+                                        {{ consultation.status.title() }}
+                                    </div>
+                                    <div class="item-date">{{ consultation.submitted_at.strftime('%m/%d') }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="material-icons">inbox</i>
+                            <p>No recent consultation requests</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Quiz Submissions -->
+            <div class="data-card recent-quizzes">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="material-icons">quiz</i>
+                        Recent Quiz Submissions
+                    </h3>
+                    <a href="{{ url_for('conversion_quiz_agent.quiz_dashboard') }}" class="view-all-btn">
+                        View All <i class="material-icons">arrow_forward</i>
+                    </a>
+                </div>
+                <div class="card-content">
+                    {% if recent_quizzes %}
+                        <div class="data-list">
+                            {% for quiz in recent_quizzes %}
+                            <div class="list-item">
+                                <div class="item-avatar">
+                                    <div class="avatar-circle">{{ quiz.patient_email[0].upper() if quiz.patient_email else 'U' }}</div>
+                                </div>
+                                <div class="item-content">
+                                    <div class="item-primary">
+                                        {% set quiz_data = quiz.quiz_input|from_json if quiz.quiz_input else {} %}
+                                        {% set patient_name = quiz_data.get('full_name') or quiz_data.get('name') or quiz_data.get('patient_name') or 'Patient' %}
+                                        <a href="{{ url_for('conversion_quiz_agent.submission_details', submission_id=quiz.id) }}" class="item-name">
+                                            {{ patient_name }}
+                                        </a>
+                                        <div class="item-email" style="font-size: 0.85rem; color: #666; margin-top: 2px;">
+                                            {{ quiz.patient_email }}
+                                        </div>
+                                    </div>
+                                    <div class="item-secondary">
+                                        <span class="quiz-type-badge {{ 'basic' if quiz.quiz_type == 'basic_quiz' else 'advanced' }}">
+                                            {{ 'Basic Quiz' if quiz.quiz_type == 'basic_quiz' else 'Advanced Quiz' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="item-meta">
+                                    {% if quiz.ai_response %}
+                                        {% set ai_data = quiz.ai_response|from_json %}
+                                        {% if ai_data and ai_data.risk_level %}
+                                            <div class="risk-badge risk-{{ ai_data.risk_level.lower().replace(' ', '-').replace('–', '-').replace('—', '-').replace('(', '').replace(')', '').replace(',', '').replace('.', '') }}">
+                                                {{ ai_data.risk_level }}
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                    <div class="item-date">{{ quiz.created_at.strftime('%m/%d') }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="material-icons">assignment</i>
+                            <p>No recent quiz submissions</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Cards -->
+        <div class="analytics-row">
+            <div class="analytics-card consultation-stats">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="material-icons">donut_small</i>
+                        Consultation Status
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value pending-stat">{{ summary_stats.pending_consultations }}</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value contacted-stat">{{ summary_stats.contacted_consultations }}</div>
+                            <div class="stat-label">Contacted</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value completed-stat">{{ summary_stats.completed_consultations }}</div>
+                            <div class="stat-label">Completed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-card quiz-stats">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="material-icons">pie_chart</i>
+                        Quiz Distribution
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value basic-stat">{{ summary_stats.basic_quizzes }}</div>
+                            <div class="stat-label">Basic Quizzes</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value advanced-stat">{{ summary_stats.advanced_quizzes }}</div>
+                            <div class="stat-label">Advanced Quizzes</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value weekly-stat">{{ summary_stats.recent_quizzes }}</div>
+                            <div class="stat-label">This Week</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Material Design Dashboard Styles */
+.dashboard-container {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    padding: 24px;
+    margin: -20px;
+}
+
+/* Header Section */
+.dashboard-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    text-shadow: none;
+}
+
+.dashboard-subtitle {
+    font-size: 1.2rem;
+    color: #64748b;
+    margin: 12px 0 0 0;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.dso-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 20px;
+    border-radius: 50px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.total-consultations .metric-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.total-quizzes .metric-icon {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+.total-patients .metric-icon {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.pending-consultations .metric-icon {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: white;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1;
+}
+
+.metric-label {
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.metric-change {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.change-indicator {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.positive { background: #e8f5e8; color: #2e7d32; }
+.neutral { background: #e3f2fd; color: #1976d2; }
+.urgent { background: #fff3e0; color: #f57c00; }
+
+/* Actions Panel */
+.actions-panel {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 24px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.action-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.action-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.consultation-action .action-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.simple-dashboard-action .action-icon {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.funnel-analytics-action .action-icon {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+}
+
+.action-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: #1a1a1a;
+}
+
+.action-content p {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+.action-arrow {
+    margin-left: auto;
+    color: #ccc;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-arrow {
+    color: #667eea;
+    transform: translateX(4px);
+}
+
+/* Data Section */
+.data-section {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.data-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+}
+
+.data-card {
+    border-right: 1px solid #f0f0f0;
+}
+
+.data-card:last-child {
+    border-right: none;
+}
+
+.card-header {
+    padding: 24px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.view-all-btn {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+    color: #5a67d8;
+    text-decoration: none;
+}
+
+.card-content {
+    padding: 24px;
+    height: calc(500px - 97px);
+    overflow-y: auto;
+}
+
+/* Data List */
+.data-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.item-avatar {
+    flex-shrink: 0;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.item-content {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.item-name:hover {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.item-secondary {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 2px;
+}
+
+.item-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-contacted { background: #d1ecf1; color: #0c5460; }
+.status-completed { background: #d4edda; color: #155724; }
+
+.quiz-type-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.basic { background: #e3f2fd; color: #1976d2; }
+.advanced { background: #f3e5f5; color: #7b1fa2; }
+
+.risk-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+    /* Default styling for unmatched risk levels */
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+.risk-low { background: #e8f5e8; color: #2e7d32; }
+.risk-moderate { background: #fff3cd; color: #856404; }
+.risk-high { background: #f8d7da; color: #721c24; }
+
+/* Additional risk level styles */
+.risk-diagnosed { background: #e9ecef; color: #495057; }
+.risk-diagnosed-not-using-treatment { background: #e9ecef; color: #495057; }
+.risk-no-risk { background: #d1ecf1; color: #0c5460; }
+.risk-minimal { background: #d4edda; color: #155724; }
+.risk-severe { background: #f5c6cb; color: #721c24; }
+
+/* Additional common variations */
+.risk-diagnosed---not-using-treatment { background: #e9ecef; color: #495057; }
+.risk-not-diagnosed { background: #d1ecf1; color: #0c5460; }
+.risk-untreated { background: #fff3cd; color: #856404; }
+.risk-treatment-compliant { background: #d4edda; color: #155724; }
+.risk-non-compliant { background: #f8d7da; color: #721c24; }
+
+.item-date {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    color: #999;
+    padding: 40px 20px;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Analytics Row */
+.analytics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 1px;
+}
+
+.analytics-card {
+    border-right: 1px solid #f0f0f0;
+    min-height: 200px;
+}
+
+.analytics-card:last-child {
+    border-right: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 8px 0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.pending-stat { color: #f57c00; }
+.contacted-stat { color: #1976d2; }
+.completed-stat { color: #2e7d32; }
+.basic-stat { color: #1976d2; }
+.advanced-stat { color: #7b1fa2; }
+.weekly-stat { color: #00acc1; }
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 16px;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .analytics-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-card {
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .analytics-card {
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+}
+</style>
+{% endblock %} 

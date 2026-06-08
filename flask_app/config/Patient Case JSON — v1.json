@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vizbriz.com/schema/patient_case_v1.json",
+  "title": "Patient Case JSON (v1)",
+  "type": "object",
+  "required": ["schema_version", "document_type", "patient_id", "as_of"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+
+    "document_type": {
+      "type": "string",
+      "enum": ["per_report", "canonical"]
+    },
+
+    "patient_id": { "type": "string" },
+    "clinic_id": { "type": ["string","null"] },
+    "as_of": { "type": "string", "format": "date-time" },
+
+    "report_meta": {
+      "type": "object",
+      "description": "Present when document_type = per_report",
+      "additionalProperties": false,
+      "properties": {
+        "report_id": { "type": "string" },
+        "source_report_type": { "type": ["string","null"] },
+        "source_uri": { "type": ["string","null"] },
+        "created_at": { "type": ["string","null"], "format": "date-time" },
+        "author_role": { "type": ["string","null"], "enum": ["AI-extractor","clinician","system","unknown",null] }
+      }
+    },
+
+    "canonical_meta": {
+      "type": "object",
+      "description": "Present when document_type = canonical",
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": ["integer","null"], "minimum": 1 },
+        "report_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "report_id": { "type": "string" },
+              "source_uri": { "type": ["string","null"] },
+              "ingested_at": { "type": ["string","null"], "format": "date-time" }
+            },
+            "required": ["report_id"]
+          }
+        }
+      }
+    },
+
+    "demographics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sex": { "type": ["string","null"], "enum": ["M","F","X",null] },
+        "age_years": { "type": ["number","null"], "minimum": 0 },
+        "height_cm": { "type": ["number","null"], "minimum": 0 },
+        "weight_kg": { "type": ["number","null"], "minimum": 0 },
+        "bmi": { "type": ["number","null"], "minimum": 0 }
+      }
+    },
+
+    "sleep_study": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "study_type": { "type": ["string","null"], "enum": ["home","inlab","HSAT","PSG",null] },
+        "sleep_duration_h": { "type": ["number","null"], "minimum": 0 },
+        "sleep_efficiency_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+        "ahi": { "type": ["number","null"], "minimum": 0 },
+        "odi": { "type": ["number","null"], "minimum": 0 },
+        "rdi": { "type": ["number","null"], "minimum": 0 },
+        "oai": { "type": ["number","null"], "minimum": 0 },
+        "cai": { "type": ["number","null"], "minimum": 0 },
+        "hi":  { "type": ["number","null"], "minimum": 0 },
+        "desaturation_events": { "type": ["integer","null"], "minimum": 0 },
+        "o2_nadir_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+        "o2_mean_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+        "time_below_90_pct_min": { "type": ["number","null"], "minimum": 0 },
+        "time_below_88_pct_min": { "type": ["number","null"], "minimum": 0 },
+        "time_below_90_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+        "supine_ahi": { "type": ["number","null"], "minimum": 0 },
+        "non_supine_ahi": { "type": ["number","null"], "minimum": 0 },
+        "rem_ahi": { "type": ["number","null"], "minimum": 0 },
+        "nrem_ahi": { "type": ["number","null"], "minimum": 0 },
+        "supine_rdi": { "type": ["number","null"], "minimum": 0 },
+        "rem_rdi": { "type": ["number","null"], "minimum": 0 },
+        "supine_odi": { "type": ["number","null"], "minimum": 0 },
+        "rem_odi": { "type": ["number","null"], "minimum": 0 },
+        "snoring": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "avg_db": { "type": ["number","null"], "minimum": 0 },
+            "max_db": { "type": ["number","null"], "minimum": 0 },
+            "percent_total": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+            "over_50db_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 }
+          }
+        },
+        "heart_rate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mean_bpm": { "type": ["number","null"], "minimum": 0 },
+            "min_bpm": { "type": ["number","null"], "minimum": 0 },
+            "max_bpm": { "type": ["number","null"], "minimum": 0 }
+          }
+        },
+        "severity": { "type": ["string","null"], "enum": ["none","mild","moderate","severe",null] }
+      }
+    },
+
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "date": { "type": ["string","null"], "format": "date" },
+              "file_name": { "type": ["string","null"] },
+              "key": { "type": ["string","null"] },
+              "source_kind": { "type": ["string","null"], "enum": ["report","sleep_study","followup","other",null] },
+              "value": { "type": ["number","string","null"] },
+              "episode_id": { "type": ["string","null"] },
+              "report_type": { "type": ["string","null"] },
+              "extracted_at": { "type": ["string","null"], "format": "date-time" }
+            },
+            "required": ["date", "key", "value"]
+          }
+        },
+        "sleep_studies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "date": { "type": ["string","null"], "format": "date" },
+              "file_name": { "type": ["string","null"] },
+              "episode_id": { "type": ["string","null"] },
+              "source_kind": { "type": ["string","null"], "enum": ["sleep_study","report","followup","other",null] },
+              "study_type": { "type": ["string","null"], "enum": ["home","inlab","HSAT","PSG",null] },
+              "ahi": { "type": ["number","null"], "minimum": 0 },
+              "odi": { "type": ["number","null"], "minimum": 0 },
+              "rdi": { "type": ["number","null"], "minimum": 0 },
+              "oai": { "type": ["number","null"], "minimum": 0 },
+              "cai": { "type": ["number","null"], "minimum": 0 },
+              "hi": { "type": ["number","null"], "minimum": 0 },
+              "o2_nadir_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+              "o2_mean_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+              "time_below_90_pct_min": { "type": ["number","null"], "minimum": 0 },
+              "time_below_88_pct_min": { "type": ["number","null"], "minimum": 0 },
+              "time_below_90_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+              "supine_ahi": { "type": ["number","null"], "minimum": 0 },
+              "non_supine_ahi": { "type": ["number","null"], "minimum": 0 },
+              "rem_ahi": { "type": ["number","null"], "minimum": 0 },
+              "nrem_ahi": { "type": ["number","null"], "minimum": 0 },
+              "supine_rdi": { "type": ["number","null"], "minimum": 0 },
+              "rem_rdi": { "type": ["number","null"], "minimum": 0 },
+              "supine_odi": { "type": ["number","null"], "minimum": 0 },
+              "rem_odi": { "type": ["number","null"], "minimum": 0 },
+              "sleep_duration_h": { "type": ["number","null"], "minimum": 0 },
+              "sleep_efficiency_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+              "desaturation_events": { "type": ["integer","null"], "minimum": 0 },
+              "severity": { "type": ["string","null"], "enum": ["none","mild","moderate","severe",null] },
+              "snoring": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "avg_db": { "type": ["number","null"], "minimum": 0 },
+                  "max_db": { "type": ["number","null"], "minimum": 0 },
+                  "percent_total": { "type": ["number","null"], "minimum": 0, "maximum": 100 },
+                  "over_50db_pct": { "type": ["number","null"], "minimum": 0, "maximum": 100 }
+                }
+              },
+              "heart_rate": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mean_bpm": { "type": ["number","null"], "minimum": 0 },
+                  "min_bpm": { "type": ["number","null"], "minimum": 0 },
+                  "max_bpm": { "type": ["number","null"], "minimum": 0 }
+                }
+              },
+              "extracted_at": { "type": ["string","null"], "format": "date-time" }
+            },
+            "required": ["date", "source_kind"]
+          }
+        }
+      }
+    },
+
+    "positional_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "supine_AHI": { "type": ["number","null"], "minimum": 0 },
+        "non_supine_AHI": { "type": ["number","null"], "minimum": 0 },
+        "positional_phenotype": { "type": ["boolean","null"] }
+      }
+    },
+
+    "observations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary": { "type": "array", "items": { "type": "string" } },
+        "anatomy_imaging": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primary_obstruction_site": { "type": ["string","null"] },
+            "soft_palate_uvula": { "type": ["string","null"] },
+            "tongue_base": { "type": ["string","null"] },
+            "bite_jaw": { "type": ["string","null"] },
+            "hyoid": { "type": ["string","null"] },
+            "nose_sinus": { "type": ["string","null"] },
+            "tmj": { "type": ["string","null"] }
+          }
+        },
+        "tmj_flags": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pain": { "type": ["boolean","null"] },
+            "clicking": { "type": ["boolean","null"] },
+            "side": { "type": ["string","null"], "enum": ["left","right","bilateral",null] }
+          }
+        },
+        "cbct_metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min_cross_sectional_area_mm2": { "type": ["number","null"], "minimum": 0 },
+            "airway_volume_ml": { "type": ["number","null"], "minimum": 0 },
+            "tongue_volume_ml": { "type": ["number","null"], "minimum": 0 },
+            "hyoid_mandible_distance_mm": { "type": ["number","null"], "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "patient_self_report": {
+      "type": "object",
+      "description": "Patient-reported questionnaires/PROs",
+      "additionalProperties": false,
+      "properties": {
+        "primary_complaint": { "type": ["string","null"] },
+        "goals": { "type": "array", "items": { "type": "string" } },
+        "symptoms": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "daytime_sleepiness": { "type": ["boolean","null"] },
+            "non_restorative_sleep": { "type": ["boolean","null"] },
+            "witnessed_apneas": { "type": ["boolean","null"] },
+            "nocturia": { "type": ["boolean","null"] },
+            "morning_headache": { "type": ["boolean","null"] },
+            "dry_mouth": { "type": ["boolean","null"] },
+            "bruxism": { "type": ["boolean","null"] },
+            "reflux": { "type": ["boolean","null"] },
+            "insomnia_features": { "type": ["boolean","null"] }
+          }
+        },
+        "scales": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ESS": { "type": ["integer","null"], "minimum": 0, "maximum": 24 },
+            "STOP_Bang": { "type": ["integer","null"], "minimum": 0, "maximum": 8 },
+            "NOSE": { "type": ["integer","null"], "minimum": 0, "maximum": 100 },
+            "PSQI": { "type": ["integer","null"], "minimum": 0, "maximum": 21 }
+          }
+        },
+        "preferences": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "therapy_type_preference": { "type": ["string","null"], "enum": ["MAD_type","CPAP","positional","uncertain",null] },
+            "aversion_notes": { "type": ["string","null"] }
+          }
+        }
+      }
+    },
+
+    "medical_history": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "comorbidities": { "type": "array", "items": { "type": "string" } },
+        "allergies": { "type": "array", "items": { "type": "string" } },
+        "medications": { "type": "array", "items": { "type": "string" } },
+        "bmi_trend": { "type": ["string","null"], "enum": ["stable","gaining","losing",null] }
+      }
+    },
+
+    "prior_therapies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cpap": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tried": { "type": ["boolean","null"] },
+            "intolerance": { "type": ["boolean","null"] },
+            "intolerance_reasons": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "oral_appliance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tried": { "type": ["boolean","null"] },
+            "response": { "type": ["string","null"], "enum": ["good","partial","poor",null] },
+            "issues": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "surgeries": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "treatment_considerations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "primary_pathway": { "type": "array", "items": { "type": "string" } },
+        "adjuncts": { "type": "array", "items": { "type": "string" } },
+        "cautions": { "type": "array", "items": { "type": "string" } },
+        "rationale": { "type": ["string","null"] }
+      }
+    },
+
+    "device_design": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mandibular_advancement_mm": { "type": ["number","null"] },
+        "advancement_plan": { "type": ["string","null"] },
+        "vertical_opening_mm": { "type": ["number","null"] },
+        "anterior_window": { "type": ["string","null"], "enum": ["small","medium","large",null] },
+        "retention_features": { "type": "array", "items": { "type": "string" } },
+        "material": { "type": ["string","null"] },
+        "coverage": { "type": ["string","null"] },
+        "initial_accessories": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "follow_up_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evaluations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": { "type": "string", "enum": ["ENT","TMJ","SleepStudy","DISE","General"] },
+              "reason": { "type": ["string","null"] },
+              "timeframe": { "type": ["string","null"] }
+            },
+            "required": ["type"]
+          }
+        },
+        "lifestyle": { "type": "array", "items": { "type": "string" } },
+        "positional_therapy": { "type": ["boolean","null"] },
+        "retest_after_init_months": { "type": ["number","null"], "minimum": 0 }
+      }
+    },
+
+    "device_options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "features": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["name"]
+      }
+    },
+
+    "policy_trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rules_fired": { "type": "array", "items": { "type": "string" } },
+        "hard_blocks_triggered": { "type": "array", "items": { "type": "string" } },
+        "missing_required_evidence": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "provenance": {
+      "type": "array",
+      "description": "Traceability for key fields",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string" },
+          "report_id": { "type": ["string","null"] },
+          "source_uri": { "type": ["string","null"] },
+          "note": { "type": ["string","null"] }
+        },
+        "required": ["path"]
+      }
+    },
+
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sleep_study": { "type": ["number","null"], "minimum": 0, "maximum": 1 },
+        "observations": { "type": ["number","null"], "minimum": 0, "maximum": 1 },
+        "device_design": { "type": ["number","null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+
+    "completeness_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "has_sleep_study": { "type": ["boolean","null"] },
+        "has_anatomy_imaging": { "type": ["boolean","null"] },
+        "has_tmj_info": { "type": ["boolean","null"] }
+      }
+    },
+
+    "treatment_history": {
+      "type": "object",
+      "description": "Operational treatment data from database tables (not from documents). Used to provide Dr. Briz and LLM complete context about patient treatment history to avoid duplicate recommendations.",
+      "additionalProperties": false,
+      "properties": {
+        "device_orders": {
+          "type": "array",
+          "description": "All device orders from patient_device_order table",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "device_type": { "type": "string", "description": "e.g., 'oral_appliance', 'CPAP'" },
+              "device_name": { "type": ["string","null"], "description": "Specific model name" },
+              "order_date": { "type": "string", "format": "date-time" },
+              "arrival_date": { "type": ["string","null"], "format": "date-time" },
+              "fitting_date": { "type": ["string","null"], "format": "date-time" },
+              "status": { "type": "string", "description": "e.g., 'ordered', 'shipped', 'arrived', 'fitted', 'active'" },
+              "notes": { "type": ["string","null"] },
+              "fitting_comment": { "type": ["string","null"], "description": "Notes about device fitting or settings" }
+            },
+            "required": ["device_type", "order_date", "status"]
+          }
+        },
+        "clinical_notes": {
+          "type": "array",
+          "description": "Clinical comments from patientcomments table (titrations, consultations, deliveries, initial consults only - excludes general/internal notes)",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "date": { "type": "string", "format": "date-time" },
+              "comment_type": { "type": "string", "enum": ["titration","consultation","delivery","initial","general"], "description": "Type of clinical note" },
+              "content": { "type": "string", "description": "Clinical note content" },
+              "provider_name": { "type": ["string","null"], "description": "Name of dentist/provider who made the note" },
+              "numeric_value": { "type": ["number","null"], "description": "For titration settings, ratings, etc." },
+              "numeric_unit": { "type": ["string","null"], "description": "e.g., 'mm', 'rating', 'hours'" }
+            },
+            "required": ["date", "comment_type", "content"]
+          }
+        }
+      }
+    }
+  }
+}

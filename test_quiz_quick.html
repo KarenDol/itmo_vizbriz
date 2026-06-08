@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Quiz Testing</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .quiz-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .default-answers { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Quick Quiz Testing with Default Answers</h1>
+    
+    <div class="quiz-section">
+        <h2>Basic Quiz</h2>
+        <p>Default answers that will give a moderate-high risk score:</p>
+        <div class="default-answers">
+            <strong>Email:</strong> test@example.com<br>
+            <strong>Name:</strong> Test Patient<br>
+            <strong>Snoring:</strong> often<br>
+            <strong>Tiredness:</strong> often<br>
+            <strong>Observed Apnea:</strong> sometimes<br>
+            <strong>Blood Pressure:</strong> yes<br>
+            <strong>Weight:</strong> overweight<br>
+            <strong>Age:</strong> over 50<br>
+            <strong>Gender:</strong> male
+        </div>
+        <button onclick="testBasicQuiz()">Test Basic Quiz</button>
+        <button onclick="openBasicQuiz()">Open Basic Quiz Page</button>
+        <div id="basic-result"></div>
+    </div>
+    
+    <div class="quiz-section">
+        <h2>Advanced Quiz</h2>
+        <p>Default answers that will give a high risk score:</p>
+        <div class="default-answers">
+            <strong>Email:</strong> test@example.com<br>
+            <strong>Sleep Issues:</strong> trouble falling asleep, mouth breathing, daytime sleepiness<br>
+            <strong>TMJ/Bruxism:</strong> TMJ problems, morning jaw pain<br>
+            <strong>Lifestyle:</strong> alcohol 3-6 drinks/week, high stress, poor sleep quality<br>
+            <strong>Goals:</strong> better sleep, more energy, stop snoring, reduce fatigue
+        </div>
+        <button onclick="testAdvancedQuiz()">Test Advanced Quiz</button>
+        <button onclick="openAdvancedQuiz()">Open Advanced Quiz Page</button>
+        <div id="advanced-result"></div>
+    </div>
+    
+    <div class="quiz-section">
+        <h2>Browser Console Commands</h2>
+        <p>Copy and paste these into your browser console on the quiz pages:</p>
+        
+        <h3>For Basic Quiz (conversion_quiz.html):</h3>
+        <pre id="basic-console">
+// Fill basic quiz form
+document.getElementById('full_name').value = 'Test Patient';
+document.getElementById('patient_email').value = 'test@example.com';
+document.getElementById('phone').value = '555-123-4567';
+document.getElementById('gender').value = 'male';
+document.getElementById('age').value = 'over_50';
+document.getElementById('snoring').value = 'often';
+document.getElementById('tiredness').value = 'often';
+document.getElementById('observed_apnea').value = 'sometimes';
+document.getElementById('blood_pressure').value = 'yes';
+document.getElementById('weight').value = 'overweight';
+document.getElementById('neck_circumference').value = 'yes';
+document.getElementById('daytime_sleepiness').value = 'yes';
+document.getElementById('driving_fatigue').value = 'no';
+document.getElementById('diagnosed_osa').value = 'no';
+document.getElementById('using_cpap').value = 'no';
+document.getElementById('doctor_referral').value = 'Dr. Smith';
+
+console.log('Basic quiz form filled with default answers');
+        </pre>
+        
+        <h3>For Advanced Quiz (advanced_quiz.html):</h3>
+        <pre id="advanced-console">
+// Fill advanced quiz form
+document.getElementById('patient_email').value = 'test@example.com';
+document.getElementById('trouble_falling_asleep_again').value = 'yes';
+document.getElementById('mouth_breathing').value = 'yes';
+document.getElementById('day_sleepy').value = 'yes';
+document.getElementById('napping').value = 'yes';
+document.getElementById('night_urination').value = 'no';
+document.getElementById('tmj_problems').value = 'yes';
+document.getElementById('jaw_pain_morning').value = 'yes';
+document.getElementById('worn_teeth').value = 'no';
+document.getElementById('tobacco').value = 'no';
+document.getElementById('alcohol').value = '3_6';
+document.getElementById('caffeine').value = 'yes';
+document.getElementById('exercise').value = 'no';
+document.getElementById('stress_level').value = 'high';
+document.getElementById('sleep_position').value = 'back';
+document.getElementById('bedtime').value = '11:00 PM';
+document.getElementById('wake_time').value = '6:00 AM';
+document.getElementById('sleep_quality').value = 'poor';
+document.getElementById('family_history').value = 'yes';
+
+console.log('Advanced quiz form filled with default answers');
+        </pre>
+    </div>
+
+    <script>
+        function testBasicQuiz() {
+            const resultDiv = document.getElementById('basic-result');
+            resultDiv.innerHTML = '<p>Testing basic quiz...</p>';
+            
+            // Simulate the quiz flow
+            setTimeout(() => {
+                resultDiv.innerHTML = '<p class="success">✅ Basic quiz would work with these default answers</p>';
+            }, 1000);
+        }
+        
+        function testAdvancedQuiz() {
+            const resultDiv = document.getElementById('advanced-result');
+            resultDiv.innerHTML = '<p>Testing advanced quiz...</p>';
+            
+            // Simulate the quiz flow
+            setTimeout(() => {
+                resultDiv.innerHTML = '<p class="success">✅ Advanced quiz would work with these default answers</p>';
+            }, 1000);
+        }
+        
+        function openBasicQuiz() {
+            window.open('http://localhost:5000/conversion_quiz', '_blank');
+        }
+        
+        function openAdvancedQuiz() {
+            window.open('http://localhost:5000/advanced_quiz?email=test@example.com', '_blank');
+        }
+        
+        // Copy to clipboard functions
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html> 

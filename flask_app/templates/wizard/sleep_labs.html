@@ -1,0 +1,666 @@
+{% extends "base.html" %}
+
+{% block title %}Partner Labs and Sleep MDs - Vizbriz{% endblock %}
+
+{% block extra_css %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<style>
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.sleep-labs-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.sleep-labs-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sleep-labs-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.sleep-labs-header p {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+.vendor-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.vendor-name {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.package-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.package-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    border: 2px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.package-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.package-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.package-description {
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.qr-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.qr-code {
+    max-width: 150px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+}
+
+.direct-link {
+    margin-bottom: 15px;
+}
+
+.direct-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.direct-link a:hover {
+    text-decoration: underline;
+}
+
+.email-form {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+    margin-top: 15px;
+}
+
+.email-form h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.patient-search-container {
+    margin-bottom: 15px;
+}
+
+.patient-search-container label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+/* Force visible, clickable checkboxes in lab referral section (Materialize can hide them) */
+.referral-scans input[type="checkbox"] {
+    opacity: 1 !important;
+    position: relative !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 6px 0 0 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+.referral-scans label {
+    cursor: pointer !important;
+}
+
+.patient-search-container select {
+    width: 100% !important;
+    padding: 10px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+    color: #333 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 40px !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.email-input-container {
+    margin-bottom: 15px;
+}
+
+.email-input-container label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+.email-input-container input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+    color: #333;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.btn-send {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background 0.2s;
+}
+
+.btn-send:hover {
+    background: #0056b3;
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #545b62;
+}
+
+.email-error-message {
+    color: #d32f2f;
+    background: #ffebee;
+    border: 2px solid #f44336;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: left;
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+}
+
+/* Accordion styles for partners */
+.accordion { 
+    display: grid; 
+    gap: 16px; 
+}
+.accordion-item { 
+    background: #ffffff; 
+    border: 1px solid #e9ecef; 
+    border-radius: 12px; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+    overflow: hidden; 
+}
+.accordion-header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 14px 18px; 
+    cursor: pointer; 
+    user-select: none; 
+}
+.accordion-title { 
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    color: #2c3e50; 
+}
+.accordion-chevron { 
+    transition: transform 0.2s ease; 
+    color: #607d8b; 
+}
+.accordion-item.open .accordion-chevron { 
+    transform: rotate(90deg); 
+}
+.accordion-content { 
+    display: none; 
+}
+.accordion-item.open .accordion-content { 
+    display: block; 
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .sleep-labs-container {
+        padding: 10px;
+    }
+    
+    .sleep-labs-header h1 {
+        font-size: 2rem;
+    }
+    
+    .package-options {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .vendor-section {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sleep-labs-container">
+    <div class="sleep-labs-header">
+        <h1>Partner Labs and Sleep MDs</h1>
+        <p class="text-muted">Access Sleep MD and Lab referrals and scheduling</p>
+    </div>
+
+    <div class="accordion">
+        <div class="accordion-item" data-partner="isleep">
+            <div class="accordion-header" role="button" tabindex="0" aria-expanded="false">
+                <div class="accordion-title">iSleep Partners</div>
+                <i class="material-icons accordion-chevron">chevron_right</i>
+            </div>
+            <div class="accordion-content">
+                <div class="vendor-section" style="border:none; box-shadow:none; margin-bottom:0;">
+                    <div class="package-options">
+            <!-- Insurance Package -->
+            <div class="package-card">
+                <div class="package-title">Insurance Package</div>
+                <div class="package-description">Medicare and insurance-covered sleep studies</div>
+                
+                <div class="qr-section">
+                    <img src="{{ url_for('wizard.medicare_qr_code') }}" alt="Insurance Package QR Code" class="qr-code">
+                    <div class="direct-link">
+                        <a href="https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75" target="_blank">📋 Direct Link</a>
+                    </div>
+                </div>
+                
+                <div class="email-form">
+                    <h4>Send Insurance Package Link to Patient</h4>
+                    
+                    <!-- Patient Search Section -->
+                    <div class="patient-search-container">
+                        <label for="patient_search_medicare">Search Patient (Optional)</label>
+                        <select id="patient_search_medicare" name="patient_search_medicare" class="form-control">
+                            <option value="">Select a patient...</option>
+                        </select>
+                        <input type="hidden" id="selected_patient_id_medicare" name="selected_patient_id">
+                    </div>
+                    
+                    <!-- Email Input Section -->
+                    <div class="email-input-container">
+                        <label for="patient_email_medicare">Patient Email *</label>
+                        <input type="email" name="patient_email" id="patient_email_medicare" placeholder="Enter patient's email address" required>
+                        <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                    </div>
+                    
+                    <button type="button" class="btn-send" onclick="sendEmail('medicare')">Send Email</button>
+                    <button type="button" class="btn-cancel" onclick="clearForm('medicare')">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Full Package -->
+            <div class="package-card">
+                <div class="package-title">Full Package</div>
+                <div class="package-description">Comprehensive sleep study package</div>
+                
+                <div class="qr-section">
+                    <img src="{{ url_for('wizard.full_package_qr_code') }}" alt="Full Package QR Code" class="qr-code">
+                    <div class="direct-link">
+                        <a href="https://portal.isleepemr.com/booking/create-appointment/?booking=67d8f750532ff1ecaaf98700" target="_blank">📋 Direct Link</a>
+                    </div>
+                </div>
+                
+                <div class="email-form">
+                    <h4>Send Full Package Link to Patient</h4>
+                    
+                    <!-- Patient Search Section -->
+                    <div class="patient-search-container">
+                        <label for="patient_search_full_package">Search Patient (Optional)</label>
+                        <select id="patient_search_full_package" name="patient_search_full_package" class="form-control">
+                            <option value="">Select a patient...</option>
+                        </select>
+                        <input type="hidden" id="selected_patient_id_full_package" name="selected_patient_id">
+                    </div>
+                    
+                    <!-- Email Input Section -->
+                    <div class="email-input-container">
+                        <label for="patient_email_full_package">Patient Email *</label>
+                        <input type="email" name="patient_email" id="patient_email_full_package" placeholder="Enter patient's email address" required>
+                        <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                    </div>
+                    
+                    <button type="button" class="btn-send" onclick="sendEmail('full_package')">Send Email</button>
+                    <button type="button" class="btn-cancel" onclick="clearForm('full_package')">Cancel</button>
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lab referral: imaging / partner labs -->
+    <div class="accordion">
+        <div class="accordion-item" data-partner="lab_referral">
+            <div class="accordion-header" role="button" tabindex="0" aria-expanded="false">
+                <div class="accordion-title">Send referral for imaging (הפניה לצילומים)</div>
+                <i class="material-icons accordion-chevron">chevron_right</i>
+            </div>
+            <div class="accordion-content">
+                <div class="vendor-section" style="border:none; box-shadow:none; margin-bottom:0;">
+                    <p class="package-description">Send a Hebrew referral to the lab, dentist, info@vizbriz.com, and patient. Patient name, phone, email and dentist name, email and requested scans are included.</p>
+                    <div class="email-form">
+                        <h4>Send lab referral</h4>
+                        <div class="patient-search-container">
+                            <label for="patient_search_referral">Patient *</label>
+                            <select id="patient_search_referral" name="patient_search_referral" class="form-control" required>
+                                <option value="">Select a patient...</option>
+                            </select>
+                            <input type="hidden" id="selected_patient_id_referral" name="selected_patient_id_referral">
+                        </div>
+                        <div class="patient-search-container">
+                            <label>Lab</label>
+                            <select id="lab_id_referral" class="form-control">
+                                <option value="">Select lab...</option>
+                                {% for lab in (labs or []) %}
+                                <option value="{{ lab.id }}">{{ lab.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="patient-search-container referral-scans" style="margin-top:12px;">
+                            <label>Scans required (select at least one) *</label>
+                            <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:8px;">
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="scan_referral" value="CBCT"> CBCT</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="scan_referral" value="CLINICAL PICTURES"> Clinical Pictures</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" name="scan_referral" value="INTRAORAL SCANS"> Intraoral Scans</label>
+                            </div>
+                        </div>
+                        <div id="referral_message" style="margin-top:12px; display:none;"></div>
+                        <button type="button" class="btn-send" onclick="sendLabReferral()">Send referral</button>
+                        <button type="button" class="btn-cancel" onclick="clearReferralForm()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Patient search functionality
+$(document).ready(function() {
+    // Initialize patient search for both packages
+    initializePatientSearch('medicare');
+    initializePatientSearch('full_package');
+    initializePatientSearch('referral');
+    // Accordion behavior
+    const items = document.querySelectorAll('.accordion-item');
+    items.forEach(function(item){
+        const header = item.querySelector('.accordion-header');
+        if (!header) return;
+        function toggle(){
+            const isOpen = item.classList.contains('open');
+            // Close all
+            document.querySelectorAll('.accordion-item.open').forEach(function(openItem){
+                openItem.classList.remove('open');
+                const btn = openItem.querySelector('.accordion-header');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+            // Open this if it was closed
+            if (!isOpen) {
+                item.classList.add('open');
+                header.setAttribute('aria-expanded', 'true');
+            }
+        }
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+    });
+});
+
+function initializePatientSearch(packageType) {
+    const patientSearch = document.getElementById(`patient_search_${packageType}`);
+    const emailInput = document.getElementById(`patient_email_${packageType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${packageType}`);
+    
+    if (patientSearch) {
+        // Load patients when page loads
+        loadPatientsForPackage(packageType);
+        
+        // Handle patient selection
+        patientSearch.addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+                const patient = JSON.parse(selectedValue);
+                selectPatientForPackage(packageType, patient);
+            } else {
+                clearPatientSelection(packageType);
+            }
+        });
+    }
+}
+
+function loadPatientsForPackage(packageType) {
+    const select = document.getElementById(`patient_search_${packageType}`);
+    if (!select) return;
+    
+    fetch(`{{ url_for('wizard.get_patients_for_select') }}`)
+        .then(response => response.json())
+        .then(data => {
+            select.innerHTML = '<option value="">Select a patient...</option>';
+            
+            if (data.patients && data.patients.length > 0) {
+                const sortedPatients = data.patients.sort((a, b) => a.name.localeCompare(b.name));
+                
+                sortedPatients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(patient);
+                    option.textContent = `${patient.name} (ID: ${patient.id})`;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading patients:', error);
+        });
+}
+
+function selectPatientForPackage(packageType, patient) {
+    const emailInput = document.getElementById(`patient_email_${packageType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${packageType}`);
+    
+    // Set patient ID
+    if (patientIdInput) {
+        patientIdInput.value = patient.id;
+    }
+    
+    // Auto-fill email if available
+    if (emailInput && patient.email) {
+        emailInput.value = patient.email;
+        emailInput.classList.add('email-auto-filled');
+        emailInput.classList.remove('email-manual-entry');
+    } else if (emailInput) {
+        emailInput.value = '';
+        emailInput.classList.add('email-manual-entry');
+        emailInput.classList.remove('email-auto-filled');
+    }
+}
+
+function clearPatientSelection(packageType) {
+    const emailInput = document.getElementById(`patient_email_${packageType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${packageType}`);
+    
+    if (patientIdInput) {
+        patientIdInput.value = '';
+    }
+    
+    if (emailInput) {
+        emailInput.classList.remove('email-auto-filled', 'email-manual-entry');
+    }
+}
+
+function clearForm(packageType) {
+    const emailEl = document.getElementById(`patient_email_${packageType}`);
+    if (emailEl) emailEl.value = '';
+    document.getElementById(`patient_search_${packageType}`).value = '';
+    document.getElementById(`selected_patient_id_${packageType}`).value = '';
+    clearPatientSelection(packageType);
+}
+
+function clearReferralForm() {
+    document.getElementById('patient_search_referral').value = '';
+    document.getElementById('selected_patient_id_referral').value = '';
+    document.querySelectorAll('input[name="scan_referral"]').forEach(function(cb) { cb.checked = false; });
+    document.getElementById('referral_message').style.display = 'none';
+}
+
+function sendLabReferral() {
+    const patientId = document.getElementById('selected_patient_id_referral').value;
+    const labId = document.getElementById('lab_id_referral').value;
+    const checkboxes = document.querySelectorAll('input[name="scan_referral"]:checked');
+    const imageTypes = Array.from(checkboxes).map(function(cb) { return cb.value; });
+    const msgEl = document.getElementById('referral_message');
+
+    if (!patientId) {
+        msgEl.textContent = 'Please select a patient.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#d32f2f';
+        return;
+    }
+    if (!labId) {
+        msgEl.textContent = 'Please select a lab.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#d32f2f';
+        return;
+    }
+    if (imageTypes.length === 0) {
+        msgEl.textContent = 'Please select at least one scan type.';
+        msgEl.style.display = 'block';
+        msgEl.style.color = '#d32f2f';
+        return;
+    }
+
+    msgEl.textContent = 'Sending...';
+    msgEl.style.display = 'block';
+    msgEl.style.color = '#333';
+
+    fetch('{{ url_for("wizard.send_lab_referral") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient_id: parseInt(patientId, 10), lab_id: parseInt(labId, 10), image_types: imageTypes })
+    })
+    .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+    .then(function(result) {
+        if (result.ok && result.data.success) {
+            msgEl.textContent = 'Referral sent successfully.';
+            msgEl.style.color = '#2e7d32';
+            clearReferralForm();
+        } else {
+            msgEl.textContent = result.data.message || 'Failed to send referral.';
+            msgEl.style.color = '#d32f2f';
+        }
+    })
+    .catch(function(err) {
+        msgEl.textContent = 'Error sending referral. Please try again.';
+        msgEl.style.color = '#d32f2f';
+    });
+}
+
+function sendEmail(packageType) {
+    const email = document.getElementById(`patient_email_${packageType}`).value;
+    const patientId = document.getElementById(`selected_patient_id_${packageType}`).value;
+    
+    if (!email) {
+        alert('Please enter a patient email address.');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('patient_email', email);
+    formData.append('selected_patient_id', patientId);
+    formData.append('link_type', packageType);
+    
+    // Send email
+    fetch('{{ url_for("wizard.osa_guidelines") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        alert('Email sent successfully!');
+        clearForm(packageType);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending email. Please try again.');
+    });
+}
+</script>
+{% endblock %}

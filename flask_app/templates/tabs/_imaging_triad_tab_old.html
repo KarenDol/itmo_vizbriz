@@ -1,0 +1,125 @@
+<div id="imaging-triad" class="col s12 tab-content">
+    <div class="card dark-card">
+        <div class="card-content">
+            <span class="card-title">Imaging Triad</span>
+            <ul class="collapsible expandable">
+                <!-- Clinical Pictures Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>Clinical Pictures</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="clinical-file-list">
+                            {% if uploaded_files.clinical_pictures %}
+                                {% for file in uploaded_files.clinical_pictures %}
+                                    <li>
+                                        <a href="{{ url_for('main.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No clinical pictures uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-clinical" class="upload-area dark-upload-area">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop Clinical Pictures here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemClinical" name="clinical_files[]" style="display:none" multiple>
+                            <input type="file" id="folderElemClinical" name="clinical_folder[]" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" type="button" onclick="document.getElementById('fileElemClinical').click()">Upload Files</button>
+                            <button class="btn green" type="button" onclick="document.getElementById('folderElemClinical').click()">Upload Folder</button>
+                        </div>
+                        <form id="clinical-upload-form" action="{{ url_for('main.upload_patient_files', patient_id=patient.id, file_type='clinical') }}" method="POST" enctype="multipart/form-data">
+                            <button type="submit" class="btn green waves-effect waves-light submit-btn">Submit Clinical Pictures</button>
+                        </form>
+                    </div>
+                </li>
+
+                <!-- CBCT Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>CBCT</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="cbct-file-list">
+                            {% if uploaded_files.cbct %}
+                                {% for file in uploaded_files.cbct %}
+                                    <li>
+                                        <a href="{{ url_for('main.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No CBCT files uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-cbct" class="upload-area dark-upload-area">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop CBCT files here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemCBCT" name="cbct_files[]" style="display:none" multiple>
+                            <input type="file" id="folderElemCBCT" name="cbct_folder[]" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" type="button" onclick="document.getElementById('fileElemCBCT').click()">Upload Files</button>
+                            <button class="btn green" type="button" onclick="document.getElementById('folderElemCBCT').click()">Upload Folder</button>
+                        </div>
+                        <form id="cbct-upload-form" action="{{ url_for('main.upload_patient_files', patient_id=patient.id, file_type='cbct') }}" method="POST" enctype="multipart/form-data">
+                            <button type="submit" class="btn green waves-effect waves-light submit-btn">Submit CBCT</button>
+                        </form>
+                    </div>
+                </li>
+
+                <!-- Intraoral Scan Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>Intraoral Scan</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="intraoral-file-list">
+                            {% if uploaded_files.intraoral_scan %}
+                                {% for file in uploaded_files.intraoral_scan %}
+                                    <li>
+                                        <a href="{{ url_for('main.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No intraoral scans uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-intraoral" class="upload-area dark-upload-area">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop Intraoral Scans here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemIntraoral" name="intraoral_files[]" style="display:none" multiple>
+                            <input type="file" id="folderElemIntraoral" name="intraoral_folder[]" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" type="button" onclick="document.getElementById('fileElemIntraoral').click()">Upload Files</button>
+                            <button class="btn green" type="button" onclick="document.getElementById('folderElemIntraoral').click()">Upload Folder</button>
+                        </div>
+                        <form id="intraoral-upload-form" action="{{ url_for('main.upload_patient_files', patient_id=patient.id, file_type='intraoral') }}" method="POST" enctype="multipart/form-data">
+                            <button type="submit" class="btn green waves-effect waves-light submit-btn">Submit Intraoral Scan</button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Loader Overlay -->
+<div id="loader-overlay" class="overlay hidden">
+    <div class="loader"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<sc
+

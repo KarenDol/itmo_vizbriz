@@ -1,0 +1,160 @@
+{% extends "wizard_base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Epworth Sleepiness Scale</h2>
+    <form id="stage2-form" action="/wizard/stage2_epworth_survey" method="POST">
+        <p>The Epworth Sleepiness Scale is used to assess a person's daytime sleepiness. How likely are you to doze off or fall asleep in the following situations, in contrast to just feeling tired?</p>
+        <p>Use the following scale to choose the most appropriate number for each situation:</p>
+        <ul>
+            <li>0 = would never doze or sleep</li>
+            <li>1 = slight chance of dozing or sleeping</li>
+            <li>2 = moderate chance of dozing or sleeping</li>
+            <li>3 = high chance of dozing or sleeping</li>
+        </ul>
+
+        <!-- JavaScript to handle score calculation -->
+        <script>
+            function calculateTotalScore() {
+                let total = 0;
+                for (let i = 1; i <= 8; i++) {
+                    let value = document.getElementById('situation_' + i).value;
+                    if (value) {
+                        total += parseInt(value, 10);
+                    }
+                }
+
+                document.getElementById('total-score').textContent = "Total Score: " + total;
+
+                let interpretation = "";
+                if (total <= 7) {
+                    interpretation = "It is unlikely that you are abnormally sleepy.";
+                } else if (total <= 9) {
+                    interpretation = "You have an average amount of daytime sleepiness.";
+                } else if (total <= 15) {
+                    interpretation = "You may be excessively sleepy depending on the situation. You may want to consider seeking medical attention.";
+                } else {
+                    interpretation = "You are excessively sleepy and should consider seeking medical attention.";
+                }
+                document.getElementById('interpretation').textContent = "Interpretation: " + interpretation;
+            }
+
+            // Set progress for the current stage when the page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                const progressValue = 33; // Set to appropriate progress percentage for Stage 2
+                updateProgressBar(progressValue);
+                console.log('Progress bar set to:', progressValue + '%');
+            });
+        </script>
+
+        <!-- Question 1 -->
+        <div class="mb-3">
+            <label for="situation_1" class="form-label">Sitting and Reading</label>
+            <select class="form-select" id="situation_1" name="situation_1" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="mb-3">
+            <label for="situation_2" class="form-label">Watching TV</label>
+            <select class="form-select" id="situation_2" name="situation_2" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="mb-3">
+            <label for="situation_3" class="form-label">Sitting inactive in a public place (e.g., a theater or a meeting)</label>
+            <select class="form-select" id="situation_3" name="situation_3" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="mb-3">
+            <label for="situation_4" class="form-label">As a passenger in a car for an hour without a break</label>
+            <select class="form-select" id="situation_4" name="situation_4" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 5 -->
+        <div class="mb-3">
+            <label for="situation_5" class="form-label">Lying down to rest in the afternoon when circumstances permit</label>
+            <select class="form-select" id="situation_5" name="situation_5" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 6 -->
+        <div class="mb-3">
+            <label for="situation_6" class="form-label">Sitting and talking to someone</label>
+            <select class="form-select" id="situation_6" name="situation_6" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 7 -->
+        <div class="mb-3">
+            <label for="situation_7" class="form-label">Sitting quietly after a lunch without alcohol</label>
+            <select class="form-select" id="situation_7" name="situation_7" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Question 8 -->
+        <div class="mb-3">
+            <label for="situation_8" class="form-label">In a car, while stopped for a few minutes in traffic</label>
+            <select class="form-select" id="situation_8" name="situation_8" required onchange="calculateTotalScore()">
+                <option value="">Select</option>
+                <option value="0">0 = would never doze or sleep</option>
+                <option value="1">1 = slight chance of dozing or sleeping</option>
+                <option value="2">2 = moderate chance of dozing or sleeping</option>
+                <option value="3">3 = high chance of dozing or sleeping</option>
+            </select>
+        </div>
+
+        <!-- Total Score and Interpretation -->
+        <div class="mt-4">
+            <label for="total-score" class="form-label"><strong>Total Score:</strong></label>
+            <p id="total-score" class="lead">Total score will be calculated dynamically.</p>
+
+            <label for="interpretation" class="form-label"><strong>Interpretation:</strong></label>
+            <p id="interpretation" class="lead">Interpretation will be displayed here.</p>
+        </div>
+
+        <!-- Submit button aligned to the right -->
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

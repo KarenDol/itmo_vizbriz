@@ -1,0 +1,1301 @@
+{% extends "base.html" %}
+
+{% block title %}Operational Patient Board - VizBriz{% endblock %}
+
+{% block content %}
+<!-- Material Design CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="dashboard-title">
+                    <i class="material-icons">dashboard</i>
+                    Operational Patient Board
+                </h1>
+                <p class="dashboard-subtitle">Monitor and manage patient treatment progress with AI-driven insights</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Section -->
+    <div class="controls-card">
+        <div class="controls-content">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="search-input" 
+                placeholder="Search by name, ID, email, phone, or doctor..."
+                onkeyup="handleSearch()"
+            >
+            <select id="sortSelect" class="sort-select" onchange="handleSort()">
+                <option value="last_update" selected>Sort by: Last Update</option>
+                <option value="priority">Sort by: Priority</option>
+                <option value="progress">Sort by: Progress %</option>
+                <option value="stage">Sort by: Stage</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Data Section -->
+    <div class="data-section">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="material-icons">list</i>
+                Patient List
+            </h3>
+        </div>
+        <div class="card-content">
+            <div id="loadingContainer" class="loading-container">
+                <div class="loading-spinner"></div>
+                <div>Loading patients...</div>
+            </div>
+            
+            <div id="emptyContainer" class="empty-state" style="display: none;">
+                <i class="material-icons">inbox</i>
+                <p>No patients found</p>
+            </div>
+            
+            <table class="operational-table" id="patientsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-column="name" onclick="sortTable('name')">
+                            Patient <span class="sort-indicator"></span>
+                        </th>
+                        <th class="sortable" data-column="doctor" onclick="sortTable('doctor')">
+                            Doctor <span class="sort-indicator"></span>
+                        </th>
+                        <th class="sortable" data-column="stage" onclick="sortTable('stage')">
+                            Current Stage <span class="sort-indicator"></span>
+                        </th>
+                        <th class="sortable" data-column="progress" onclick="sortTable('progress')">
+                            Progress <span class="sort-indicator"></span>
+                        </th>
+                        <th>Latest Note</th>
+                        <th>Next Appointment</th>
+                        <th class="sortable" data-column="status" onclick="sortTable('status')">
+                            Status <span class="sort-indicator"></span>
+                        </th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patientsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Material Design Dashboard Styles */
+.dashboard-container {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    padding: 24px;
+    margin: -20px;
+}
+
+/* Header Section */
+.dashboard-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    text-shadow: none;
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-title .material-icons {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2.8rem;
+    vertical-align: middle;
+    margin-right: 12px;
+}
+
+.dashboard-subtitle {
+    font-size: 1.2rem;
+    color: #64748b;
+    margin: 12px 0 0 0;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+/* Controls Card */
+.controls-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.controls-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 250px;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.sort-select {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    cursor: pointer;
+    min-width: 180px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Data Section */
+.data-section {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    padding: 24px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-content {
+    padding: 24px;
+    overflow-x: auto;
+}
+
+/* Table Styles */
+.operational-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.operational-table thead {
+    background-color: #f6f8fc;
+    color: #555;
+}
+
+.operational-table th {
+    padding: 18px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #f6f8fc;
+    color: #555;
+}
+
+.operational-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.operational-table th.sortable:hover {
+    background-color: #e8ecf1;
+}
+
+.sort-indicator {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.85rem;
+    opacity: 0.5;
+}
+
+.operational-table th.sort-asc .sort-indicator::after {
+    content: ' ↑';
+    opacity: 1;
+    color: #1976d2;
+}
+
+.operational-table th.sort-desc .sort-indicator::after {
+    content: ' ↓';
+    opacity: 1;
+    color: #1976d2;
+}
+
+.operational-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.operational-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.operational-table tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.operational-table tbody tr:nth-child(even):hover {
+    background-color: #f1f5f9;
+}
+
+.operational-table td {
+    padding: 18px 14px;
+    color: #334155;
+}
+
+/* Patient Name */
+.patient-name {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 1.1rem;
+}
+
+.patient-id {
+    font-size: 0.95rem;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* Status Badges - Matching case management page colors */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0.3px;
+}
+
+/* Patient Status Colors (matching case management page) */
+.status-badge.status-new {
+    background: #f5f5f5 !important;
+    color: #666 !important;
+}
+
+.status-badge.status-onboarding {
+    background: #e3f2fd !important;
+    color: #1976d2 !important;
+}
+
+.status-badge.status-in-treatment,
+.status-badge.status-intreatment {
+    background: #e8f5e9 !important;
+    color: #2e7d32 !important;
+}
+
+.status-badge.status-followup {
+    background: #f3e5f5 !important;
+    color: #6a1b9a !important;
+}
+
+.status-badge.status-archived {
+    background: #f5f5f5 !important;
+    color: #999 !important;
+}
+
+/* Workflow Status Colors (Active, Pending, Blocked) */
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-blocked {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.blocked-reason {
+    font-size: 0.9rem;
+    color: #721c24;
+    margin-top: 4px;
+    font-style: italic;
+    line-height: 1.3;
+    max-width: 250px;
+}
+
+/* Progress Bar */
+.progress-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Latest Note - larger, readable; hover shows full note */
+.latest-note-cell {
+    max-width: 320px;
+    font-size: 16px;
+    color: #1e293b;
+    line-height: 1.5;
+    position: relative;
+}
+.latest-note-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.latest-note-date {
+    display: block;
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+.latest-note-cell .no-note {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Latest Appointment */
+.latest-appointment-cell {
+    max-width: 200px;
+    font-size: 15px;
+    color: #1e293b;
+    line-height: 1.4;
+}
+.latest-appointment-cell .appt-type {
+    display: block;
+    font-weight: 500;
+    color: #0f766e;
+}
+.latest-appointment-cell .appt-datetime {
+    display: block;
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 2px;
+}
+.latest-appointment-cell .no-note {
+    color: #94a3b8;
+    font-style: italic;
+}
+/* Full note popover on hover - readable, dark background */
+.latest-note-cell[data-full-note]:hover::after {
+    content: attr(data-full-note);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 420px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    margin-top: 6px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+
+/* Last Activity */
+.last-activity {
+    font-size: 15px;
+    color: #64748b;
+}
+
+/* Action Buttons - 2 rows to save space */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.action-buttons-row {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Roboto', sans-serif;
+    min-width: 72px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.action-btn-workflow {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.action-btn-workflow:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+.action-btn-upload {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.action-btn-upload:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(79, 172, 254, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+.action-btn-archive {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+}
+
+.action-btn-archive:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+.action-btn-note {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: white;
+}
+
+.action-btn-note:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+.action-btn-schedule {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+}
+
+.action-btn-schedule:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+/* Loading State */
+.loading-container {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+}
+
+.loading-spinner {
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Archive Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 16px;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .controls-content {
+        flex-direction: column;
+    }
+    
+    .search-input,
+    .sort-select {
+        width: 100%;
+    }
+    
+    .operational-table {
+        font-size: 14px;
+    }
+    
+    .operational-table th,
+    .operational-table td {
+        padding: 12px 8px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+let allPatients = [];
+let currentSort = 'last_update';
+let currentSearch = '';
+let sortColumn = null;
+let sortDirection = 'asc';
+
+// Load patients on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatients();
+});
+
+function loadPatients() {
+    const loadingContainer = document.getElementById('loadingContainer');
+    const table = document.getElementById('patientsTable');
+    const emptyContainer = document.getElementById('emptyContainer');
+    
+    loadingContainer.style.display = 'block';
+    table.style.display = 'none';
+    emptyContainer.style.display = 'none';
+    
+    const searchParam = currentSearch ? `&search=${encodeURIComponent(currentSearch)}` : '';
+    const sortParam = `&sort=${currentSort}`;
+    
+    fetch(`/api/patients/operational_list?${searchParam}${sortParam}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            loadingContainer.style.display = 'none';
+            
+            if (!data.success) {
+                console.error('API error:', data.message, data.error_details);
+                emptyContainer.style.display = 'block';
+                emptyContainer.innerHTML = `
+                    <i class="material-icons">error_outline</i>
+                    <p>Error loading patients: ${data.message || 'Unknown error'}</p>
+                    ${data.error_details ? `<p style="font-size: 0.8rem; color: #999; margin-top: 8px;">${data.error_details}</p>` : ''}
+                `;
+                return;
+            }
+            
+            if (data.patients && data.patients.length > 0) {
+                allPatients = data.patients;
+                renderPatients(data.patients);
+                updateSummary(data.summary);
+                table.style.display = 'table';
+            } else {
+                emptyContainer.style.display = 'block';
+                emptyContainer.innerHTML = `
+                    <i class="material-icons">inbox</i>
+                    <p>No patients found</p>
+                    ${currentSearch ? '<p style="font-size: 0.9rem; color: #999; margin-top: 8px;">Try adjusting your search criteria</p>' : ''}
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading patients:', error);
+            loadingContainer.style.display = 'none';
+            emptyContainer.style.display = 'block';
+            emptyContainer.innerHTML = `
+                <i class="material-icons">error_outline</i>
+                <p>Error loading patients. Please try again.</p>
+                <p style="font-size: 0.8rem; color: #999; margin-top: 8px;">${error.message}</p>
+            `;
+        });
+}
+
+function getStatusClass(phase) {
+    if (!phase) return 'status-new';
+    
+    const normalized = phase.toLowerCase().trim();
+    
+    // Map common variations to CSS classes
+    if (normalized === 'new') return 'status-new';
+    if (normalized === 'onboarding') return 'status-onboarding';
+    if (normalized === 'in treatment' || normalized === 'in-treatment' || normalized === 'intreatment') return 'status-in-treatment';
+    if (normalized === 'followup' || normalized === 'follow-up') return 'status-followup';
+    if (normalized === 'archived') return 'status-archived';
+    
+    // Default fallback
+    return 'status-new';
+}
+
+function renderPatients(patients) {
+    const tbody = document.getElementById('patientsTableBody');
+    tbody.innerHTML = '';
+    
+    patients.forEach(patient => {
+        const row = document.createElement('tr');
+        
+        // Get status class based on patient phase (which comes from patient.status field)
+        const statusClass = getStatusClass(patient.phase);
+        
+        row.innerHTML = `
+            <td>
+                <div class="patient-name">${escapeHtml(patient.name)}</div>
+                <div class="patient-id">ID: ${patient.patient_id}</div>
+            </td>
+            <td>${escapeHtml(patient.doctor)}</td>
+            <td>${escapeHtml(patient.current_stage)}</td>
+            <td>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${patient.progress}%"></div>
+                    </div>
+                    <span class="progress-text">${patient.progress}%</span>
+                </div>
+            </td>
+            <td>
+                <div class="latest-note-cell" ${patient.latest_note ? `data-full-note="${escapeHtml(patient.latest_note.content)}"` : ''} title="${patient.latest_note ? 'Hover to see full note' : ''}">
+                    ${patient.latest_note ? `<span class="latest-note-text">${escapeHtml(patient.latest_note.content)}</span><span class="latest-note-date">${escapeHtml(patient.latest_note.date ? patient.latest_note.date.slice(0, 10) : '')}</span>` : '<span class="no-note">—</span>'}
+                </div>
+            </td>
+            <td>
+                <div class="latest-appointment-cell">
+                    ${patient.latest_appointment ? `<span class="appt-type">${escapeHtml(patient.latest_appointment.type)}</span><span class="appt-datetime">${escapeHtml(patient.latest_appointment.date || '')}${patient.latest_appointment.time ? ' · ' + escapeHtml(patient.latest_appointment.time) : ''}</span>` : '<span class="no-note">—</span>'}
+                </div>
+            </td>
+            <td>
+                <span class="status-badge ${statusClass}" style="display: inline-block;" data-status="${escapeHtml(patient.status)}">${escapeHtml(patient.phase)}</span>
+                ${patient.blocked_reason ? `<div class="blocked-reason">${escapeHtml(patient.blocked_reason)}</div>` : ''}
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <div class="action-buttons-row">
+                        <button type="button" class="action-btn action-btn-note" title="Add Note" data-patient-id="${patient.patient_id}" data-patient-name="${escapeHtml(patient.name)}" onclick="openOpsAddNoteModal(this)">
+                            <i class="material-icons" style="font-size: 14px;">note_add</i> Note
+                        </button>
+                        <button type="button" class="action-btn action-btn-schedule" title="Schedule Meeting" data-patient-id="${patient.patient_id}" data-patient-name="${escapeHtml(patient.name)}" onclick="openOpsScheduleModal(this)">
+                            <i class="material-icons" style="font-size: 14px;">event</i> Schedule
+                        </button>
+                        <a href="/patient_workflow_manifest/${patient.patient_id}?tab=operational" class="action-btn action-btn-workflow" title="Case Management">
+                            <i class="material-icons" style="font-size: 14px;">settings</i> Case mgmt
+                        </a>
+                    </div>
+                    <div class="action-buttons-row">
+                        <a href="/patient/${patient.patient_id}" class="action-btn action-btn-upload" title="Upload Files">
+                            <i class="material-icons" style="font-size: 14px;">cloud_upload</i> Upload
+                        </a>
+                        <button type="button" class="action-btn action-btn-archive" title="Archive Patient" data-patient-id="${patient.patient_id}" data-patient-name="${escapeHtml(patient.name)}" onclick="openArchiveModal(this)">
+                            <i class="material-icons" style="font-size: 14px;">archive</i> Archive
+                        </button>
+                    </div>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+function updateSummary(summary) {
+    // Summary stats removed per user request
+}
+
+function handleSearch() {
+    const searchInput = document.getElementById('searchInput');
+    currentSearch = searchInput.value.trim();
+    
+    // Debounce search
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(() => {
+        loadPatients();
+    }, 300);
+}
+
+function handleSort() {
+    const sortSelect = document.getElementById('sortSelect');
+    currentSort = sortSelect.value;
+    loadPatients();
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function sortTable(column) {
+    // Toggle sort direction if clicking the same column
+    if (sortColumn === column) {
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortColumn = column;
+        sortDirection = 'asc';
+    }
+    
+    // Update sort indicators
+    document.querySelectorAll('.operational-table th').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+    });
+    
+    const header = document.querySelector(`.operational-table th[data-column="${column}"]`);
+    if (header) {
+        header.classList.add(`sort-${sortDirection}`);
+    }
+    
+    // Sort the patients array
+    if (allPatients.length > 0) {
+        const sorted = [...allPatients].sort((a, b) => {
+            let aVal, bVal;
+            
+            switch(column) {
+                case 'name':
+                    aVal = (a.name || '').toLowerCase();
+                    bVal = (b.name || '').toLowerCase();
+                    break;
+                case 'doctor':
+                    aVal = (a.doctor || '').toLowerCase();
+                    bVal = (b.doctor || '').toLowerCase();
+                    break;
+                case 'stage':
+                    aVal = (a.current_stage || '').toLowerCase();
+                    bVal = (b.current_stage || '').toLowerCase();
+                    break;
+                case 'progress':
+                    aVal = a.progress || 0;
+                    bVal = b.progress || 0;
+                    break;
+                case 'status':
+                    // Sort by status priority: Blocked (1), Pending (2), Active (3)
+                    const statusPriority = { 'Blocked': 1, 'Pending': 2, 'Active': 3 };
+                    aVal = statusPriority[a.status] || 3;
+                    bVal = statusPriority[b.status] || 3;
+                    break;
+                default:
+                    return 0;
+            }
+            
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+            } else {
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            }
+        });
+        
+        renderPatients(sorted);
+    }
+}
+
+// Archive Patient Modal
+let currentArchivePatientId = null;
+let currentArchivePatientName = null;
+
+function openArchiveModal(buttonElement) {
+    // Get patient data from button's data attributes
+    const patientId = buttonElement.getAttribute('data-patient-id');
+    const patientName = buttonElement.getAttribute('data-patient-name');
+    
+    console.log('openArchiveModal called with:', patientId, patientName);
+    currentArchivePatientId = patientId;
+    currentArchivePatientName = patientName;
+    
+    const modal = document.getElementById('archiveModal');
+    const patientNameSpan = document.getElementById('archivePatientName');
+    
+    console.log('Modal element:', modal);
+    console.log('Patient name span:', patientNameSpan);
+    
+    if (!modal) {
+        console.error('Archive modal not found!');
+        alert('Archive modal not found. Please refresh the page.');
+        return;
+    }
+    
+    if (patientNameSpan) {
+        patientNameSpan.textContent = patientName || 'this patient';
+    }
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Close on overlay click
+    modal.onclick = function(e) {
+        if (e.target === modal) closeArchiveModal();
+    };
+}
+
+function closeArchiveModal() {
+    const modal = document.getElementById('archiveModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    currentArchivePatientId = null;
+    currentArchivePatientName = null;
+}
+
+function submitArchive() {
+    if (!currentArchivePatientId) {
+        alert('Patient ID not found');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#archiveModal button[onclick="submitArchive()"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Archiving...';
+    
+    // Archive patient via API
+    fetch(`/archive_patient/${currentArchivePatientId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(r => {
+        if (r.ok) {
+            return r.json().catch(() => ({ success: true })); // Handle both JSON and redirect responses
+        }
+        return r.json().then(data => Promise.reject(new Error(data.message || 'Failed to archive patient')));
+    })
+    .then(data => {
+        alert('Patient archived successfully!');
+        closeArchiveModal();
+        // Reload the patient list
+        loadPatients();
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Error archiving patient: ' + err.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    });
+}
+
+// Close modal on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeArchiveModal();
+        closeOpsAddNoteModal();
+        closeOpsScheduleModal();
+    }
+});
+
+// ===== Add Note Modal (Operational) =====
+let currentOpsPatientId = null;
+
+function openOpsAddNoteModal(btn) {
+    currentOpsPatientId = btn.getAttribute('data-patient-id');
+    const modal = document.getElementById('opsAddNoteModal');
+    if (modal) {
+        document.getElementById('ops-note-type-value').value = '';
+        document.getElementById('ops-note-type-text').textContent = 'Select note type...';
+        document.getElementById('ops-note-content').value = '';
+        document.getElementById('ops-note-type-dd').style.display = 'none';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        modal.onclick = function(e) { if (e.target === modal) closeOpsAddNoteModal(); };
+    }
+}
+
+function closeOpsAddNoteModal() {
+    const modal = document.getElementById('opsAddNoteModal');
+    if (modal) { modal.style.display = 'none'; document.body.style.overflow = 'auto'; }
+    currentOpsPatientId = null;
+}
+
+function toggleOpsNoteTypeDropdown() {
+    const dd = document.getElementById('ops-note-type-dd');
+    if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectOpsNoteType(val) {
+    const map = { 'consultation': 'Consultation', 'followup': 'Follow-up', 'general': 'General' };
+    document.getElementById('ops-note-type-text').textContent = map[val] || val;
+    document.getElementById('ops-note-type-value').value = val;
+    document.getElementById('ops-note-type-dd').style.display = 'none';
+}
+
+function submitOpsAddNote() {
+    if (!currentOpsPatientId) { alert('Patient ID not found'); return; }
+    const type = document.getElementById('ops-note-type-value').value || 'general';
+    const content = (document.getElementById('ops-note-content').value || '').trim();
+    if (!content) { alert('Please enter note content'); return; }
+    fetch(`/api/patient/${currentOpsPatientId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: content, comment_type: type })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) { alert('Note added!'); closeOpsAddNoteModal(); loadPatients(); }
+        else { alert('Error: ' + (data.message || 'Unknown')); }
+    })
+    .catch(err => { console.error(err); alert('Error: ' + err.message); });
+}
+
+// ===== Schedule Modal (Operational) =====
+function openOpsScheduleModal(btn) {
+    currentOpsPatientId = btn.getAttribute('data-patient-id');
+    const modal = document.getElementById('opsScheduleModal');
+    if (modal) {
+        document.getElementById('ops-schedule-type-val').value = '';
+        document.getElementById('ops-schedule-type-trigger').textContent = 'Select type';
+        document.getElementById('ops-schedule-status-val').value = 'scheduled';
+        document.getElementById('ops-schedule-status-trigger').textContent = 'Scheduled';
+        document.getElementById('ops-schedule-doctor').value = '';
+        document.getElementById('ops-schedule-notes').value = '';
+        document.getElementById('ops-schedule-dt-display').value = '';
+        const today = new Date();
+        document.getElementById('ops-schedule-picker-date').value = today.toISOString().split('T')[0];
+        document.getElementById('ops-schedule-picker-date').removeAttribute('data-datetime');
+        const timeEl = document.getElementById('ops-schedule-picker-time');
+        if (timeEl) timeEl.value = '09:00';
+        loadOpsScheduleOptions();
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        modal.onclick = function(e) { if (e.target === modal) closeOpsScheduleModal(); };
+    }
+}
+
+function closeOpsScheduleModal() {
+    const modal = document.getElementById('opsScheduleModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        const picker = document.getElementById('ops-schedule-datetime-picker-modal');
+        if (picker) picker.style.display = 'none';
+    }
+    currentOpsPatientId = null;
+}
+
+function loadOpsScheduleOptions() {
+    fetch('/api/consult-schedule/options').then(r => r.json()).then(data => {
+        if (!data.success) return;
+        const fmt = (t) => ({ 'sleep_doctor': 'Sleep Doctor', 'dental_sleep_doctor': 'Dental Sleep Doctor', 'follow_up_meeting': 'Follow-up Meeting', 'followup_sleep_doctor': 'Followup Sleep Doctor', 'oral_appliance_delivery': 'Oral Appliance Delivery', 'sleep_test': 'Sleep Test', 'imaging': 'Imaging' }[t] || (t || '').replace(/_/g, ' '));
+        const typeOpts = document.getElementById('ops-schedule-type-options');
+        const typeVal = document.getElementById('ops-schedule-type-val');
+        const typeTrig = document.getElementById('ops-schedule-type-trigger');
+        if (typeOpts && typeVal && typeTrig) {
+            typeOpts.innerHTML = (data.consult_types || []).map(v => `<div class="cs-option" data-val="${v}">${fmt(v)}</div>`).join('');
+            typeOpts.querySelectorAll('.cs-option').forEach(el => {
+                el.onclick = () => { typeVal.value = el.getAttribute('data-val'); typeTrig.textContent = el.textContent; document.getElementById('ops-schedule-type-dd').classList.remove('open'); };
+            });
+            typeTrig.onclick = () => document.getElementById('ops-schedule-type-dd').classList.toggle('open');
+        }
+        const statusOpts = document.getElementById('ops-schedule-status-options');
+        const statusVal = document.getElementById('ops-schedule-status-val');
+        const statusTrig = document.getElementById('ops-schedule-status-trigger');
+        if (statusOpts && statusVal && statusTrig) {
+            statusOpts.innerHTML = (data.statuses || []).map(v => `<div class="cs-option" data-val="${v}">${v}</div>`).join('');
+            statusOpts.querySelectorAll('.cs-option').forEach(el => {
+                el.onclick = () => { statusVal.value = el.getAttribute('data-val'); statusTrig.textContent = el.textContent; document.getElementById('ops-schedule-status-dd').classList.remove('open'); };
+            });
+            statusTrig.onclick = () => document.getElementById('ops-schedule-status-dd').classList.toggle('open');
+        }
+    });
+}
+
+function openOpsScheduleDateTimePicker() {
+    const m = document.getElementById('ops-schedule-datetime-picker-modal');
+    if (m) {
+        m.style.display = 'flex';
+        m.style.alignItems = 'center';
+        m.style.justifyContent = 'center';
+        m.onclick = function(e) { if (e.target === m) closeOpsScheduleDateTimePicker(); };
+    }
+}
+
+function closeOpsScheduleDateTimePicker() {
+    const m = document.getElementById('ops-schedule-datetime-picker-modal');
+    if (m) m.style.display = 'none';
+}
+
+function setOpsScheduleDateTime() {
+    const dateEl = document.getElementById('ops-schedule-picker-date');
+    const timeEl = document.getElementById('ops-schedule-picker-time');
+    const displayEl = document.getElementById('ops-schedule-dt-display');
+    if (!dateEl || !timeEl || !displayEl) return;
+    const timeVal = timeEl.value || '09:00';
+    const dt = new Date(dateEl.value + 'T' + timeVal + ':00');
+    dateEl.setAttribute('data-datetime', dt.toISOString());
+    const [h, m] = timeVal.split(':');
+    const hour = parseInt(h, 10);
+    const dispHour = hour % 12 || 12;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    displayEl.value = dt.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) + ', ' + dispHour.toString().padStart(2, '0') + ':' + m + ' ' + ampm;
+    closeOpsScheduleDateTimePicker();
+}
+
+function submitOpsSchedule() {
+    if (!currentOpsPatientId) { alert('Patient ID not found'); return; }
+    const type = document.getElementById('ops-schedule-type-val').value;
+    const status = document.getElementById('ops-schedule-status-val').value || 'scheduled';
+    const doctor = document.getElementById('ops-schedule-doctor').value.trim();
+    const notes = document.getElementById('ops-schedule-notes').value.trim();
+    const dateEl = document.getElementById('ops-schedule-picker-date');
+    const datetime = dateEl ? dateEl.getAttribute('data-datetime') : null;
+    if (!type || !status) { alert('Please select Type and Status'); return; }
+    if (!datetime) { alert('Please select date and time'); return; }
+    const payload = { consult_type: type, status: status, doctor_name: doctor, scheduled_datetime: datetime, notes: notes };
+    fetch(`/api/patient/${currentOpsPatientId}/consult-schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) { alert('Appointment scheduled!'); closeOpsScheduleModal(); loadPatients(); }
+        else { alert('Error: ' + (res.message || 'Failed')); }
+    })
+    .catch(err => { console.error(err); alert('Error: ' + err.message); });
+}
+</script>
+
+<!-- Add Note Modal (Operational) -->
+<div id="opsAddNoteModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="background: white; border-radius: 12px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #7c3aed; font-size: 18px; font-weight: 700;">Add Note</h3>
+            <button type="button" onclick="closeOpsAddNoteModal()" style="background: none; border: none; color: #6b7280; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #111827;">Note Type</label>
+            <div style="position: relative;">
+                <button type="button" onclick="toggleOpsNoteTypeDropdown()" style="width: 100%; padding: 12px; border: 2px solid #c4b5fd; border-radius: 6px; background: white; text-align: left; cursor: pointer; font-size: 15px; color: #1e293b;">
+                    <span id="ops-note-type-text">Select note type...</span> <span>▼</span>
+                </button>
+                <div id="ops-note-type-dd" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #c4b5fd; border-top: none; border-radius: 0 0 6px 6px; z-index: 10001; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div onclick="selectOpsNoteType('consultation')" style="padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-size: 15px; font-weight: 500;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='white'">Consultation</div>
+                    <div onclick="selectOpsNoteType('followup')" style="padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-size: 15px; font-weight: 500;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='white'">Follow-up</div>
+                    <div onclick="selectOpsNoteType('general')" style="padding: 12px 14px; cursor: pointer; color: #1e293b; font-size: 15px; font-weight: 500;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background='white'">General</div>
+                </div>
+                <input type="hidden" id="ops-note-type-value">
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #111827;">Note *</label>
+            <textarea id="ops-note-content" placeholder="Enter your note..." style="width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 15px; line-height: 1.5; resize: vertical; color: #1e293b;"></textarea>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeOpsAddNoteModal()" style="background: #f3f4f6; color: #374151; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancel</button>
+            <button type="button" onclick="submitOpsAddNote()" style="background: #7c3aed; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Add Note</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Modal (Operational) -->
+<div id="opsScheduleModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="background: white; border-radius: 12px; padding: 32px; max-width: 520px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <style>.cs { position: relative; } .cs-trigger { padding: 10px 12px; border: 2px solid #94a3b8; border-radius: 6px; cursor: pointer; background: #fff; font-size: 15px; color: #1e293b !important; } .cs-options { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 2px solid #94a3b8; border-top: none; border-radius: 0 0 6px 6px; margin-top: 4px; max-height: 220px; overflow-y: auto; display: none; z-index: 10001; } .cs-option { padding: 10px 12px; cursor: pointer; color: #1e293b !important; font-size: 15px; } .cs-option:hover { background: #f1f5f9; } .cs.open .cs-options { display: block; }</style>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #111827; font-size: 18px; font-weight: 700;">Schedule Consultation</h3>
+            <button type="button" onclick="closeOpsScheduleModal()" style="background: none; border: none; color: #6b7280; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div>
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Type</label>
+                <div id="ops-schedule-type-dd" class="cs">
+                    <div class="cs-trigger" id="ops-schedule-type-trigger">Select type</div>
+                    <div class="cs-options" id="ops-schedule-type-options"></div>
+                </div>
+                <input type="hidden" id="ops-schedule-type-val">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Status</label>
+                <div id="ops-schedule-status-dd" class="cs">
+                    <div class="cs-trigger" id="ops-schedule-status-trigger">Select status</div>
+                    <div class="cs-options" id="ops-schedule-status-options"></div>
+                </div>
+                <input type="hidden" id="ops-schedule-status-val">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; color: #1e293b;">Doctor</label>
+                <input id="ops-schedule-doctor" type="text" placeholder="Doctor" style="width: 100%; padding: 10px; border: 2px solid #94a3b8; border-radius: 6px; font-size: 15px; color: #1e293b;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; color: #1e293b;">Date/Time</label>
+                <div style="display: flex; gap: 8px;">
+                    <input id="ops-schedule-dt-display" type="text" readonly placeholder="Click to select" style="flex: 1; padding: 10px; border: 2px solid #94a3b8; border-radius: 6px; background: #f8fafc; cursor: pointer; font-size: 15px; color: #1e293b;" onclick="openOpsScheduleDateTimePicker()">
+                    <button type="button" onclick="openOpsScheduleDateTimePicker()" style="padding: 10px 16px; background: #1976d2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">Select</button>
+                </div>
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; color: #1e293b;">Notes (optional)</label>
+                <textarea id="ops-schedule-notes" rows="3" style="width: 100%; padding: 10px; border: 2px solid #94a3b8; border-radius: 6px; font-size: 15px; color: #1e293b; line-height: 1.5;"></textarea>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeOpsScheduleModal()" style="background: #9ca3af; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Cancel</button>
+            <button type="button" onclick="submitOpsSchedule()" style="background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Date/Time Picker (Operational) -->
+<div id="ops-schedule-datetime-picker-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10002; justify-content: center; align-items: center; cursor: default;">
+    <div style="background: white; width: 400px; max-width: 90vw; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: default;" onclick="event.stopPropagation()">
+        <h4 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1e293b;">Select Date and Time</h4>
+        <div style="margin-bottom: 16px;">
+            <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; color: #1e293b;">Date</label>
+            <input id="ops-schedule-picker-date" type="date" style="width: 100%; padding: 12px; border: 2px solid #94a3b8; border-radius: 6px; font-size: 16px; color: #1e293b; background: white;">
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; color: #1e293b;">Time</label>
+            <input id="ops-schedule-picker-time" type="time" value="09:00" style="width: 100%; padding: 12px; border: 2px solid #94a3b8; border-radius: 6px; font-size: 16px; color: #1e293b; background: white; min-height: 44px; box-sizing: border-box;">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" onclick="closeOpsScheduleDateTimePicker()" style="padding: 10px 20px; border: 2px solid #94a3b8; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; color: #1e293b;">Cancel</button>
+            <button type="button" onclick="setOpsScheduleDateTime()" style="padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Archive Patient Confirmation Modal -->
+<div id="archiveModal" class="modal-overlay">
+    <div class="modal-content" style="background: white; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #dc2626; font-size: 20px; font-weight: 700;">⚠️ Archive Patient</h3>
+            <button onclick="closeArchiveModal()" style="background: none; border: none; color: #6b7280; font-size: 24px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+        <div style="margin-bottom: 24px;">
+            <p style="color: #111827; font-size: 15px; line-height: 1.6; margin-bottom: 12px;">
+                Are you sure you want to archive <strong id="archivePatientName"></strong>?
+            </p>
+            <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 12px 16px; border-radius: 6px; margin-top: 16px;">
+                <p style="color: #991b1b; font-size: 14px; margin: 0; line-height: 1.5;">
+                    <strong>Note:</strong> Archiving will change the patient's status to "Archived". Archived patients are excluded from the main patient list and most views.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeArchiveModal()" style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; font-family: 'Roboto', sans-serif;">Cancel</button>
+            <button type="button" onclick="submitArchive()" style="background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Roboto', sans-serif;">Yes, Archive Patient</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

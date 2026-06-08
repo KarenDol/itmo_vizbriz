@@ -1,0 +1,1221 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Forms - Vizbriz{% endblock %}
+
+{% block extra_css %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<style>
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.wizard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.wizard-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.wizard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.wizard-header p {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+/* Form Selection Section */
+.form-selection-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.form-selection-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Form Information Section */
+.form-information-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    min-height: 500px;
+}
+
+.form-information-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.option-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    margin-bottom: 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 60px;
+}
+
+.option-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.option-button:hover::before {
+    left: 100%;
+}
+
+.btn-qr-code {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: #fff;
+    border: 1px solid #2980b9;
+}
+
+.btn-qr-code:hover {
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-create-user {
+    background: linear-gradient(135deg, #27ae60, #229954);
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+    border: 1px solid #229954;
+}
+
+.btn-create-user:hover {
+    background: linear-gradient(135deg, #229954, #1e8449);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-send-email {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+    border: 1px solid #c0392b;
+}
+
+.btn-send-email:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+    color: #fff;
+    text-decoration: none;
+}
+
+.email-form {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.email-form.show {
+    display: block;
+}
+
+.email-form h4 {
+    color: #222;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.email-form input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #222;
+    background: #fff;
+}
+
+.email-form input[type="email"]::placeholder {
+    color: #555;
+    opacity: 1;
+    font-weight: 500;
+}
+
+.email-form button[type="submit"] {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background 0.2s;
+}
+
+.email-form button[type="submit"]:hover {
+    background: #b71c1c;
+}
+
+.email-form button[type="button"] {
+    background: #0066cc;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.email-form button[type="button"]:hover {
+    background: #004999;
+}
+
+.email-form button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.barcode-container {
+    margin-top: 30px;
+    text-align: center;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    display: none;
+    border: 1px solid #e9ecef;
+}
+
+.barcode-container h4 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.barcode-container img {
+    max-width: 400px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.email-error-message {
+    color: #d32f2f;
+    background: #ffebee;
+    border: 2px solid #f44336;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: left;
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .wizard-container {
+        padding: 10px;
+    }
+    
+    .wizard-header h1 {
+        font-size: 2rem;
+    }
+    
+    .form-selection-section,
+    .form-information-section {
+        padding: 20px;
+    }
+    
+    .tab-buttons {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    .option-button {
+        padding: 16px;
+        font-size: 0.9rem;
+        min-width: auto !important;
+        flex: none !important;
+    }
+}
+
+/* Patient Search and Email Input Styling */
+.patient-search-container {
+    margin-bottom: 15px;
+}
+
+.patient-search-container label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+/* Override Materialize CSS for patient search selects */
+.patient-search-container select {
+    width: 100% !important;
+    padding: 10px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+    color: #333 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 40px !important;
+    position: relative !important;
+    z-index: 1 !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+}
+
+.patient-search-container select:focus {
+    outline: none !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Ensure no Materialize interference */
+.patient-search-container {
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.patient-search-container::after {
+    display: none !important;
+}
+
+.patient-search-container::before {
+    display: none !important;
+}
+
+/* Override Materialize CSS completely for patient search selects */
+.patient-search-container select {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 40px !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    background-color: white !important;
+    background-image: none !important;
+    color: #333 !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+    line-height: 1.5 !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    appearance: menulist !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    mask: none !important;
+    clip-path: none !important;
+    shape-outside: none !important;
+    shape-margin: 0 !important;
+    shape-image-threshold: 0 !important;
+    clip: auto !important;
+    float: none !important;
+    clear: none !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    padding-top: 10px !important;
+    padding-right: 10px !important;
+    padding-bottom: 10px !important;
+    padding-left: 10px !important;
+    border-top: 1px solid #ced4da !important;
+    border-right: 1px solid #ced4da !important;
+    border-bottom: 1px solid #ced4da !important;
+    border-left: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    background-color: white !important;
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: 0 0 !important;
+    background-size: auto !important;
+    background-attachment: scroll !important;
+    background-clip: border-box !important;
+    background-origin: padding-box !important;
+    color: #333 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    outline: none !important;
+    resize: none !important;
+    tabindex: 0 !important;
+    role: combobox !important;
+    aria-expanded: false !important;
+    aria-haspopup: listbox !important;
+    aria-autocomplete: none !important;
+    aria-readonly: false !important;
+    aria-required: false !important;
+    aria-invalid: false !important;
+    aria-describedby: none !important;
+    aria-labelledby: none !important;
+    aria-controls: none !important;
+    aria-owns: none !important;
+    aria-activedescendant: none !important;
+    aria-selected: false !important;
+    aria-checked: false !important;
+    aria-pressed: false !important;
+    aria-sort: none !important;
+    aria-live: off !important;
+    aria-atomic: false !important;
+    aria-relevant: none !important;
+    aria-busy: false !important;
+    aria-disabled: false !important;
+    aria-hidden: false !important;
+    aria-modal: false !important;
+    aria-multiline: false !important;
+    aria-multiselectable: false !important;
+    aria-orientation: vertical !important;
+    aria-setsize: 0 !important;
+    aria-posinset: 0 !important;
+    aria-level: 0 !important;
+    aria-rowcount: 0 !important;
+    aria-rowindex: 0 !important;
+    aria-rowspan: 0 !important;
+    aria-colcount: 0 !important;
+    aria-colindex: 0 !important;
+    aria-colspan: 0 !important;
+    aria-rowindextext: none !important;
+    aria-colindextext: none !important;
+    aria-valuemin: 0 !important;
+    aria-valuemax: 0 !important;
+    aria-valuenow: 0 !important;
+    aria-valuetext: none !important;
+    aria-current: false !important;
+    aria-flowto: none !important;
+}
+
+.email-input-container {
+    margin-bottom: 15px;
+}
+
+.email-input-container label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+.email-input-container input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+.email-input-container input[type="email"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Visual feedback for auto-filled email */
+.email-auto-filled {
+    background-color: #e8f5e8 !important;
+    border-color: #28a745 !important;
+}
+
+.email-manual-entry {
+    background-color: #fff3cd !important;
+    border-color: #ffc107 !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% if not error_message and (not clinic or not clinic.id) %}
+<div class="alert alert-danger">
+    <strong>No clinic_id found. Dynamic links will not work.</strong>
+</div>
+{% endif %}
+<div class="wizard-container">
+    <div class="wizard-header">
+        <h1>Patient Forms</h1>
+        <p class="text-muted">Choose a form to get started</p>
+    </div>
+    {% if is_admin and active_clinics and clinic and clinic.id %}
+    <div class="alert alert-info" style="max-width: 720px; margin: 0 auto 20px auto; text-align: left;">
+        <p style="margin: 0 0 8px 0;"><strong>Admin</strong> — clinic for links and emails comes from the <strong>selected patient’s record</strong> when you pick someone below, or from <code>?clinic_id=</code> in the URL. Change practice:</p>
+        <label for="adminClinicSelect" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Clinic</label>
+        <select id="adminClinicSelect" class="form-control" style="max-width: 420px; display: inline-block; vertical-align: middle;">
+            {% for c in active_clinics %}
+            <option value="{{ c.id }}" {% if c.id == clinic.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <script>
+        (function(){
+          var s = document.getElementById('adminClinicSelect');
+          if (!s) return;
+          s.addEventListener('change', function() {
+            var u = new URL(window.location.origin + window.location.pathname);
+            if (s.value) u.searchParams.set('clinic_id', s.value);
+            u.searchParams.delete('patient_id');
+            window.location.href = u.toString();
+          });
+        })();
+        </script>
+    </div>
+    {% endif %}
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        {{ error_message }}
+    </div>
+    {% endif %}
+    <!-- Form Selection Section -->
+    <div class="form-selection-section">
+        <h2>Select a Form</h2>
+        <div class="tab-buttons" style="display: flex; gap: 15px; margin-bottom: 0; flex-wrap: wrap; justify-content: center;">
+            <button class="option-button" id="tabQuizBtn" onclick="showTab('quiz')" style="background: #3498db !important; color: #fff !important; border: none !important; flex: 1; min-width: 200px;">Assessment Quiz</button>
+            <button class="option-button" id="tabWizardBtn" onclick="showTab('wizard')" style="background: #2ecc71 !important; color: #fff !important; border: none !important; flex: 1; min-width: 200px;">Full Registration Wizard</button>
+            <button class="option-button" id="tabShortWizardBtn" onclick="showTab('short_wizard')" style="background: #9b59b6 !important; color: #fff !important; border: none !important; flex: 1; min-width: 200px;">Consent Forms</button>
+            <button class="option-button" id="tabFollowupBtn" onclick="showTab('followup')" style="background: #ff9800 !important; color: #fff !important; border: none !important; flex: 1; min-width: 200px;">1st Followup Questionnaire</button>
+        </div>
+    </div>
+
+    <!-- Form Information Section -->
+    <div class="form-information-section">
+        <h2>Form Information</h2>
+        <div id="tabQuiz" class="tab-content">
+            <div id="quizEmailError" class="email-error-message" style="display:none;"></div>
+            
+            <!-- Assessment Quiz Description -->
+            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 16px; margin-bottom: 20px; border-radius: 4px;">
+                <h4 style="margin: 0 0 8px 0; color: #1976d2; font-size: 16px; font-weight: 600;">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">quiz</i>
+                    Assessment Quiz
+                </h4>
+                <p style="margin: 0; color: #424242; font-size: 14px; line-height: 1.4;">
+                    Patient questionnaire for initial patient diagnosis. Quick assessment to evaluate sleep apnea risk and symptoms.
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 14px;">
+                <strong>Quiz Language:</strong>
+                <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <button type="button" id="quizLangEnBtn" class="option-button" onclick="setQuizLanguage('en')" style="background: #3498db !important; color: #fff !important; border: none !important; flex: 1; min-width: 150px;">English</button>
+                    <button type="button" id="quizLangHeBtn" class="option-button" onclick="setQuizLanguage('he')" style="background: #e0e0e0 !important; color: #222 !important; border: none !important; flex: 1; min-width: 150px;">Hebrew</button>
+                </div>
+            </div>
+
+            <div id="quizShareEn">
+                <div style="margin-bottom: 18px;">
+                    <strong>Quiz Link (English):</strong>
+                    {% if clinic and clinic.dso_id %}
+                        <a href="{{ base_url }}/vizbriz/quiz?lang=en&dso_id={{ clinic.dso_id }}&clinic_id={{ clinic.id }}{% if current_user.is_authenticated and current_user.id %}&dentist_id={{ current_user.id }}{% endif %}" target="_blank" style="color: #1976d2; font-weight: bold; text-decoration: underline;">{{ base_url }}/vizbriz/quiz?lang=en&dso_id={{ clinic.dso_id }}&clinic_id={{ clinic.id }}{% if current_user.is_authenticated and current_user.id %}&dentist_id={{ current_user.id }}{% endif %}</a>
+                    {% else %}
+                        <a href="{{ base_url }}/vizbriz/quiz?lang=en" target="_blank" style="color: #1976d2; font-weight: bold; text-decoration: underline;">{{ base_url }}/vizbriz/quiz?lang=en</a>
+                    {% endif %}
+                </div>
+                <div class="barcode-container" style="display: block;">
+                    <h4>Quiz QR-Code (English)</h4>
+                    {% if current_user.is_authenticated and current_user.id %}
+                    <img src="{{ url_for('wizard.quiz_qr_code', clinic_id=clinic.id if clinic else 0, dentist_id=current_user.id) }}" alt="Quiz QR-Code (English)">
+                    {% else %}
+                    <img src="{{ url_for('wizard.quiz_qr_code', clinic_id=clinic.id if clinic else 0) }}" alt="Quiz QR-Code (English)">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="quizShareHe" style="display:none;">
+                <div style="margin-bottom: 18px;">
+                    <strong>Quiz Link (Hebrew):</strong>
+                    {% if clinic and clinic.dso_id %}
+                    <a href="{{ base_url }}/vizbriz/quiz_hebrew?dso_id={{ clinic.dso_id }}&clinic_id={{ clinic.id }}{% if current_user.is_authenticated and current_user.id %}&dentist_id={{ current_user.id }}{% endif %}" target="_blank" style="color: #1976d2; font-weight: bold; text-decoration: underline;">{{ base_url }}/vizbriz/quiz_hebrew?dso_id={{ clinic.dso_id }}&clinic_id={{ clinic.id }}{% if current_user.is_authenticated and current_user.id %}&dentist_id={{ current_user.id }}{% endif %}</a>
+                    {% else %}
+                    <a href="{{ base_url }}/vizbriz/quiz_hebrew" target="_blank" style="color: #1976d2; font-weight: bold; text-decoration: underline;">{{ base_url }}/vizbriz/quiz_hebrew</a>
+                    {% endif %}
+                </div>
+                <div class="barcode-container" style="display: block;">
+                    <h4>Quiz QR-Code (Hebrew)</h4>
+                    {% if current_user.is_authenticated and current_user.id %}
+                    <img src="{{ url_for('wizard.quiz_qr_code_hebrew', clinic_id=clinic.id if clinic else 0, dentist_id=current_user.id) }}" alt="Quiz QR-Code (Hebrew)">
+                    {% else %}
+                    <img src="{{ url_for('wizard.quiz_qr_code_hebrew', clinic_id=clinic.id if clinic else 0) }}" alt="Quiz QR-Code (Hebrew)">
+                    {% endif %}
+                </div>
+            </div>
+            <form class="email-form show" method="POST" onsubmit="return validateEmailTab('quiz')">
+                {% if clinic %}<input type="hidden" name="clinic_id" value="{{ clinic.id }}">{% endif %}
+                <h4>Send Quiz Link to Patient</h4>
+                
+                <!-- Patient Search Section -->
+                <div class="patient-search-container">
+                    <label for="patient_search_quiz">Search Patient (Optional)</label>
+                    <select id="patient_search_quiz" name="patient_search_quiz" class="form-control">
+                        <option value="">Select a patient...</option>
+                    </select>
+                    <input type="hidden" id="selected_patient_id_quiz" name="selected_patient_id">
+                </div>
+                
+                <!-- Email Input Section -->
+                <div class="email-input-container">
+                    <label for="patient_email_quiz">Patient Email *</label>
+                    <input type="email" name="patient_email" id="patient_email_quiz" placeholder="Enter patient's email address" required>
+                    <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                </div>
+                
+                <button type="submit" id="sendEmailBtnQuiz">Send Email</button>
+                <button type="button" onclick="clearEmailForm('quiz')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+                <input type="hidden" name="send_type" value="quiz">
+                <input type="hidden" name="quiz_language" id="quiz_language" value="en">
+            </form>
+        </div>
+        <div id="tabWizard" class="tab-content" style="display:none;">
+            <div id="wizardEmailError" class="email-error-message" style="display:none;"></div>
+            
+            <!-- Registration Wizard Description -->
+            <div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 16px; margin-bottom: 20px; border-radius: 4px;">
+                <h4 style="margin: 0 0 8px 0; color: #2e7d32; font-size: 16px; font-weight: 600;">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">assignment</i>
+                    Full Registration Wizard
+                </h4>
+                <p style="margin: 0; color: #424242; font-size: 14px; line-height: 1.4;">
+                    Complete patient onboarding including: Personal Information, Epworth Sleepiness Scale, Sleep History, CPAP Intolerance Assessment, Informed Consent, HIPAA Authorization, and file uploads for insurance documents and driver's license.
+                </p>
+            </div>
+            
+            <a href="{{ url_for('wizard.stage1_personal_info', clinic_id=clinic.id) }}" class="option-button btn-create-user" style="margin-bottom: 24px;">
+                👤 Create New Patient
+            </a>
+            <div style="margin-bottom: 18px;">
+                <strong>Wizard Link:</strong>
+                <a href="{{ url_for('wizard.stage1_personal_info', clinic_id=clinic.id, _external=True) }}" target="_blank" style="color: #388e3c; font-weight: bold; text-decoration: underline;">{{ url_for('wizard.stage1_personal_info', clinic_id=clinic.id, _external=True) }}</a>
+            </div>
+            <div class="barcode-container" style="display: block;">
+                <h4>Registration Wizard QR-Code</h4>
+                <img src="{{ url_for('wizard.generate_qr', clinic_id=clinic.id) }}" alt="Registration Wizard QR-Code">
+            </div>
+            <form class="email-form show" method="POST" onsubmit="return validateEmailTab('wizard')">
+                {% if clinic %}<input type="hidden" name="clinic_id" value="{{ clinic.id }}">{% endif %}
+                <h4>Send Wizard Link to Patient</h4>
+                
+                <!-- Patient Search Section -->
+                <div class="patient-search-container">
+                    <label for="patient_search_wizard">Search Patient (Optional)</label>
+                    <select id="patient_search_wizard" name="patient_search_wizard" class="form-control">
+                        <option value="">Select a patient...</option>
+                    </select>
+                    <input type="hidden" id="selected_patient_id_wizard" name="selected_patient_id">
+                </div>
+                
+                <!-- Email Input Section -->
+                <div class="email-input-container">
+                    <label for="patient_email_wizard">Patient Email *</label>
+                    <input type="email" name="patient_email" id="patient_email_wizard" placeholder="Enter patient's email address" required>
+                    <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                </div>
+                
+                <button type="submit" id="sendEmailBtnWizard">Send Email</button>
+                <button type="button" onclick="clearEmailForm('wizard')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+                <input type="hidden" name="send_type" value="wizard">
+            </form>
+        </div>
+        <div id="tabShort_wizard" class="tab-content" style="display:none;">
+            <div id="shortWizardEmailError" class="email-error-message" style="display:none;"></div>
+            
+            <!-- Consent Forms Description -->
+            <div style="background: #f3e5f5; border-left: 4px solid #9b59b6; padding: 16px; margin-bottom: 20px; border-radius: 4px;">
+                <h4 style="margin: 0 0 8px 0; color: #7b1fa2; font-size: 16px; font-weight: 600;">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">description</i>
+                    Consent Forms (CPAP Intolerance, HIPAA Authorization, Informed Consent)
+                </h4>
+                <p style="margin: 0; color: #424242; font-size: 14px; line-height: 1.4;">
+                    Streamlined consent forms including: Personal Information, Sleep Test Information, CPAP Intolerance Assessment, HIPAA Authorization, and Informed Consent. No file uploads required for driver's license or insurance cards.
+                </p>
+            </div>
+            
+            <a href="{{ url_for('short_wizard.stage1_personal_info', dentist_id=current_user.id) }}" class="option-button btn-create-user" style="margin-bottom: 24px; background: #9b59b6 !important;">
+                📋 Start Consent Forms
+            </a>
+            <div style="margin-bottom: 18px;">
+                <strong>Consent Forms Link:</strong>
+                <a href="{{ url_for('short_wizard.stage1_personal_info', dentist_id=current_user.id, _external=True) }}" target="_blank" style="color: #9b59b6; font-weight: bold; text-decoration: underline;">{{ url_for('short_wizard.stage1_personal_info', dentist_id=current_user.id, _external=True) }}</a>
+            </div>
+            <div class="barcode-container" style="display: block;">
+                <h4>Consent Forms QR-Code</h4>
+                <img src="{{ url_for('wizard.short_wizard_qr_code') }}" alt="Consent Forms QR-Code">
+            </div>
+            
+            <!-- Email Form for Short Wizard -->
+            <form id="emailFormShortWizard" method="POST" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                {% if clinic %}<input type="hidden" name="clinic_id" value="{{ clinic.id }}">{% endif %}
+                <h5 style="color: #9b59b6; margin-bottom: 15px;">Send Consent Forms Link via Email</h5>
+                
+                <!-- Patient Search Section -->
+                <div class="patient-search-container">
+                    <label for="patient_search_short_wizard">Search Patient (Optional)</label>
+                    <select id="patient_search_short_wizard" name="patient_search_short_wizard" class="form-control">
+                        <option value="">Select a patient...</option>
+                    </select>
+                    <input type="hidden" id="selected_patient_id_short_wizard" name="selected_patient_id">
+                </div>
+                
+                <!-- Email Input Section -->
+                <div class="email-input-container">
+                    <label for="patient_email_short_wizard">Patient Email *</label>
+                    <input type="email" name="patient_email" id="patient_email_short_wizard" placeholder="Enter patient's email address" required>
+                    <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                </div>
+                
+                <button type="submit" id="sendEmailBtnShortWizard">Send Email</button>
+                <button type="button" onclick="clearEmailForm('short_wizard')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+                <input type="hidden" name="send_type" value="short_wizard">
+            </form>
+        </div>
+        <div id="tabFollowup" class="tab-content" style="display:none;">
+            <div id="followupEmailError" class="email-error-message" style="display:none;"></div>
+            
+            <!-- 1st Followup Questionnaire Description -->
+            <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 16px; margin-bottom: 20px; border-radius: 4px;">
+                <h4 style="margin: 0 0 8px 0; color: #e65100; font-size: 16px; font-weight: 600;">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">rate_review</i>
+                    1st Followup Questionnaire
+                </h4>
+                <p style="margin: 0; color: #424242; font-size: 14px; line-height: 1.4;">
+                    VizBriz SQUARE follow-up questionnaire for oral appliance therapy: sleep quality, symptoms, snoring, and treatment experience after starting the appliance.
+                </p>
+            </div>
+            
+            <form class="email-form show" method="POST" onsubmit="return validateEmailTab('followup')">
+                {% if clinic %}<input type="hidden" name="clinic_id" value="{{ clinic.id }}">{% endif %}
+                <h4>Send Followup Link to Patient</h4>
+
+                <!-- Patient Search Section -->
+                <div class="patient-search-container">
+                    <label for="patient_search_followup">Search Patient *</label>
+                    <select id="patient_search_followup" name="patient_search_followup" class="form-control">
+                        <option value="">Select a patient...</option>
+                    </select>
+                    <input type="hidden" id="selected_patient_id_followup" name="selected_patient_id">
+                    <small class="form-text text-muted">Select a patient to generate a personalized follow-up link and QR code.</small>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <strong>Followup Language:</strong>
+                    <div style="display:flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        <button type="button" id="followupLangEnBtn" class="option-button" onclick="setFollowupLanguage('en')" style="background: #ff9800 !important; color: #fff !important; border: none !important; flex: 1; min-width: 150px;">English</button>
+                        <button type="button" id="followupLangHeBtn" class="option-button" onclick="setFollowupLanguage('he')" style="background: #e0e0e0 !important; color: #222 !important; border: none !important; flex: 1; min-width: 150px;">עברית (Hebrew)</button>
+                    </div>
+                </div>
+
+                <div id="followupSharePrompt" style="background: #fff8e1; border-left: 4px solid #ffb300; padding: 14px 16px; margin-bottom: 18px; border-radius: 4px; color: #5d4037; font-size: 14px;">
+                    Select a patient above to view the personalized follow-up link and QR code.
+                </div>
+
+                <div id="followupShareEn" style="display:none;">
+                    <div style="margin-bottom: 18px;">
+                        <strong>Followup Link (English):</strong>
+                        {% if clinic and clinic.dso_id %}
+                            <a id="followupLinkEn" href="{{ base_url }}/vizbriz/followup?lang=en&dso_id={{ clinic.dso_id }}&clinic_id={{ clinic.id }}{% if current_user.is_authenticated and current_user.id %}&dentist_id={{ current_user.id }}{% endif %}" target="_blank" style="color: #e65100; font-weight: bold; text-decoration: underline;">{{ base_url }}/vizbriz/followup?lang=en&dso_id={{ clinic.dso_id }}&clinic_id={{ clinic.id }}{% if current_user.is_authenticated and current_user.id %}&dentist_id={{ current_user.id }}{% endif %}</a>
+                        {% else %}
+                            <a id="followupLinkEn" href="{{ base_url }}/vizbriz/followup?lang=en" target="_blank" style="color: #e65100; font-weight: bold; text-decoration: underline;">{{ base_url }}/vizbriz/followup?lang=en</a>
+                        {% endif %}
+                    </div>
+                    <div class="barcode-container" style="display: block;">
+                        <h4>Followup Questionnaire QR-Code (English)</h4>
+                        <img id="followupQrEn" src="" alt="Followup QR-Code (English)">
+                    </div>
+                </div>
+
+                <div id="followupShareHe" style="display:none;">
+                    {% if clinic and clinic.dso_id %}
+                        {% set followup_hebrew_url = base_url ~ '/vizbriz/followup_hebrew?dso_id=' ~ clinic.dso_id ~ '&clinic_id=' ~ clinic.id ~ (('&dentist_id=' ~ current_user.id) if current_user.is_authenticated and current_user.id else '') %}
+                    {% else %}
+                        {% set followup_hebrew_url = base_url ~ '/vizbriz/followup_hebrew' %}
+                    {% endif %}
+                    <div style="margin-bottom: 18px;">
+                        <strong>Followup Link (Hebrew):</strong>
+                        <a id="followupLinkHe" href="{{ followup_hebrew_url }}" target="_blank" style="color: #e65100; font-weight: bold; text-decoration: underline;">{{ followup_hebrew_url }}</a>
+                    </div>
+                    <div class="barcode-container" style="display: block;">
+                        <h4>Followup Questionnaire QR-Code (Hebrew)</h4>
+                        <img id="followupQrHe" src="" alt="Followup QR-Code (Hebrew)">
+                    </div>
+                </div>
+
+                <!-- Email Input Section -->
+                <div class="email-input-container">
+                    <label for="patient_email_followup">Patient Email *</label>
+                    <input type="email" name="patient_email" id="patient_email_followup" placeholder="Enter patient's email address" required>
+                    <small class="form-text text-muted">Email will auto-fill if patient is selected above</small>
+                </div>
+                
+                <button type="submit" id="sendEmailBtnFollowup">Send Email</button>
+                <button type="button" onclick="clearEmailForm('followup')" style="background: #6c757d; margin-left: 10px;">Cancel</button>
+                <input type="hidden" name="send_type" value="followup">
+                <input type="hidden" name="followup_language" id="followup_language" value="en">
+            </form>
+        </div>
+    </div>
+    </div>
+</div>
+<script>
+var WIZARD_IS_ADMIN = {{ is_admin | tojson }};
+var WIZARD_CONTEXT_PATIENT_ID = {{ context_patient_id | tojson }};
+var FOLLOWUP_QR_EN_BASE = {{ url_for('wizard.followup_qr_code') | tojson }};
+var FOLLOWUP_QR_HE_BASE = {{ url_for('wizard.followup_qr_code_hebrew') | tojson }};
+var followupSelectedPatient = null;
+
+function showTab(tab) {
+    document.getElementById('tabQuiz').style.display = (tab === 'quiz') ? 'block' : 'none';
+    document.getElementById('tabWizard').style.display = (tab === 'wizard') ? 'block' : 'none';
+    document.getElementById('tabShort_wizard').style.display = (tab === 'short_wizard') ? 'block' : 'none';
+    document.getElementById('tabFollowup').style.display = (tab === 'followup') ? 'block' : 'none';
+    document.getElementById('tabQuizBtn').style.setProperty('background', (tab === 'quiz') ? '#3498db' : '#e0e0e0', 'important');
+    document.getElementById('tabQuizBtn').style.setProperty('color', (tab === 'quiz') ? '#fff' : '#222', 'important');
+    document.getElementById('tabWizardBtn').style.setProperty('background', (tab === 'wizard') ? '#2ecc71' : '#e0e0e0', 'important');
+    document.getElementById('tabWizardBtn').style.setProperty('color', (tab === 'wizard') ? '#fff' : '#222', 'important');
+    document.getElementById('tabShortWizardBtn').style.setProperty('background', (tab === 'short_wizard') ? '#9b59b6' : '#e0e0e0', 'important');
+    document.getElementById('tabShortWizardBtn').style.setProperty('color', (tab === 'short_wizard') ? '#fff' : '#222', 'important');
+    document.getElementById('tabFollowupBtn').style.setProperty('background', (tab === 'followup') ? '#ff9800' : '#e0e0e0', 'important');
+    document.getElementById('tabFollowupBtn').style.setProperty('color', (tab === 'followup') ? '#fff' : '#222', 'important');
+    
+    // Clear any error messages when switching tabs
+    document.getElementById('quizEmailError').style.display = 'none';
+    document.getElementById('wizardEmailError').style.display = 'none';
+    document.getElementById('shortWizardEmailError').style.display = 'none';
+    document.getElementById('followupEmailError').style.display = 'none';
+}
+
+function setQuizLanguage(lang) {
+    var enBlock = document.getElementById('quizShareEn');
+    var heBlock = document.getElementById('quizShareHe');
+    if (!enBlock || !heBlock) return;
+
+    enBlock.style.display = (lang === 'en') ? 'block' : 'none';
+    heBlock.style.display = (lang === 'he') ? 'block' : 'none';
+
+    var hiddenLang = document.getElementById('quiz_language');
+    if (hiddenLang) hiddenLang.value = (lang === 'he') ? 'he' : 'en';
+
+    var enBtn = document.getElementById('quizLangEnBtn');
+    var heBtn = document.getElementById('quizLangHeBtn');
+    if (enBtn && heBtn) {
+        enBtn.style.setProperty('background', (lang === 'en') ? '#3498db' : '#e0e0e0', 'important');
+        enBtn.style.setProperty('color', (lang === 'en') ? '#fff' : '#222', 'important');
+        heBtn.style.setProperty('background', (lang === 'he') ? '#3498db' : '#e0e0e0', 'important');
+        heBtn.style.setProperty('color', (lang === 'he') ? '#fff' : '#222', 'important');
+    }
+}
+
+function setFollowupLanguage(lang) {
+    var hiddenLang = document.getElementById('followup_language');
+    if (hiddenLang) hiddenLang.value = (lang === 'he') ? 'he' : 'en';
+
+    var enBtn = document.getElementById('followupLangEnBtn');
+    var heBtn = document.getElementById('followupLangHeBtn');
+    if (enBtn && heBtn) {
+        enBtn.style.setProperty('background', (lang === 'en') ? '#ff9800' : '#e0e0e0', 'important');
+        enBtn.style.setProperty('color', (lang === 'en') ? '#fff' : '#222', 'important');
+        heBtn.style.setProperty('background', (lang === 'he') ? '#ff9800' : '#e0e0e0', 'important');
+        heBtn.style.setProperty('color', (lang === 'he') ? '#fff' : '#222', 'important');
+    }
+
+    refreshFollowupShareVisibility();
+}
+function clearEmailForm(tab) {
+    if (tab === 'quiz') {
+        document.getElementById('patient_email_quiz').value = '';
+        document.getElementById('patient_search_quiz').value = '';
+        document.getElementById('selected_patient_id_quiz').value = '';
+        clearPatientSelection('quiz');
+    } else if (tab === 'wizard') {
+        document.getElementById('patient_email_wizard').value = '';
+        document.getElementById('patient_search_wizard').value = '';
+        document.getElementById('selected_patient_id_wizard').value = '';
+        clearPatientSelection('wizard');
+    } else if (tab === 'short_wizard') {
+        document.getElementById('patient_email_short_wizard').value = '';
+        document.getElementById('patient_search_short_wizard').value = '';
+        document.getElementById('selected_patient_id_short_wizard').value = '';
+        clearPatientSelection('short_wizard');
+    } else if (tab === 'followup') {
+        document.getElementById('patient_email_followup').value = '';
+        document.getElementById('patient_search_followup').value = '';
+        document.getElementById('selected_patient_id_followup').value = '';
+        clearPatientSelection('followup');
+    }
+}
+function validateEmailTab(tab) {
+    var email;
+    var errorDiv;
+    var patientSearch;
+    
+    if (tab === 'quiz') {
+        email = document.getElementById('patient_email_quiz').value;
+        errorDiv = document.getElementById('quizEmailError');
+        patientSearch = document.getElementById('patient_search_quiz');
+    } else if (tab === 'wizard') {
+        email = document.getElementById('patient_email_wizard').value;
+        errorDiv = document.getElementById('wizardEmailError');
+        patientSearch = document.getElementById('patient_search_wizard');
+    } else if (tab === 'followup') {
+        email = document.getElementById('patient_email_followup').value;
+        errorDiv = document.getElementById('followupEmailError');
+        patientSearch = document.getElementById('patient_search_followup');
+    }
+    
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    // Clear any previous error
+    errorDiv.style.display = 'none';
+    
+    // Trim the email and check if it's empty
+    email = email.trim();
+    if (!email) {
+        errorDiv.textContent = 'Please enter an email address.';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Check if email format is valid
+    if (!emailRegex.test(email)) {
+        errorDiv.textContent = 'Please enter a valid email address (e.g., user@example.com).';
+        errorDiv.style.display = 'block';
+        return false;
+    }
+    
+    // Show helpful message if patient is selected but email is different
+    if (patientSearch && patientSearch.value) {
+        const selectedPatient = JSON.parse(patientSearch.value);
+        if (selectedPatient.email && selectedPatient.email !== email) {
+            // User has overridden the auto-filled email - this is fine
+            console.log('User has overridden patient email');
+        }
+    }
+    
+    // If validation passes, disable button and show sending state
+    if (tab === 'quiz') {
+        document.getElementById('sendEmailBtnQuiz').disabled = true;
+        document.getElementById('sendEmailBtnQuiz').textContent = 'Sending...';
+    } else if (tab === 'wizard') {
+        document.getElementById('sendEmailBtnWizard').disabled = true;
+        document.getElementById('sendEmailBtnWizard').textContent = 'Sending...';
+    } else if (tab === 'followup') {
+        document.getElementById('sendEmailBtnFollowup').disabled = true;
+        document.getElementById('sendEmailBtnFollowup').textContent = 'Sending...';
+    }
+    return true;
+}
+
+// Patient search functionality
+$(document).ready(function() {
+    // Force select elements to be visible and functional
+    $('.patient-search-container select').each(function() {
+        $(this).css({
+            'display': 'block',
+            'visibility': 'visible',
+            'opacity': '1',
+            'position': 'relative',
+            'z-index': '10'
+        });
+    });
+    
+    // Additional fix after a short delay to override Materialize
+    setTimeout(function() {
+        $('.patient-search-container select').each(function() {
+            $(this).css({
+                'display': 'block !important',
+                'visibility': 'visible !important',
+                'opacity': '1 !important',
+                'position': 'relative !important',
+                'z-index': '10 !important'
+            });
+        });
+    }, 100);
+    
+    // Initialize patient search for all tabs
+    initializePatientSearch('quiz');
+    initializePatientSearch('wizard');
+    initializePatientSearch('short_wizard');
+    initializePatientSearch('followup');
+
+    // Default quiz language to English on load
+    setQuizLanguage('en');
+    setFollowupLanguage('en');
+    initFollowupLinkBases();
+    refreshFollowupShareVisibility();
+});
+
+function initializePatientSearch(tabType) {
+    const patientSearch = document.getElementById(`patient_search_${tabType}`);
+    const emailInput = document.getElementById(`patient_email_${tabType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${tabType}`);
+    
+    if (patientSearch) {
+        // Load patients when page loads
+        loadPatientsForTab(tabType);
+        
+        // Handle patient selection
+        patientSearch.addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+                const patient = JSON.parse(selectedValue);
+                selectPatientForTab(tabType, patient);
+            } else {
+                // Clear selection
+                clearPatientSelection(tabType);
+            }
+        });
+    }
+}
+
+function loadPatientsForTab(tabType) {
+    const select = document.getElementById(`patient_search_${tabType}`);
+    if (!select) return;
+    
+    fetch(`{{ url_for('wizard.get_patients_for_select') }}`)
+        .then(response => response.json())
+        .then(data => {
+            select.innerHTML = '<option value="">Select a patient...</option>';
+            
+            if (data.patients && data.patients.length > 0) {
+                const sortedPatients = data.patients.sort((a, b) => a.name.localeCompare(b.name));
+                
+                sortedPatients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(patient);
+                    var ctag = (patient.clinic_id != null && patient.clinic_id !== '') ? ` · clinic ${patient.clinic_id}` : ' · no clinic on file';
+                    option.textContent = `${patient.name} (ID: ${patient.id})${WIZARD_IS_ADMIN ? ctag : ''}`;
+                    select.appendChild(option);
+                });
+                if (WIZARD_CONTEXT_PATIENT_ID) {
+                    const p = data.patients.find(function (x) { return x.id === WIZARD_CONTEXT_PATIENT_ID; });
+                    if (p) {
+                        select.value = JSON.stringify(p);
+                        selectPatientForTab(tabType, p, { skipRedirect: true });
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading patients:', error);
+        });
+}
+
+function appendPatientToUrl(baseHref, patient) {
+    if (!baseHref) return baseHref;
+    try {
+        const u = new URL(baseHref);
+        if (patient && patient.id) u.searchParams.set('patient_id', String(patient.id));
+        if (patient && patient.email) u.searchParams.set('email', patient.email);
+        if (patient && patient.name) u.searchParams.set('name', patient.name);
+        return u.toString();
+    } catch (e) {
+        return baseHref;
+    }
+}
+
+function buildFollowupQrUrl(lang, patient) {
+    const base = (lang === 'he') ? FOLLOWUP_QR_HE_BASE : FOLLOWUP_QR_EN_BASE;
+    if (!patient) return base;
+    try {
+        const u = new URL(base, window.location.origin);
+        if (patient.id) u.searchParams.set('patient_id', String(patient.id));
+        if (patient.email) u.searchParams.set('email', patient.email);
+        if (patient.name) u.searchParams.set('name', patient.name);
+        return u.pathname + u.search;
+    } catch (e) {
+        return base;
+    }
+}
+
+function refreshFollowupShareVisibility() {
+    const prompt = document.getElementById('followupSharePrompt');
+    const enBlock = document.getElementById('followupShareEn');
+    const heBlock = document.getElementById('followupShareHe');
+    const hiddenLang = document.getElementById('followup_language');
+    const lang = (hiddenLang && hiddenLang.value === 'he') ? 'he' : 'en';
+    const hasPatient = !!(followupSelectedPatient && followupSelectedPatient.id);
+
+    if (prompt) prompt.style.display = hasPatient ? 'none' : 'block';
+    if (enBlock) enBlock.style.display = (hasPatient && lang === 'en') ? 'block' : 'none';
+    if (heBlock) heBlock.style.display = (hasPatient && lang === 'he') ? 'block' : 'none';
+}
+
+function updateFollowupShareLinks(patient) {
+    followupSelectedPatient = patient || null;
+    const enLink = document.getElementById('followupLinkEn');
+    const heLink = document.getElementById('followupLinkHe');
+    const enQr = document.getElementById('followupQrEn');
+    const heQr = document.getElementById('followupQrHe');
+
+    if (enLink && enLink.dataset.baseHref) {
+        const href = patient ? appendPatientToUrl(enLink.dataset.baseHref, patient) : enLink.dataset.baseHref;
+        enLink.href = href;
+        enLink.textContent = href;
+    }
+    if (heLink && heLink.dataset.baseHref) {
+        const href = patient ? appendPatientToUrl(heLink.dataset.baseHref, patient) : heLink.dataset.baseHref;
+        heLink.href = href;
+        heLink.textContent = href;
+    }
+    if (enQr) {
+        enQr.src = patient ? buildFollowupQrUrl('en', patient) : '';
+    }
+    if (heQr) {
+        heQr.src = patient ? buildFollowupQrUrl('he', patient) : '';
+    }
+
+    refreshFollowupShareVisibility();
+}
+
+function initFollowupLinkBases() {
+    const enLink = document.getElementById('followupLinkEn');
+    const heLink = document.getElementById('followupLinkHe');
+    if (enLink && !enLink.dataset.baseHref) enLink.dataset.baseHref = enLink.href;
+    if (heLink && !heLink.dataset.baseHref) heLink.dataset.baseHref = heLink.href;
+}
+
+function selectPatientForTab(tabType, patient, options) {
+    if (WIZARD_IS_ADMIN && patient && patient.id) {
+        var skip = options && options.skipRedirect;
+        if (WIZARD_CONTEXT_PATIENT_ID != null && parseInt(patient.id, 10) === parseInt(WIZARD_CONTEXT_PATIENT_ID, 10)) {
+            skip = true;
+        }
+        if (!skip) {
+            var u = new URL(window.location.origin + window.location.pathname);
+            u.searchParams.set('patient_id', String(patient.id));
+            u.searchParams.delete('clinic_id');
+            window.location.href = u.toString();
+            return;
+        }
+    }
+    const emailInput = document.getElementById(`patient_email_${tabType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${tabType}`);
+
+    if (patientIdInput) {
+        patientIdInput.value = patient.id;
+    }
+
+    if (emailInput && patient.email) {
+        emailInput.value = patient.email;
+        emailInput.classList.add('email-auto-filled');
+        emailInput.classList.remove('email-manual-entry');
+    } else if (emailInput) {
+        emailInput.value = '';
+        emailInput.classList.add('email-manual-entry');
+        emailInput.classList.remove('email-auto-filled');
+    }
+
+    if (tabType === 'followup') {
+        updateFollowupShareLinks(patient);
+    }
+}
+
+function clearPatientSelection(tabType) {
+    const emailInput = document.getElementById(`patient_email_${tabType}`);
+    const patientIdInput = document.getElementById(`selected_patient_id_${tabType}`);
+    
+    if (patientIdInput) {
+        patientIdInput.value = '';
+    }
+    
+    if (emailInput) {
+        emailInput.classList.remove('email-auto-filled', 'email-manual-entry');
+    }
+
+    if (tabType === 'followup') {
+        updateFollowupShareLinks(null);
+    }
+}
+
+// Default to quiz tab
+showTab('quiz');
+</script>
+{% endblock %} 

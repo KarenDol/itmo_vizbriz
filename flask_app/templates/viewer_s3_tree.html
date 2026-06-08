@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vzibriz Patient Folder Browser</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .tree-view {
+      padding: 20px;
+    }
+    
+    /* Loader Styles */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      color: #333;
+      z-index: 1000;
+    }
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #333;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Vertical Tree View Styling */
+    ul.tree {
+      list-style: none;
+      padding-left: 20px;
+      margin: 0;
+    }
+    li {
+      margin: 5px 0;
+    }
+    
+    /* Folder Styling */
+    .folder {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+    .folder:hover {
+      text-decoration: underline;
+    }
+    .folder-icon {
+      font-size: 1.2em;
+      margin-right: 5px;
+    }
+    .folder-name {
+      font-size: 1em;
+    }
+    
+    /* Viewer Icons Styling */
+    .viewer-icons {
+      margin-left: 25px;
+      display: inline-flex;
+      gap: 10px;
+    }
+    .viewer-icons a {
+      text-decoration: none;
+      color: green;
+      font-size: 1.2em;
+    }
+    .viewer-icons a:hover {
+      text-decoration: underline;
+    }
+    .viewer-icons .count {
+      font-size: 0.8em;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+    
+    /* Subtree (nested folders) */
+    .subtree {
+      margin-left: 20px;
+      margin-top: 5px;
+    }
+    .hidden {
+      display: none;
+    }
+    
+    /* Search Input Styling */
+    #search-input {
+      margin-bottom: 20px;
+      padding: 5px;
+      font-size: 1em;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <span>Building patient tree... Please wait.</span>
+  </div>
+
+  <div id="s3-browser" class="tree-view">
+    <h2>S3 Folder Browser</h2>
+    <!-- Search input (press Enter to trigger search) -->
+    <input type="text" id="search-input" placeholder="Search for folders and press Enter..." />
+    <div id="folder-structure"></div>
+  </div>
+
+  <!-- Include jQuery -->
+  <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script>
+    // When the page loads, fetch the tree JSON from the backend.
+    $(document).ready(function(){
+      $.getJSON("/get_s3_tree", function(data) {
+        if (data.success) {
+          // If the JSON contains a top-level "patients" key, use its value.
+          let treeData = (data.tree && data.tree.patients) ? data.tree.patients : data.tree;
+          // Build the tree HTML with "patients" as the base path.
+          $("#folder-structure").html(buildTreeHtml(treeData, "patients"));
+        } else {
+          $("#folder-structure").html("<p>Error loading tree: " + data.message + "</p>");
+        }
+      })
+      .always(function(){
+        $("#loader").hide();
+      });
+      
+      // Toggle a folder's immediate subtree when its header is clicked.
+      $("#folder-structure").on("click", ".folder", function() {
+        $(this).closest("li").children(".subtree").toggleClass("hidden");
+      });
+      
+      /**
+       * Helper: returns true if the folder's own name (from .folder-name) contains the query.
+       * @param {HTMLElement} li - The <li> element for a folder.
+       * @param {string} query - The search query in lowercase.
+       * @returns {boolean}
+       */
+      function folderNameMatches(li, query) {
+        const folderNameEl = li.querySelector(".folder-name");
+        return folderNameEl && folderNameEl.textContent.toLowerCase().includes(query);
+      }
+      
+      /**
+       * Recursively expand all descendant subtrees within the given <li>.
+       * @param {HTMLElement} li - The <li> element to expand.
+       */
+      function expandDescendants(li) {
+        li.querySelectorAll(".subtree").forEach(function(subtree) {
+          subtree.classList.remove("hidden");
+        });
+        li.querySelectorAll("li").forEach(function(child) {
+          child.style.display = "";
+        });
+      }
+      
+      // Search input handler: trigger search on Enter.
+      $("#search-input").on("keydown", function(e) {
+        if (e.key !== "Enter") return;
+        const query = $(this).val().toLowerCase();
+        const allLis = $("#folder-structure li");
+        if (query === "") {
+          allLis.show();
+          return;
+        }
+        // Hide all folders first.
+        allLis.hide();
+        // For each folder, if its own name matches, show it and expand all its descendants.
+        allLis.each(function() {
+          const li = $(this);
+          if (folderNameMatches(li[0], query)) {
+            li.show();
+            expandDescendants(li[0]);
+            li.parents("li").show();
+          }
+        });
+      });
+    });
+
+    /**
+     * Recursively builds the HTML for the folder tree.
+     * The full folder path is built from the provided currentPath.
+     * If a key is exactly "children", it is skipped so that it is not added to the path.
+     * @param {object} treeObj - The folder tree object.
+     * @param {string} currentPath - The current folder path.
+     * @returns {string} The HTML for the tree.
+     */
+    function buildTreeHtml(treeObj, currentPath = "") {
+      if (typeof treeObj !== "object" || treeObj === null) return "";
+      let html = "<ul class='tree'>";
+      for (const key in treeObj) {
+        // Skip keys named "children" (they are containers).
+        if (key === "children") {
+          html += buildTreeHtml(treeObj[key], currentPath);
+          continue;
+        }
+        const folderPath = currentPath ? `${currentPath}/${key}` : key;
+        const folderData = treeObj[key];
+        html += "<li>";
+        html += `<div class="folder" data-path="${folderPath}">
+                   <span class="folder-icon">📁</span>
+                   <span class="folder-name">${key}</span>
+                 </div>`;
+        let iconsHtml = "";
+        if (folderData.counts && typeof folderData.counts === "object") {
+          const dicomCount = folderData.counts.dicom || 0;
+          const stlCount = folderData.counts.stl || 0;
+          const imageCount = folderData.counts.images || 0;
+          if (dicomCount || stlCount || imageCount) {
+            iconsHtml += `<div class="viewer-icons">`;
+            if (dicomCount > 0) {
+              iconsHtml += `<a class="dicom-viewer" href="/folder_selection/dicom/${encodeURIComponent(folderPath)}" target="_blank" title="View DICOM files">
+                              🩻<span class="count">${dicomCount}</span>
+                             </a>`;
+            }
+            if (stlCount > 0) {
+              iconsHtml += `<a class="stl-viewer" href="/folder_selection/stl/${encodeURIComponent(folderPath)}" target="_blank" title="View 3D Models">
+                              📦<span class="count">${stlCount}</span>
+                             </a>`;
+            }
+            if (imageCount > 0) {
+              iconsHtml += `<a class="image-viewer" href="/folder_selection/image/${encodeURIComponent(folderPath)}" target="_blank" title="View Images">
+                              🖼️<span class="count">${imageCount}</span>
+                             </a>`;
+            }
+            iconsHtml += `</div>`;
+          }
+        }
+        html += iconsHtml;
+        // If there are children, build the nested tree.
+        if (folderData.children && typeof folderData.children === "object" && Object.keys(folderData.children).length > 0) {
+          html += `<div class="subtree hidden">` + buildTreeHtml(folderData.children, folderPath) + `</div>`;
+        }
+        html += "</li>";
+      }
+      html += "</ul>";
+      return html;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+{% extends "wizard_base.html" %}
+{% block content %}
+<div class="container">
+    <h2>HIPAA Authorization for Disclosure of Personal Health Information</h2>
+    <form id="hipaa-form" action="/wizard/stage6_hipaa_authorization" method="POST" enctype="multipart/form-data">
+        <p>I hereby authorize all medical sources to disclose my protected health information to:</p>
+        <p><strong>{{ clinic.name }} and their staff ("{{ clinic.name }}")</strong><br>
+           <strong>Vizbriz Ltd. ("Vizbriz")</strong></p>
+
+        <p>This Authorization for release of information shall be in force and effect indefinitely from the date of signature, and shall cover all past, present, and future periods of healthcare services.</p>
+
+        <p>I understand that I have the right to revoke this authorization, in writing, at any time. I understand that a revocation is not effective to the extent that any person or entity has already acted in reliance on my authorization.</p>
+
+        <p>This authorization to disclose my protected health information is subject to the exception of the following information (check all that apply):</p>
+
+        <!-- Checkboxes for exceptions -->
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="exceptions[]" value="Mental health records" id="exception1">
+                <label class="form-check-label" for="exception1">Mental health records</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="exceptions[]" value="Communicable diseases" id="exception2">
+                <label class="form-check-label" for="exception2">Communicable diseases (including HIV and AIDS)</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="exceptions[]" value="Alcohol/drug abuse treatment" id="exception3">
+                <label class="form-check-label" for="exception3">Alcohol/drug abuse treatment</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="exceptions[]" value="Other" id="exception4">
+                <label class="form-check-label" for="exception4">Other (please specify):</label>
+                <input type="text" class="form-control mt-1" name="other_exception" placeholder="Enter details">
+            </div>
+        </div>
+
+        <p>I authorize that this protected health information regarding me may be used by both {{ clinic.name }} and Vizbriz for treatment, payment, healthcare operations, and business purposes.</p>
+
+        <p>I understand that my treatment, payment, enrollment, or eligibility for benefits is not and will not be conditioned on whether I sign this authorization.</p>
+
+        <p>I understand that information used or disclosed pursuant to this authorization may be further disclosed and may no longer be protected by federal or state law.</p>
+
+        <h5>Required Information:</h5>
+
+        <!-- Personal Information Inputs -->
+        <div class="mb-3">
+            <label for="patient-name" class="form-label">Patient Name:</label>
+            <input type="text" class="form-control" id="patient-name" name="patient_name" value="{{ session['personal_info']['first_name'] }} {{ session['personal_info']['middle_name'] }} {{ session['personal_info']['last_name'] }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="patient-dob" class="form-label">Date of Birth:</label>
+            <input type="date" class="form-control" id="patient-dob" name="patient_dob" value="{{ session['personal_info']['dob'] }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="patient-ssn" class="form-label">Social Security # (last 4 digits):</label>
+            <input type="text" class="form-control" id="patient-ssn" name="patient_ssn" maxlength="4" pattern="\d{4}" placeholder="####" required>
+        </div>
+        <div class="mb-3">
+            <label for="patient-address" class="form-label">Address:</label>
+            <input type="text" class="form-control" id="patient-address" name="patient_address" value="{{ session['personal_info']['address'] }}" required>
+        </div>
+
+        <!-- Signature section -->
+        <div class="mb-3">
+            <label for="signature" class="form-label"><strong>Patient Signature:</strong></label>
+            <canvas id="signature-pad" class="signature-canvas border border-dark"></canvas>
+            <input type="hidden" name="signature" id="signature-input" required>
+            <small class="text-danger" id="signature-error" style="display: none;">Signature is required.</small>
+            <button type="button" id="clear-signature" class="btn btn-secondary mt-2">Clear Signature</button>
+        </div>
+
+        <!-- Display Date -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Date:</strong></label>
+            <p id="current-date"></p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress my-3">
+            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 90%;" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">90%</div>
+        </div>
+
+        <!-- Screenshot hidden input -->
+        <input type="hidden" name="form_screenshot" id="form_screenshot" required>
+
+        <!-- Submit button aligned to the right -->
+        <div class="d-flex justify-content-end">
+            <button type="button" id="next-button" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+
+<!-- Responsive CSS -->
+<style>
+    .signature-canvas {
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+    }
+    @media (max-width: 768px) {
+        .signature-canvas {
+            max-height: 150px;
+        }
+    }
+</style>
+
+<!-- Include html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('hipaa-form');
+        const signatureInput = document.getElementById('signature-input');
+        const screenshotInput = document.getElementById('form_screenshot');
+        const signatureCanvas = document.getElementById('signature-pad');
+        const signaturePad = new SignaturePad(signatureCanvas, {
+            backgroundColor: 'rgba(255, 255, 255, 0)',
+            penColor: 'black',
+        });
+        const progressBar = document.getElementById('progress-bar');
+        const nextButton = document.getElementById('next-button');
+        const signatureError = document.getElementById('signature-error');
+        let lastWindowHeight = window.innerHeight;
+
+        // Initialize progress bar
+        function initializeProgressBar() {
+            const progressValue = 90; // Set the progress percentage
+            progressBar.style.width = `${progressValue}%`;
+            progressBar.setAttribute('aria-valuenow', progressValue);
+            progressBar.textContent = `${progressValue}%`;
+        }
+        initializeProgressBar();
+
+        // Resize canvas for responsiveness without losing signature
+        function resizeCanvas() {
+            const currentHeight = window.innerHeight;
+            if (Math.abs(lastWindowHeight - currentHeight) > 100) {
+                lastWindowHeight = currentHeight;
+                const signatureData = signaturePad.toDataURL(); // Save signature
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                signatureCanvas.width = signatureCanvas.offsetWidth * ratio;
+                signatureCanvas.height = signatureCanvas.offsetHeight * ratio;
+                signatureCanvas.getContext('2d').scale(ratio, ratio);
+                signaturePad.fromDataURL(signatureData); // Restore signature
+            }
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Clear signature
+        document.getElementById('clear-signature').addEventListener('click', function () {
+            signaturePad.clear();
+            signatureInput.value = '';
+        });
+
+        // Save signature on input
+        signaturePad.onEnd = () => {
+            signatureInput.value = signaturePad.toDataURL();
+            signatureError.style.display = 'none';
+        };
+
+        // Automatically set the current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString();
+
+        // Screenshot and submit logic on button click
+        nextButton.addEventListener('click', function (event) {
+            // Validate signature input
+            if (!signatureInput.value) {
+                signatureError.style.display = 'block';
+                alert('Please provide your signature before submitting.');
+                return;
+            }
+            // Disable the button to prevent multiple clicks
+            nextButton.disabled = true;
+            // Capture screenshot with increased scale, width, and height
+            html2canvas(document.querySelector('.container'), {
+                width: 1024, // Desired width for the screenshot (e.g., desktop width)
+            }).then(function (canvas) {
+                // Set the screenshot value
+                screenshotInput.value = canvas.toDataURL('image/png');
+                // Submit the form
+                form.submit();
+            }).catch(function (error) {
+                console.error('Screenshot capture failed:', error);
+                alert('An error occurred while capturing the form. Please try again.');
+                nextButton.disabled = false; // Re-enable the button
+            });
+        });
+    });
+</script>
+
+{% endblock %}

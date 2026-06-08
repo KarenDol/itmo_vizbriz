@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Step Wizard Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .step {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .step-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ddd;
+            margin: 0 10px;
+        }
+        .step-dot.active {
+            background: #007bff;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .patient-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>3-Step Wizard Test</h1>
+    
+    <div class="step-indicator">
+        <div class="step-dot active" id="step1-dot"></div>
+        <div class="step-dot" id="step2-dot"></div>
+        <div class="step-dot" id="step3-dot"></div>
+    </div>
+
+    <!-- Step 1: Introduction -->
+    <div id="step1" class="step active">
+        <h2>Step 1: Introduction</h2>
+        <p>Welcome to the sleep assessment. This is step 1.</p>
+        <button onclick="nextStep()">Start Assessment</button>
+    </div>
+
+    <!-- Step 2: Personal Information -->
+    <div id="step2" class="step">
+        <h2>Step 2: Personal Information</h2>
+        <form id="personalInfoForm">
+            <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" name="full_name" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address *</label>
+                <input type="email" name="patient_email" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="text" name="phone" required>
+            </div>
+            <div class="form-group">
+                <label>Address *</label>
+                <textarea name="address" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Date of Birth *</label>
+                <input type="date" name="dob" required>
+            </div>
+            <div class="form-group">
+                <label>Gender *</label>
+                <select name="gender" required>
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Referred by Doctor/Clinic *</label>
+                <input type="text" name="doctor_referral" required>
+            </div>
+            <button type="button" onclick="prevStep()">Back</button>
+            <button type="button" onclick="nextStep()">Continue to Assessment</button>
+        </form>
+    </div>
+
+    <!-- Step 3: Clinical Assessment -->
+    <div id="step3" class="step">
+        <h2>Step 3: Clinical Assessment</h2>
+        <div class="patient-summary">
+            <h4>Patient Information Summary</h4>
+            <div id="patientSummary"></div>
+        </div>
+        
+        <form id="clinicalForm">
+            <div class="form-group">
+                <label>Have you been diagnosed with sleep apnea? *</label>
+                <select name="diagnosed" required>
+                    <option value="">Select an option</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Do you snore? *</label>
+                <select name="snoring" required>
+                    <option value="">Select an option</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                    <option value="dont_know">Don't know</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Do you feel tired during the day? *</label>
+                <select name="tiredness" required>
+                    <option value="">Select an option</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Is your weight above the recommended range or BMI ≥ 25? *</label>
+                <select name="weight" required>
+                    <option value="">Select an option</option>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                    <option value="not_sure">Not sure</option>
+                </select>
+            </div>
+            <button type="button" onclick="prevStep()">Back</button>
+            <button type="submit">Submit Assessment</button>
+        </form>
+    </div>
+
+    <div id="results" style="display: none;">
+        <h2>Results</h2>
+        <div id="resultContent"></div>
+    </div>
+
+    <script>
+        let personalInfo = {};
+
+        function nextStep() {
+            console.log('nextStep called');
+            const currentStep = getCurrentStep();
+            
+            if (currentStep === 1) {
+                console.log('Moving from step 1 to step 2');
+                document.getElementById('step1-dot').classList.remove('active');
+                document.getElementById('step2-dot').classList.add('active');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                console.log('Step 2 should now be visible');
+            } else if (currentStep === 2) {
+                console.log('Moving from step 2 to step 3');
+                const personalForm = document.getElementById('personalInfoForm');
+                if (personalForm.checkValidity()) {
+                    // Collect personal info
+                    const formData = new FormData(personalForm);
+                    personalInfo = {};
+                    formData.forEach((value, key) => {
+                        personalInfo[key] = value;
+                    });
+                    
+                    document.getElementById('step2-dot').classList.remove('active');
+                    document.getElementById('step3-dot').classList.add('active');
+                    document.getElementById('step2').classList.remove('active');
+                    document.getElementById('step3').classList.add('active');
+                    updatePatientSummary();
+                    console.log('Step 3 should now be visible');
+                } else {
+                    console.log('Personal info form validation failed');
+                    personalForm.reportValidity();
+                }
+            }
+        }
+
+        function prevStep() {
+            console.log('prevStep called');
+            const currentStep = getCurrentStep();
+            
+            if (currentStep === 2) {
+                console.log('Moving from step 2 to step 1');
+                document.getElementById('step2-dot').classList.remove('active');
+                document.getElementById('step1-dot').classList.add('active');
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step1').classList.add('active');
+            } else if (currentStep === 3) {
+                console.log('Moving from step 3 to step 2');
+                document.getElementById('step3-dot').classList.remove('active');
+                document.getElementById('step2-dot').classList.add('active');
+                document.getElementById('step3').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+            }
+        }
+
+        function getCurrentStep() {
+            if (document.getElementById('step1').classList.contains('active')) return 1;
+            if (document.getElementById('step2').classList.contains('active')) return 2;
+            if (document.getElementById('step3').classList.contains('active')) return 3;
+            return 1;
+        }
+
+        function updatePatientSummary() {
+            const summary = document.getElementById('patientSummary');
+            summary.innerHTML = `
+                <strong>Name:</strong> ${personalInfo.full_name}<br>
+                <strong>Email:</strong> ${personalInfo.patient_email}<br>
+                <strong>Phone:</strong> ${personalInfo.phone}<br>
+                <strong>Gender:</strong> ${personalInfo.gender}<br>
+                <strong>Referred by:</strong> ${personalInfo.doctor_referral}
+            `;
+        }
+
+        // Form submission
+        document.getElementById('clinicalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Clinical form submitted');
+            
+            const clinicalFormData = new FormData(this);
+            const clinicalAnswers = {};
+            clinicalFormData.forEach((value, key) => {
+                clinicalAnswers[key] = value;
+            });
+            
+            // Combine personal info with clinical answers
+            const answers = { ...personalInfo, ...clinicalAnswers };
+            
+            console.log('Combined form data:', answers);
+            
+            // Show results
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('resultContent').innerHTML = `
+                <h3>Assessment Complete!</h3>
+                <h4>Personal Information:</h4>
+                <p><strong>Name:</strong> ${personalInfo.full_name}</p>
+                <p><strong>Email:</strong> ${personalInfo.patient_email}</p>
+                <p><strong>Phone:</strong> ${personalInfo.phone}</p>
+                <p><strong>Gender:</strong> ${personalInfo.gender}</p>
+                <p><strong>Referred by:</strong> ${personalInfo.doctor_referral}</p>
+                
+                <h4>Clinical Assessment:</h4>
+                <p><strong>Diagnosed with sleep apnea:</strong> ${clinicalAnswers.diagnosed}</p>
+                <p><strong>Snoring:</strong> ${clinicalAnswers.snoring}</p>
+                <p><strong>Daytime tiredness:</strong> ${clinicalAnswers.tiredness}</p>
+                <p><strong>Weight/BMI concern:</strong> ${clinicalAnswers.weight}</p>
+            `;
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing 3-step test wizard...');
+            console.log('Step 1 should be visible');
+        });
+    </script>
+</body>
+</html> 

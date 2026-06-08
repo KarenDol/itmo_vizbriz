@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real DICOM Viewer - {{ folder_name }} - {{ patient_name }}</title>
+    
+    <!-- JSZip for extracting pre-zipped DICOM files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Cornerstone.js DICOM Viewer Libraries -->
+    <script src="{{ url_for('static', filename='js/dicomParser.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstone.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneMath.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoader.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoaderWebWorker.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoaderCodecs.js') }}"></script>
+    <script src="https://unpkg.com/cornerstone-web-image-loader@2.3.0/dist/cornerstoneWebImageLoader.min.js"></script>
+    <script src="{{ url_for('static', filename='js/hammer.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneTools.min.js') }}"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            position: relative;
+        }
+        
+        #header .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        #header .logo {
+            height: 40px;
+            width: auto;
+        }
+        
+        #header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        #header .patient-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        #header .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: rgba(220, 38, 38, 0.8);
+        }
+        
+        button.secondary:hover {
+            background: rgba(220, 38, 38, 1);
+        }
+        
+        .mode-indicator {
+            background: rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        #toolbar {
+            background: rgba(24, 24, 27, 0.95);
+            padding: 12px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            border-bottom: 1px solid #3a3a3a;
+            flex-wrap: wrap;
+        }
+        
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .tool-group label {
+            font-size: 13px;
+            color: #ccc;
+            margin-right: 4px;
+        }
+        
+        .tool-group input[type="range"] {
+            width: 260px;
+        }
+        
+        .tool-group input[type="number"] {
+            width: 72px;
+            padding: 6px 8px;
+            background: #1f2937;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            color: #f9fafb;
+        }
+
+        .tool-group select {
+            padding: 6px 12px;
+            background: #3a3a3a;
+            color: white;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        #viewer-container {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 140px);
+            gap: 6px;
+            background: #050505;
+            padding: 6px;
+        }
+        
+        .viewer-pane {
+            position: relative;
+            background: #111;
+            border: 1px solid #1f1f1f;
+            overflow: hidden;
+        }
+
+        #axial-pane {
+            grid-column: 1 / 2;
+            grid-row: 1 / span 2;
+        }
+
+        #sagittal-pane {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        #coronal-pane {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .viewer-pane.fullscreen {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            z-index: 100;
+        }
+        
+        .viewer-pane .viewport-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .orientation-label {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+        
+        .orientation-top { top: 12px; left: 50%; transform: translateX(-50%); }
+        .orientation-bottom { bottom: 12px; left: 50%; transform: translateX(-50%); }
+        .orientation-left { left: 12px; top: 50%; transform: translateY(-50%); }
+        .orientation-right { right: 12px; top: 50%; transform: translateY(-50%); }
+
+        #axial-pane .orientation-top,
+        #axial-pane .orientation-bottom { color: #ef4444; }
+        #axial-pane .orientation-left,
+        #axial-pane .orientation-right { color: #10b981; }
+
+        #coronal-pane .orientation-left,
+        #coronal-pane .orientation-right { color: #ef4444; }
+        #coronal-pane .orientation-top,
+        #coronal-pane .orientation-bottom { color: #38bdf8; }
+
+        #sagittal-pane .orientation-left,
+        #sagittal-pane .orientation-right { color: #10b981; }
+        #sagittal-pane .orientation-top,
+        #sagittal-pane .orientation-bottom { color: #38bdf8; }
+
+        .viewer-pane .cornerstone-element {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        
+        /* Crosshairs overlay */
+        .crosshairs-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .crosshairs-overlay svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .crosshair-line {
+            stroke-width: 2.5;
+            stroke-opacity: 0.95;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.85));
+        }
+
+        /* Slice indicator */
+        .slice-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        /* Window/Level indicator */
+        .wl-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        #loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #333;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #error {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        #error h3 {
+            margin-bottom: 12px;
+        }
+
+        #loading-progress {
+            color: #fff;
+            font-size: 14px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='branding/vizbriz_logo.svg') }}" alt="VizBriz" class="logo" 
+                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/logos/vizbriz_logo.png') }}'; this.onerror=function(){this.style.display='none';};">
+            <div>
+                <h1 id="viewer-title">🔬 Real DICOM Viewer</h1>
+                <div class="patient-info">Patient: {{ patient_name }} | Folder: {{ folder_name }}</div>
+            </div>
+        </div>
+        <div class="controls">
+            <span id="mode-indicator" class="mode-indicator">Direct S3</span>
+            <button id="generate-volume-btn" onclick="generateVolume()" title="Convert DICOM to streamable volume (NRRD)">📦 Generate Volume</button>
+            <button onclick="resetAllViews()">🔄 Reset Views</button>
+            <button onclick="window.close()" class="secondary">✕ Close</button>
+        </div>
+    </div>
+    
+    <div id="toolbar">
+        <div class="tool-group">
+            <label>Window:</label>
+            <select id="window-preset">
+                <option value="custom">Custom</option>
+                <option value="bone">Bone (2000/500)</option>
+                <option value="soft" selected>Soft Tissue (2000/1200)</option>
+                <option value="lung">Lung (1500/-600)</option>
+            </select>
+        </div>
+        <div class="tool-group">
+            <label>Window Width:</label>
+            <input type="range" id="window-width" min="1" max="4000" value="2000" step="1">
+            <input type="number" id="window-width-input" min="1" max="4000" value="2000" step="1">
+        </div>
+        <div class="tool-group">
+            <label>Window Center:</label>
+            <input type="range" id="window-center" min="-2000" max="2000" value="1200" step="1">
+            <input type="number" id="window-center-input" min="-2000" max="2000" value="1200" step="1">
+        </div>
+        <div class="tool-group">
+            <label>Tool:</label>
+            <select id="tool-select">
+                <option value="Wwwc">Window/Level</option>
+                <option value="Zoom">Zoom</option>
+                <option value="Pan">Pan</option>
+                <option value="Length">Measure Length</option>
+                <option value="Angle">Measure Angle</option>
+            </select>
+        </div>
+        <div class="tool-group">
+            <button onclick="clearAnnotations()">Clear Annotations</button>
+        </div>
+    </div>
+    
+    <div id="viewer-container">
+        <!-- Axial View (Large Left) -->
+        <div class="viewer-pane" id="axial-pane">
+            <div class="viewport-label">Axial View</div>
+            <div class="orientation-label orientation-top">A</div>
+            <div class="orientation-label orientation-bottom">P</div>
+            <div class="orientation-label orientation-left">R</div>
+            <div class="orientation-label orientation-right">L</div>
+            <div class="cornerstone-element" id="axial-viewport"></div>
+            <div class="crosshairs-overlay" id="axial-crosshairs"></div>
+            <div class="slice-indicator" id="axial-slice">Slice: 0 / 0</div>
+            <div class="wl-indicator" id="axial-wl">W/L: 2000 / 1200</div>
+        </div>
+
+        <!-- Sagittal View (Top Right) -->
+        <div class="viewer-pane" id="sagittal-pane">
+            <div class="viewport-label">Sagittal View</div>
+            <div class="orientation-label orientation-top">S</div>
+            <div class="orientation-label orientation-bottom">I</div>
+            <div class="orientation-label orientation-left">A</div>
+            <div class="orientation-label orientation-right">P</div>
+            <div class="cornerstone-element" id="sagittal-viewport"></div>
+            <div class="crosshairs-overlay" id="sagittal-crosshairs"></div>
+            <div class="slice-indicator" id="sagittal-slice">Slice: 0 / 0</div>
+            <div class="wl-indicator" id="sagittal-wl">W/L: 2000 / 1200</div>
+        </div>
+
+        <!-- Coronal View (Bottom Right) -->
+        <div class="viewer-pane" id="coronal-pane">
+            <div class="viewport-label">Coronal View</div>
+            <div class="orientation-label orientation-top">S</div>
+            <div class="orientation-label orientation-bottom">I</div>
+            <div class="orientation-label orientation-left">R</div>
+            <div class="orientation-label orientation-right">L</div>
+            <div class="cornerstone-element" id="coronal-viewport"></div>
+            <div class="crosshairs-overlay" id="coronal-crosshairs"></div>
+            <div class="slice-indicator" id="coronal-slice">Slice: 0 / 0</div>
+            <div class="wl-indicator" id="coronal-wl">W/L: 2000 / 1200</div>
+        </div>
+    </div>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <div id="loading-progress">Loading DICOM files...</div>
+    </div>
+    
+    <div id="error" style="display: none;">
+        <h3>❌ Error Loading CBCT Data</h3>
+        <p id="error-message"></p>
+        <button onclick="window.close()" style="margin-top: 16px;">Close</button>
+    </div>
+    
+    <script>
+        // Configuration
+        const PATIENT_ID = Number('{{ patient_id }}');
+        const FOLDER_NAME = '{{ folder_name }}';
+        const WADO_WORKER_URL = "{{ url_for('static', filename='js/cornerstoneWADOImageLoaderWebWorker.js') }}";
+        const WADO_CODECS_URL = "{{ url_for('static', filename='js/cornerstoneWADOImageLoaderCodecs.js') }}";
+        
+        // Pre-zipped file configuration (faster loading if available)
+        const ZIP_URL = '{{ zip_url|default("", true)|safe }}';
+        const USE_API = {{ 'true' if use_api|default(true) else 'false' }};
+        
+        // Global state
+        let dicomFiles = [];
+        let imageIds = [];
+        let loadedImages = [];
+        let volumeData = null; // 3D volume array [z][y][x]
+        
+        let sagittalElement = null;
+        let coronalElement = null;
+        let axialElement = null;
+        
+        // Volume dimensions
+        let volumeDimensions = { x: 0, y: 0, z: 0 };
+        let volumeSpacing = { x: 1, y: 1, z: 1 };
+        let volumeOrigin = { x: 0, y: 0, z: 0 };
+        
+        // Current slice indices
+        let currentAxialIndex = 0;
+        let currentCoronalIndex = 0;
+        let currentSagittalIndex = 0;
+        
+        // Crosshair positions (normalized 0-1)
+        let crosshairX = 0.5;
+        let crosshairY = 0.5;
+        let crosshairZ = 0.5;
+        
+        let activeTool = 'Wwwc';
+        let windowWidth = 2000;
+        let windowCenter = 1200;
+        
+        const CROSSHAIR_COLORS = {
+            axial: { vertical: '#ef4444', horizontal: '#10b981' },
+            coronal: { vertical: '#ef4444', horizontal: '#38bdf8' },
+            sagittal: { vertical: '#10b981', horizontal: '#38bdf8' }
+        };
+        
+        // Orientation configuration - adjust these if slices appear wrong
+        // These can be toggled via UI controls if needed
+        const ORIENTATION_CONFIG = {
+            coronal: {
+                flipZ: true,      // Flip Z axis in slice extraction (superior at top)
+                flipX: false,     // Flip X axis (left-right)
+                viewportVFlip: true,  // Viewport vertical flip
+                viewportHFlip: false, // Viewport horizontal flip
+                reverseY: false   // Reverse Y index when extracting
+            },
+            sagittal: {
+                flipZ: true,      // Flip Z axis in slice extraction (superior at top)
+                flipY: false,     // Flip Y axis (anterior-posterior)
+                viewportVFlip: true,  // Viewport vertical flip
+                viewportHFlip: false, // Viewport horizontal flip
+                reverseX: false   // Reverse X index when extracting
+            }
+        };
+        
+        const requiresVerticalFlip = (view) => {
+            return ORIENTATION_CONFIG[view]?.viewportVFlip || false;
+        };
+        
+        // Initialize Cornerstone
+        cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+        cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+        cornerstoneWADOImageLoader.external.cornerstoneMath = cornerstoneMath;
+        cornerstoneWADOImageLoader.configure({
+            useWebWorkers: true
+        });
+        cornerstoneWADOImageLoader.webWorkerManager.initialize({
+            webWorkerPath: WADO_WORKER_URL,
+            taskConfiguration: {
+                decodeTask: {
+                    codecsPath: WADO_CODECS_URL
+                }
+            }
+        });
+
+        if (typeof cornerstoneWebImageLoader !== 'undefined') {
+            cornerstoneWebImageLoader.external.cornerstone = cornerstone;
+            cornerstoneWebImageLoader.configure({ useWebWorkers: false });
+            cornerstone.registerImageLoader('http', cornerstoneWebImageLoader.loadImage);
+            cornerstone.registerImageLoader('https', cornerstoneWebImageLoader.loadImage);
+        }
+
+        cornerstoneTools.external.cornerstone = cornerstone;
+        cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+        cornerstoneTools.external.Hammer = Hammer;
+        cornerstoneTools.init();
+        
+        // Initialize on load
+        window.addEventListener('load', function() {
+            initializeViewer();
+        });
+
+        async function initializeViewer() {
+            try {
+                // ALWAYS load directly from S3 - faster than ZIP extraction
+                console.log('Loading DICOM files directly from S3...');
+                updateLoadingProgress('Fetching DICOM file list...');
+                
+                // Fetch DICOM files with presigned URLs
+                const response = await fetch(`/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/dicom_files`, {
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success || !data.files || data.files.length === 0) {
+                    showError('No DICOM files found in this CBCT folder.');
+                    return;
+                }
+                
+                dicomFiles = data.files;
+                const totalFiles = dicomFiles.length;
+                console.log(`Found ${totalFiles} DICOM files`);
+                updateLoadingProgress(`Found ${totalFiles} DICOM files. Starting progressive load...`);
+                
+                // Setup viewports FIRST so we can display progressively
+                setupViewportElements();
+                setupTools();
+                setupControls();
+                setupCrosshairs();
+                
+                // Progressive loading with memory management
+                await loadDicomVolumeProgressive(dicomFiles);
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error initializing viewer:', error);
+                showError('Failed to initialize CBCT viewer: ' + error.message);
+            }
+        }
+        
+        /**
+         * Progressive DICOM loading - shows images as they load, memory efficient
+         */
+        async function loadDicomVolumeProgressive(files) {
+            const totalFiles = files.length;
+            
+            // Sort files by instance number or filename for proper ordering
+            files.sort((a, b) => {
+                const numA = parseInt((a.name || a.filename || '').replace(/\D/g, '')) || 0;
+                const numB = parseInt((b.name || b.filename || '').replace(/\D/g, '')) || 0;
+                return numA - numB;
+            });
+            
+            // Load first image to get dimensions
+            // Use proxy endpoint instead of presigned URLs to avoid CORS/Web Worker issues
+            updateLoadingProgress('Analyzing first DICOM file...');
+            
+            const firstFile = files[0];
+            console.log('First file object:', firstFile);
+            
+            const firstFilename = firstFile.filename || firstFile.name || '';
+            if (!firstFilename) {
+                console.error('First file has no filename:', firstFile);
+                throw new Error('DICOM file has no filename. Check API response.');
+            }
+            
+            const firstProxyUrl = `/api/dicom/proxy/${PATIENT_ID}/${encodeURIComponent(FOLDER_NAME)}/${encodeURIComponent(firstFilename)}`;
+            console.log('Loading first image from:', firstProxyUrl);
+            const firstImageId = `wadouri:${firstProxyUrl}`;
+            
+            let firstImage;
+            try {
+                updateLoadingProgress(`Loading: ${firstFilename}...`);
+                firstImage = await cornerstone.loadImage(firstImageId);
+                console.log('First image loaded successfully:', {
+                    columns: firstImage.columns,
+                    rows: firstImage.rows,
+                    hasPixelData: !!firstImage.getPixelData
+                });
+            } catch (err) {
+                console.error('Failed to load first image:', err);
+                console.error('Proxy URL was:', firstProxyUrl);
+                throw new Error(`Failed to load DICOM file "${firstFilename}". Error: ${err.message}`);
+            }
+            
+            // Initialize volume dimensions
+            const width = firstImage.columns;
+            const height = firstImage.rows;
+            const depth = totalFiles;
+            
+            volumeDimensions.x = width;
+            volumeDimensions.y = height;
+            volumeDimensions.z = depth;
+            
+            // Get spacing info
+            if (firstImage.rowPixelSpacing && firstImage.columnPixelSpacing) {
+                volumeSpacing.x = firstImage.columnPixelSpacing;
+                volumeSpacing.y = firstImage.rowPixelSpacing;
+            }
+            if (firstImage.sliceThickness) {
+                volumeSpacing.z = firstImage.sliceThickness;
+            }
+            
+            console.log(`Volume dimensions: ${width}x${height}x${depth}`);
+            
+            // Initialize volume with single typed array (memory efficient)
+            // Using Int16Array for CT data (HU values can be negative)
+            const volumeSize = width * height * depth;
+            console.log(`Allocating volume: ${(volumeSize * 2 / 1024 / 1024).toFixed(1)} MB`);
+            
+            try {
+                volumeData = new Int16Array(volumeSize);
+            } catch (e) {
+                console.error('Failed to allocate volume, trying smaller:', e);
+                // Fall back to loading fewer slices
+                throw new Error('Not enough memory for this volume. Try a smaller dataset.');
+            }
+            
+            // Store reference image properties
+            const refSlope = firstImage.slope || 1;
+            const refIntercept = firstImage.intercept || 0;
+            
+            // Extract first slice pixels and FREE the image
+            extractSliceToVolume(firstImage, 0, width, height);
+            cornerstone.imageCache.purgeCache(); // Free memory
+            
+            // Initialize slice indices to middle
+            currentAxialIndex = Math.floor(depth / 2);
+            currentCoronalIndex = Math.floor(height / 2);
+            currentSagittalIndex = Math.floor(width / 2);
+            
+            // Show first axial slice immediately
+            loadedImages = [firstImage]; // Keep just for display
+            try {
+                displayAxialSlice(0);
+                updateSliceIndicators();
+            } catch (displayErr) {
+                console.warn('Could not display first slice yet:', displayErr);
+            }
+            
+            // Load remaining files in parallel batches
+            const BATCH_SIZE = 20; // Load 20 files at a time
+            let loadedCount = 1;
+            
+            // Track which slices are loaded for progressive MPR
+            const slicesLoaded = new Array(depth).fill(false);
+            slicesLoaded[0] = true;
+            
+            for (let batchStart = 1; batchStart < totalFiles; batchStart += BATCH_SIZE) {
+                const batchEnd = Math.min(batchStart + BATCH_SIZE, totalFiles);
+                const batchPromises = [];
+                
+                for (let i = batchStart; i < batchEnd; i++) {
+                    const sliceIndex = i;
+                    // Use proxy endpoint instead of presigned URLs to avoid CORS/Web Worker issues
+                    const filename = files[i].filename || files[i].name;
+                    const proxyUrl = `/api/dicom/proxy/${PATIENT_ID}/${encodeURIComponent(FOLDER_NAME)}/${encodeURIComponent(filename)}`;
+                    const imageId = `wadouri:${proxyUrl}`;
+                    
+                    batchPromises.push(
+                        cornerstone.loadImage(imageId)
+                            .then(image => {
+                                // Extract pixels to volume immediately
+                                extractSliceToVolume(image, sliceIndex, width, height);
+                                slicesLoaded[sliceIndex] = true;
+                                loadedCount++;
+                                
+                                // Store for axial display only
+                                loadedImages[sliceIndex] = image;
+                                
+                                return sliceIndex;
+                            })
+                            .catch(err => {
+                                console.warn(`Failed to load slice ${sliceIndex}:`, err);
+                                loadedCount++;
+                                return null;
+                            })
+                    );
+                }
+                
+                // Wait for batch
+                await Promise.all(batchPromises);
+                
+                // Update progress
+                const percent = Math.round((loadedCount / totalFiles) * 100);
+                updateLoadingProgress(`Loading DICOM: ${loadedCount}/${totalFiles} (${percent}%)`);
+                
+                // Progressive display - update views every batch
+                if (loadedCount > 10) {
+                    try {
+                        displayAxialSlice(currentAxialIndex);
+                        displayCoronalSlice(currentCoronalIndex);
+                        displaySagittalSlice(currentSagittalIndex);
+                        updateCrosshairs();
+                    } catch (displayErr) {
+                        console.warn('Progressive display error:', displayErr);
+                    }
+                }
+                
+                // Purge old images from Cornerstone cache to free memory
+                // Keep only recent images for axial scrolling
+                if (loadedCount % 100 === 0) {
+                    cornerstone.imageCache.purgeCache();
+                }
+            }
+            
+            // Final display
+            updateLoadingProgress('Finalizing views...');
+            try {
+                displayAxialSlice(currentAxialIndex);
+                displayCoronalSlice(currentCoronalIndex);
+                displaySagittalSlice(currentSagittalIndex);
+                updateSliceIndicators();
+                updateCrosshairs();
+            } catch (displayErr) {
+                console.error('Final display error:', displayErr);
+                // Don't throw - we have data, just display issue
+            }
+            
+            console.log(`Volume loaded: ${loadedCount} slices, memory efficient mode`);
+        }
+        
+        /**
+         * Extract pixel data from a Cornerstone image to the volume array
+         * Memory efficient - uses single typed array
+         */
+        function extractSliceToVolume(image, sliceIndex, width, height) {
+            const pixelData = image.getPixelData();
+            const sliceOffset = sliceIndex * width * height;
+            
+            // Copy pixels to volume
+            for (let i = 0; i < pixelData.length && i < width * height; i++) {
+                volumeData[sliceOffset + i] = pixelData[i];
+            }
+        }
+        
+        /**
+         * Get pixel value from volume (helper for MPR slicing)
+         */
+        function getVolumePixel(x, y, z) {
+            if (x < 0 || x >= volumeDimensions.x || 
+                y < 0 || y >= volumeDimensions.y || 
+                z < 0 || z >= volumeDimensions.z) {
+                return 0;
+            }
+            const index = z * volumeDimensions.x * volumeDimensions.y + y * volumeDimensions.x + x;
+            return volumeData[index] || 0;
+        }
+
+        function updateLoadingProgress(message) {
+            const progressEl = document.getElementById('loading-progress');
+            if (progressEl) {
+                progressEl.textContent = message;
+            }
+        }
+
+        // Old buildImageIdsFromDicomFiles, loadDicomVolume and buildVolumeFromImages removed
+        // Now using loadDicomVolumeProgressive with direct S3 presigned URLs
+
+        async function createMprViews() {
+            // For now, display the loaded axial slices directly
+            // In a full implementation, we would reslice the volume to create coronal and sagittal views
+            // This is a simplified version that shows axial slices with crosshairs
+            
+            if (loadedImages.length === 0) {
+                throw new Error('No images loaded');
+            }
+            
+            // Ensure soft tissue window/level is applied (default)
+            // windowWidth and windowCenter are already set to 2000/1200 (soft tissue)
+            // Apply it to all viewports
+            updateWindowLevel();
+            
+            // Display initial slices
+            displayAxialSlice(currentAxialIndex);
+            displayCoronalSlice(currentCoronalIndex);
+            displaySagittalSlice(currentSagittalIndex);
+            
+            updateSliceIndicators();
+            updateCrosshairs();
+        }
+
+        function displayAxialSlice(index) {
+            if (!axialElement || index < 0 || index >= loadedImages.length) {
+                return;
+            }
+            
+            const image = loadedImages[index];
+            if (!image) {
+                return;
+            }
+            
+            try {
+                cornerstone.displayImage(axialElement, image);
+                cornerstone.fitToWindow(axialElement);
+                
+                const viewport = cornerstone.getViewport(axialElement);
+                if (viewport && viewport.voi) {
+                    viewport.voi.windowWidth = windowWidth;
+                    viewport.voi.windowCenter = windowCenter;
+                    viewport.vflip = false;
+                    viewport.hflip = false;
+                    cornerstone.setViewport(axialElement, viewport);
+                }
+                
+                updateWLIndicator('axial');
+            } catch (err) {
+                console.error('Error displaying axial slice:', err);
+            }
+        }
+
+        function displayCoronalSlice(index) {
+            if (!coronalElement || !volumeData || index < 0 || index >= volumeDimensions.y) {
+                return;
+            }
+            
+            try {
+                // Coronal slice: fixed Y position (row), extract from all Z slices
+                // Coronal view shows front-to-back: X (left-right) as columns, Z (superior-inferior) as rows
+                const config = ORIENTATION_CONFIG.coronal;
+                const yPos = config.reverseY ? (volumeDimensions.y - 1 - index) : index;
+                const width = volumeDimensions.x;   // X dimension (left-right)
+                const height = volumeDimensions.z;  // Z dimension (superior-inferior)
+                
+                // Create pixel data array for coronal slice using Int16Array (matches volume)
+                const pixelData = new Int16Array(width * height);
+                
+                for (let z = 0; z < height; z++) {
+                    for (let x = 0; x < width; x++) {
+                        // Get pixel from flat volume array
+                        const pixelValue = getVolumePixel(x, yPos, z);
+                        // Map: row = z (superior to inferior), col = x (left to right)
+                        const row = config.flipZ ? (height - 1 - z) : z;
+                        const col = config.flipX ? (width - 1 - x) : x;
+                        pixelData[row * width + col] = pixelValue;
+                    }
+                }
+                
+                // Calculate min/max
+                let minVal = Infinity;
+                let maxVal = -Infinity;
+                for (let i = 0; i < pixelData.length; i++) {
+                    const val = pixelData[i];
+                    if (val < minVal) minVal = val;
+                    if (val > maxVal) maxVal = val;
+                }
+                
+                // Get reference image for metadata
+                const refImage = loadedImages[0];
+                
+                // Create image object for coronal slice
+                const coronalImage = {
+                    imageId: `coronal:${index}`,
+                    minPixelValue: minVal,
+                    maxPixelValue: maxVal,
+                    slope: refImage?.slope || 1,
+                    intercept: refImage?.intercept || 0,
+                    windowCenter: windowCenter,
+                    windowWidth: windowWidth,
+                    render: cornerstone.renderGrayscaleImage,
+                    getPixelData: () => pixelData,
+                    rows: height,
+                    columns: width,
+                    height: height,
+                    width: width,
+                    color: false,
+                    columnPixelSpacing: refImage?.columnPixelSpacing || 1,
+                    rowPixelSpacing: volumeSpacing.z || 1,
+                    sizeInBytes: pixelData.length * 2,
+                    invert: false
+                };
+                
+                cornerstone.displayImage(coronalElement, coronalImage);
+                cornerstone.fitToWindow(coronalElement);
+                
+                const viewport = cornerstone.getViewport(coronalElement);
+                if (viewport && viewport.voi) {
+                    viewport.voi.windowWidth = windowWidth;
+                    viewport.voi.windowCenter = windowCenter;
+                    viewport.vflip = config.viewportVFlip;
+                    viewport.hflip = config.viewportHFlip;
+                    cornerstone.setViewport(coronalElement, viewport);
+                }
+                
+                updateWLIndicator('coronal');
+            } catch (err) {
+                console.error('Error displaying coronal slice:', err);
+            }
+        }
+
+        function displaySagittalSlice(index) {
+            if (!sagittalElement || !volumeData || index < 0 || index >= volumeDimensions.x) {
+                return;
+            }
+            
+            try {
+                // Sagittal slice: fixed X position (column), extract from all Z slices
+                // Sagittal view shows side-to-side: Y (anterior-posterior) as columns, Z (superior-inferior) as rows
+                const config = ORIENTATION_CONFIG.sagittal;
+                const xPos = config.reverseX ? (volumeDimensions.x - 1 - index) : index;
+                const width = volumeDimensions.y;   // Y dimension (anterior-posterior)
+                const height = volumeDimensions.z;  // Z dimension (superior-inferior)
+                
+                // Create pixel data array for sagittal slice using Int16Array (matches volume)
+                const pixelData = new Int16Array(width * height);
+                
+                for (let z = 0; z < height; z++) {
+                    for (let y = 0; y < width; y++) {
+                        // Get pixel from flat volume array
+                        const pixelValue = getVolumePixel(xPos, y, z);
+                        // Map: row = z (superior to inferior), col = y (anterior to posterior)
+                        const row = config.flipZ ? (height - 1 - z) : z;
+                        const col = config.flipY ? (width - 1 - y) : y;
+                        pixelData[row * width + col] = pixelValue;
+                    }
+                }
+                
+                // Calculate min/max
+                let minVal = Infinity;
+                let maxVal = -Infinity;
+                for (let i = 0; i < pixelData.length; i++) {
+                    const val = pixelData[i];
+                    if (val < minVal) minVal = val;
+                    if (val > maxVal) maxVal = val;
+                }
+                
+                // Get reference image for metadata
+                const refImage = loadedImages[0];
+                
+                // Create image object for sagittal slice
+                const sagittalImage = {
+                    imageId: `sagittal:${index}`,
+                    minPixelValue: minVal,
+                    maxPixelValue: maxVal,
+                    slope: refImage?.slope || 1,
+                    intercept: refImage?.intercept || 0,
+                    windowCenter: windowCenter,
+                    windowWidth: windowWidth,
+                    render: cornerstone.renderGrayscaleImage,
+                    getPixelData: () => pixelData,
+                    rows: height,
+                    columns: width,
+                    height: height,
+                    width: width,
+                    color: false,
+                    columnPixelSpacing: refImage?.rowPixelSpacing || 1,
+                    rowPixelSpacing: volumeSpacing.z || 1,
+                    sizeInBytes: pixelData.length * 2,
+                    invert: false
+                };
+                
+                cornerstone.displayImage(sagittalElement, sagittalImage);
+                cornerstone.fitToWindow(sagittalElement);
+                
+                const viewport = cornerstone.getViewport(sagittalElement);
+                if (viewport && viewport.voi) {
+                    viewport.voi.windowWidth = windowWidth;
+                    viewport.voi.windowCenter = windowCenter;
+                    viewport.vflip = config.viewportVFlip;
+                    viewport.hflip = config.viewportHFlip;
+                    cornerstone.setViewport(sagittalElement, viewport);
+                }
+                
+                updateWLIndicator('sagittal');
+            } catch (err) {
+                console.error('Error displaying sagittal slice:', err);
+            }
+        }
+
+        function setupViewportElements() {
+            sagittalElement = document.getElementById('sagittal-viewport');
+            coronalElement = document.getElementById('coronal-viewport');
+            axialElement = document.getElementById('axial-viewport');
+            cornerstone.enable(sagittalElement);
+            cornerstone.enable(coronalElement);
+            cornerstone.enable(axialElement);
+        }
+        
+        function setupTools() {
+            const elements = [sagittalElement, coronalElement, axialElement];
+            
+            // Enable default tools
+            cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
+            cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
+            cornerstoneTools.addTool(cornerstoneTools.PanTool);
+            cornerstoneTools.addTool(cornerstoneTools.LengthTool);
+            cornerstoneTools.addTool(cornerstoneTools.AngleTool);
+
+            // Associate tools with each enabled element
+            elements.forEach(el => {
+                if (!el) return;
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.WwwcTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.ZoomTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.PanTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.LengthTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.AngleTool);
+                cornerstoneTools.setToolPassiveForElement(el, 'Wwwc');
+                cornerstoneTools.setToolPassiveForElement(el, 'Zoom');
+                cornerstoneTools.setToolPassiveForElement(el, 'Pan');
+                cornerstoneTools.setToolPassiveForElement(el, 'Length');
+                cornerstoneTools.setToolPassiveForElement(el, 'Angle');
+            });
+            
+            // Set active tool
+            setActiveTool(activeTool);
+            
+            // Mouse wheel for slice navigation
+            axialElement.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 1 : -1;
+                navigateSlice('axial', delta);
+            });
+            
+            coronalElement.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 1 : -1;
+                navigateSlice('coronal', delta);
+            });
+            
+            sagittalElement.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 1 : -1;
+                navigateSlice('sagittal', delta);
+            });
+            
+            // Click to set crosshair position
+            setupCrosshairInteraction();
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT') {
+                    return;
+                }
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        navigateSlice('axial', -1);
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        navigateSlice('axial', 1);
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        navigateSlice('coronal', -1);
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        navigateSlice('coronal', 1);
+                        break;
+                    case 'PageUp':
+                        e.preventDefault();
+                        navigateSlice('sagittal', -1);
+                        break;
+                    case 'PageDown':
+                        e.preventDefault();
+                        navigateSlice('sagittal', 1);
+                        break;
+                }
+            });
+        }
+
+        function setupCrosshairInteraction() {
+            [axialElement, coronalElement, sagittalElement].forEach((element, index) => {
+                const viewType = index === 0 ? 'axial' : (index === 1 ? 'coronal' : 'sagittal');
+                
+                element.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0 || activeTool === 'Pan' || activeTool === 'Zoom') {
+                        return;
+                    }
+                    updateCrosshairFromPointer(element, viewType, e);
+                });
+            });
+        }
+        
+        function setActiveTool(toolName) {
+            activeTool = toolName;
+            
+            const elements = [sagittalElement, coronalElement, axialElement];
+            const toolNames = ['Wwwc', 'Zoom', 'Pan', 'Length', 'Angle'];
+            const mouseButtonMask = 1;
+
+            elements.forEach(el => {
+                if (!el) return;
+                toolNames.forEach(name => {
+                    if (name === toolName) {
+                        cornerstoneTools.setToolActiveForElement(el, name, { mouseButtonMask });
+                    } else {
+                        cornerstoneTools.setToolPassiveForElement(el, name);
+                    }
+                });
+            });
+        }
+        
+        function setupControls() {
+            // Window/Level controls
+            const windowWidthSlider = document.getElementById('window-width');
+            const windowCenterSlider = document.getElementById('window-center');
+            const windowWidthInput = document.getElementById('window-width-input');
+            const windowCenterInput = document.getElementById('window-center-input');
+            const presetSelect = document.getElementById('window-preset');
+
+            windowWidthSlider.addEventListener('input', function(e) {
+                windowWidth = parseInt(e.target.value, 10);
+                windowWidthInput.value = windowWidth;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+            
+            windowCenterSlider.addEventListener('input', function(e) {
+                windowCenter = parseInt(e.target.value, 10);
+                windowCenterInput.value = windowCenter;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+
+            windowWidthInput.addEventListener('change', function(e) {
+                let val = parseInt(e.target.value, 10);
+                if (Number.isNaN(val)) {
+                    val = windowWidth;
+                }
+                windowWidth = Math.max(1, Math.min(4000, val));
+                windowWidthInput.value = windowWidth;
+                windowWidthSlider.value = windowWidth;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+
+            windowCenterInput.addEventListener('change', function(e) {
+                let val = parseInt(e.target.value, 10);
+                if (Number.isNaN(val)) {
+                    val = windowCenter;
+                }
+                windowCenter = Math.max(-2000, Math.min(2000, val));
+                windowCenterInput.value = windowCenter;
+                windowCenterSlider.value = windowCenter;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+            
+            // Window presets
+            if (presetSelect) {
+                presetSelect.addEventListener('change', function(e) {
+                    const presetKey = e.target.value;
+                    if (presetKey === 'custom') {
+                        return;
+                    }
+                    
+                    const presets = {
+                        'bone': { width: 2000, center: 500 },
+                        'soft': { width: 2000, center: 1200 },
+                        'lung': { width: 1500, center: -600 }
+                    };
+                    
+                    const preset = presets[presetKey];
+                    if (preset) {
+                        windowWidth = preset.width;
+                        windowCenter = preset.center;
+                        windowWidthSlider.value = windowWidth;
+                        windowCenterSlider.value = windowCenter;
+                        windowWidthInput.value = windowWidth;
+                        windowCenterInput.value = windowCenter;
+                        updateWindowLevel();
+                    }
+                });
+            }
+            
+            // Tool selector
+            document.getElementById('tool-select').addEventListener('change', function(e) {
+                setActiveTool(e.target.value);
+            });
+        }
+        
+        function setupCrosshairs() {
+            ['sagittal', 'coronal', 'axial'].forEach(viewType => {
+                const overlay = document.getElementById(`${viewType}-crosshairs`);
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                overlay.appendChild(svg);
+            });
+        }
+        
+        function updateCrosshairs() {
+            const sagittalOverlay = document.getElementById('sagittal-crosshairs');
+            const coronalOverlay = document.getElementById('coronal-crosshairs');
+            const axialOverlay = document.getElementById('axial-crosshairs');
+
+            // Sagittal view: vertical line at crosshairX, horizontal line at crosshairZ
+            updateViewportCrosshairs(sagittalOverlay, crosshairX, crosshairZ, 'sagittal', 'vertical', 'horizontal', false, true);
+
+            // Coronal view: vertical line at crosshairX, horizontal line at crosshairY
+            updateViewportCrosshairs(coronalOverlay, crosshairX, crosshairY, 'coronal', 'vertical', 'horizontal', false, true);
+
+            // Axial view: vertical line at crosshairY, horizontal line at crosshairZ
+            updateViewportCrosshairs(axialOverlay, crosshairY, crosshairZ, 'axial', 'vertical', 'horizontal');
+        }
+        
+        function updateViewportCrosshairs(overlay, x, y, viewType, line1Type, line2Type, invertX = false, invertY = false) {
+            const svg = overlay.querySelector('svg');
+            if (!svg) return;
+
+            svg.innerHTML = '';
+
+            const width = overlay.offsetWidth || 512;
+            const height = overlay.offsetHeight || 512;
+
+            const clamp = (val) => {
+                if (!Number.isFinite(val)) return 0.5;
+                return Math.max(0, Math.min(1, val));
+            };
+
+            const clampedX = clamp(x);
+            const clampedY = clamp(y);
+            const xPos = (invertX ? (1 - clampedX) : clampedX) * width;
+            const yPos = (invertY ? (1 - clampedY) : clampedY) * height;
+
+            const palette = CROSSHAIR_COLORS[viewType] || {};
+            const verticalColor = palette.vertical || '#f87171';
+            const horizontalColor = palette.horizontal || '#38bdf8';
+
+            if (line1Type === 'vertical') {
+                const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', xPos);
+                line1.setAttribute('y1', 0);
+                line1.setAttribute('x2', xPos);
+                line1.setAttribute('y2', height);
+                line1.setAttribute('class', 'crosshair-line crosshair-vertical');
+                line1.setAttribute('stroke', verticalColor);
+                svg.appendChild(line1);
+            }
+
+            if (line2Type === 'horizontal') {
+                const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line2.setAttribute('x1', 0);
+                line2.setAttribute('y1', yPos);
+                line2.setAttribute('x2', width);
+                line2.setAttribute('y2', yPos);
+                line2.setAttribute('class', 'crosshair-line crosshair-horizontal');
+                line2.setAttribute('stroke', horizontalColor);
+                svg.appendChild(line2);
+            }
+
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', xPos);
+            dot.setAttribute('cy', yPos);
+            dot.setAttribute('r', 4.5);
+            dot.setAttribute('fill', verticalColor);
+            dot.setAttribute('stroke', '#0f172a');
+            dot.setAttribute('stroke-width', 1.2);
+            svg.appendChild(dot);
+        }
+
+        function updateCrosshairFromPointer(element, viewType, event) {
+            if (!event) return;
+            
+            const rect = element.getBoundingClientRect();
+            if (!rect || rect.width === 0 || rect.height === 0) return;
+            
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+            const clampedX = Math.max(0, Math.min(1, x));
+            const clampedY = Math.max(0, Math.min(1, y));
+            
+            if (viewType === 'sagittal') {
+                crosshairX = clampedX;
+                crosshairZ = clampedY;
+                currentSagittalIndex = Math.floor(clampedX * volumeDimensions.x);
+            } else if (viewType === 'coronal') {
+                crosshairX = clampedX;
+                crosshairY = clampedY;
+                currentCoronalIndex = Math.floor(clampedY * volumeDimensions.y);
+            } else if (viewType === 'axial') {
+                crosshairY = clampedX;
+                crosshairZ = clampedY;
+                currentAxialIndex = Math.floor(clampedZ * loadedImages.length);
+            }
+            
+            updateSlicesFromCrosshair();
+            updateCrosshairs();
+        }
+        
+        function navigateSlice(viewType, direction) {
+            switch(viewType) {
+                case 'sagittal':
+                    currentSagittalIndex = Math.max(0, Math.min(volumeDimensions.x - 1, currentSagittalIndex + direction));
+                    crosshairX = currentSagittalIndex / volumeDimensions.x;
+                    displaySagittalSlice(currentSagittalIndex);
+                    break;
+                case 'coronal':
+                    currentCoronalIndex = Math.max(0, Math.min(volumeDimensions.y - 1, currentCoronalIndex + direction));
+                    crosshairY = currentCoronalIndex / volumeDimensions.y;
+                    displayCoronalSlice(currentCoronalIndex);
+                    break;
+                case 'axial':
+                    currentAxialIndex = Math.max(0, Math.min(loadedImages.length - 1, currentAxialIndex + direction));
+                    crosshairZ = currentAxialIndex / loadedImages.length;
+                    displayAxialSlice(currentAxialIndex);
+                    break;
+            }
+            updateSliceIndicators();
+            updateCrosshairs();
+        }
+
+        function updateSlicesFromCrosshair() {
+            currentAxialIndex = Math.max(0, Math.min(loadedImages.length - 1, Math.floor(crosshairZ * loadedImages.length)));
+            currentCoronalIndex = Math.max(0, Math.min(volumeDimensions.y - 1, Math.floor(crosshairY * volumeDimensions.y)));
+            currentSagittalIndex = Math.max(0, Math.min(volumeDimensions.x - 1, Math.floor(crosshairX * volumeDimensions.x)));
+            
+            displayAxialSlice(currentAxialIndex);
+            displayCoronalSlice(currentCoronalIndex);
+            displaySagittalSlice(currentSagittalIndex);
+        }
+        
+        function updateSliceIndicators() {
+            document.getElementById('sagittal-slice').textContent = 
+                `Slice: ${currentSagittalIndex + 1} / ${volumeDimensions.x}`;
+            document.getElementById('coronal-slice').textContent = 
+                `Slice: ${currentCoronalIndex + 1} / ${volumeDimensions.y}`;
+            document.getElementById('axial-slice').textContent = 
+                `Slice: ${currentAxialIndex + 1} / ${loadedImages.length}`;
+        }
+        
+        function updateWLIndicator(viewType) {
+            const wlElement = document.getElementById(`${viewType}-wl`);
+            if (wlElement) {
+                wlElement.textContent = `W/L: ${windowWidth.toFixed(0)} / ${windowCenter.toFixed(0)}`;
+            }
+        }
+        
+        function updateWindowLevel() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+
+            [sagittalElement, coronalElement, axialElement].forEach((element, index) => {
+                if (!element) return;
+                try {
+                    const viewport = cornerstone.getViewport(element);
+                    if (viewport && viewport.voi) {
+                        viewport.voi.windowWidth = windowWidth;
+                        viewport.voi.windowCenter = windowCenter;
+                        cornerstone.setViewport(element, viewport);
+                    }
+                } catch (e) {
+                    // Viewport not ready yet
+                }
+
+                const viewType = index === 0 ? 'sagittal' : (index === 1 ? 'coronal' : 'axial');
+                updateWLIndicator(viewType);
+            });
+        }
+        
+        function resetAllViews() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+            
+            [sagittalElement, coronalElement, axialElement].forEach(element => {
+                cornerstone.reset(element);
+            });
+        }
+        
+        function clearAnnotations() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+            
+            [sagittalElement, coronalElement, axialElement].forEach(element => {
+                cornerstoneTools.clearToolState(element, 'Length');
+                cornerstoneTools.clearToolState(element, 'Angle');
+                cornerstone.updateImage(element);
+            });
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+            
+            [sagittalElement, coronalElement, axialElement].forEach(element => {
+                cornerstone.resize(element);
+            });
+            
+            // Update crosshairs after resize
+            setTimeout(updateCrosshairs, 100);
+        });
+        
+        // =============================================================================
+        // Volume Generation Functions
+        // =============================================================================
+        
+        let volumeGenerationInterval = null;
+        
+        /**
+         * Trigger volume generation (DICOM → NRRD)
+         */
+        async function generateVolume() {
+            const btn = document.getElementById('generate-volume-btn');
+            const originalText = btn.textContent;
+            
+            try {
+                btn.disabled = true;
+                btn.textContent = '⏳ Starting...';
+                
+                const response = await fetch(
+                    `/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/generate_volume`,
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' }
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (!data.success && data.error) {
+                    alert('Error: ' + data.error);
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    return;
+                }
+                
+                if (data.status === 'already_exists') {
+                    btn.textContent = '✅ Volume Ready';
+                    btn.style.background = 'rgba(16, 185, 129, 0.3)';
+                    alert('Volume already exists! Ready for Cornerstone3D streaming.');
+                    return;
+                }
+                
+                // Start polling for status
+                btn.textContent = '⏳ Generating...';
+                startVolumeStatusPolling();
+                
+            } catch (error) {
+                console.error('Error triggering volume generation:', error);
+                alert('Error: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+        
+        /**
+         * Poll for volume generation status
+         */
+        function startVolumeStatusPolling() {
+            // Clear any existing interval
+            if (volumeGenerationInterval) {
+                clearInterval(volumeGenerationInterval);
+            }
+            
+            volumeGenerationInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(
+                        `/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/volume_status`,
+                        { credentials: 'include' }
+                    );
+                    
+                    const data = await response.json();
+                    const btn = document.getElementById('generate-volume-btn');
+                    
+                    if (data.status === 'complete') {
+                        clearInterval(volumeGenerationInterval);
+                        volumeGenerationInterval = null;
+                        btn.textContent = '✅ Volume Ready';
+                        btn.style.background = 'rgba(16, 185, 129, 0.3)';
+                        btn.disabled = false;
+                        
+                        // Show success message with manifest info
+                        if (data.manifest) {
+                            const dims = data.manifest.dimensions;
+                            const sizeMB = (data.manifest.sizeBytes / (1024 * 1024)).toFixed(1);
+                            alert(`Volume generated successfully!\n\nDimensions: ${dims[0]}×${dims[1]}×${dims[2]}\nSize: ${sizeMB} MB\n\nReady for Cornerstone3D streaming.`);
+                        } else {
+                            alert('Volume generated successfully!');
+                        }
+                        
+                    } else if (data.status === 'error') {
+                        clearInterval(volumeGenerationInterval);
+                        volumeGenerationInterval = null;
+                        btn.textContent = '❌ Error';
+                        btn.style.background = 'rgba(220, 38, 38, 0.3)';
+                        btn.disabled = false;
+                        alert('Volume generation failed: ' + data.message);
+                        
+                        // Reset button after 3 seconds
+                        setTimeout(() => {
+                            btn.textContent = '📦 Generate Volume';
+                            btn.style.background = '';
+                        }, 3000);
+                        
+                    } else if (data.status === 'running') {
+                        const progress = data.progress || 0;
+                        btn.textContent = `⏳ ${progress}%`;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error polling volume status:', error);
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+        
+        /**
+         * Check initial volume status on page load
+         */
+        async function checkInitialVolumeStatus() {
+            try {
+                const response = await fetch(
+                    `/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/volume_status`,
+                    { credentials: 'include' }
+                );
+                
+                const data = await response.json();
+                const btn = document.getElementById('generate-volume-btn');
+                
+                if (data.status === 'complete') {
+                    btn.textContent = '✅ Volume Ready';
+                    btn.style.background = 'rgba(16, 185, 129, 0.3)';
+                } else if (data.status === 'running') {
+                    btn.textContent = `⏳ ${data.progress || 0}%`;
+                    btn.disabled = true;
+                    startVolumeStatusPolling();
+                }
+            } catch (error) {
+                console.log('Could not check volume status:', error);
+            }
+        }
+        
+        // Check volume status when page loads
+        window.addEventListener('load', function() {
+            setTimeout(checkInitialVolumeStatus, 1000);
+        });
+    </script>
+</body>
+</html>
+

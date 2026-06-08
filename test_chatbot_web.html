@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedrock Chatbot Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: 20%;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: #333;
+            margin-right: 20%;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-buttons {
+            margin-bottom: 20px;
+        }
+        .test-buttons button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background-color: #28a745;
+        }
+        .test-buttons button:hover {
+            background-color: #218838;
+        }
+        .citations {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Bedrock Chatbot Test Interface</h1>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div class="test-buttons">
+            <button onclick="testConnection()">Test Bedrock Connection</button>
+            <button onclick="testGeneralQuery()">Test General Query</button>
+            <button onclick="testPatientQuery()">Test Patient Query</button>
+            <button onclick="clearChat()">Clear Chat</button>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot-message">
+                <strong>Dr. Briz:</strong> Hello! I'm Dr. Briz, your sleep medicine AI assistant. I can help you with questions about sleep apnea, OSA, and related topics. How can I assist you today?
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Ask me about sleep apnea, OSA, treatment options..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()" id="sendButton">Send</button>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 14px; color: #666;">
+            <strong>Test Questions to Try:</strong><br>
+            • "What is sleep apnea?"<br>
+            • "How is OSA diagnosed?"<br>
+            • "What are the treatment options for sleep apnea?"<br>
+            • "What is the normal AHI range?"<br>
+            • "How does CPAP therapy work?"
+        </div>
+    </div>
+
+    <script>
+        let sessionId = 'test_session_' + Date.now();
+        
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + (isError ? 'error' : 'success');
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+        
+        function addMessage(content, isUser = false, citations = []) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (isUser ? 'user-message' : 'bot-message');
+            
+            let messageContent = `<strong>${isUser ? 'You' : 'Dr. Briz'}:</strong> ${content}`;
+            
+            if (citations && citations.length > 0) {
+                messageContent += `<div class="citations"><strong>Sources:</strong> ${citations.length} citation(s) found</div>`;
+            }
+            
+            messageDiv.innerHTML = messageContent;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+            
+            addMessage(message, true);
+            input.value = '';
+            
+            try {
+                const response = await fetch('/bedrock/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage(data.response, false, data.citations);
+                    showStatus('Message sent successfully!');
+                } else {
+                    addMessage('Sorry, I encountered an error: ' + data.message, false);
+                    showStatus('Error: ' + data.message, true);
+                }
+            } catch (error) {
+                addMessage('Sorry, I encountered a network error: ' + error.message, false);
+                showStatus('Network error: ' + error.message, true);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+            }
+        }
+        
+        async function testConnection() {
+            showStatus('Testing Bedrock connection...');
+            try {
+                const response = await fetch('/bedrock/test');
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus(`✅ Bedrock connection successful! Knowledge Base: ${data.knowledge_base_name}`);
+                } else {
+                    showStatus('❌ Bedrock connection failed: ' + data.message, true);
+                }
+            } catch (error) {
+                showStatus('❌ Connection test failed: ' + error.message, true);
+            }
+        }
+        
+        async function testGeneralQuery() {
+            const testQuery = "What is sleep apnea and how is it diagnosed?";
+            addMessage(testQuery, true);
+            
+            try {
+                const response = await fetch('/bedrock/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: testQuery
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage(data.response, false, data.citations);
+                    showStatus('General query test successful!');
+                } else {
+                    addMessage('Test failed: ' + data.message, false);
+                    showStatus('General query test failed: ' + data.message, true);
+                }
+            } catch (error) {
+                addMessage('Test failed: ' + error.message, false);
+                showStatus('General query test failed: ' + error.message, true);
+            }
+        }
+        
+        async function testPatientQuery() {
+            const testQuery = "What are the latest AHI and oxygen saturation results for this patient?";
+            addMessage(`[Patient 3333] ${testQuery}`, true);
+            
+            try {
+                const response = await fetch('/bedrock/patient-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: testQuery,
+                        patient_id: "3333",
+                        temperature: 0.2,
+                        max_results: 6
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage(data.response, false, data.citations);
+                    showStatus('Patient-specific query test successful!');
+                } else {
+                    addMessage('Test failed: ' + data.message, false);
+                    showStatus('Patient query test failed: ' + data.message, true);
+                }
+            } catch (error) {
+                addMessage('Test failed: ' + error.message, false);
+                showStatus('Patient query test failed: ' + error.message, true);
+            }
+        }
+        
+        function clearChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '<div class="message bot-message"><strong>Dr. Briz:</strong> Hello! I\'m Dr. Briz, your sleep medicine AI assistant. I can help you with questions about sleep apnea, OSA, and related topics. How can I assist you today?</div>';
+            sessionId = 'test_session_' + Date.now();
+            showStatus('Chat cleared!');
+        }
+    </script>
+</body>
+</html>

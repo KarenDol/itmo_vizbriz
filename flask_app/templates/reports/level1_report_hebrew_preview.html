@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+
+<html lang="{{ lang }}" dir="{{ dir }}">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>{{report_title}}</title>
+
+
+
+  <style>
+
+    /* =====================
+
+       GLOBAL RTL SETTINGS
+
+       ===================== */
+
+    /* Font-face is injected server-side for PDF rendering (and may be empty). */
+    {{ font_face_css|safe }}
+
+    body {
+
+      font-family: "{{ font_name }}", "Assistant", "Heebo", "Arial Unicode MS", "DejaVu Sans", Arial, sans-serif;
+
+      margin: 0;
+
+      padding: 12px;
+
+      background: #f7f7fb;
+
+      color: #222;
+
+      text-align: start;
+
+      /* Ensure proper Unicode rendering */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+
+      /* Typography: slightly larger so the one-page PDF uses space better */
+      font-size: 15px;
+
+    }
+
+
+
+    h1, h2, h3 {
+
+      margin: 0 0 4px 0;
+      font-size: 18px;
+
+    }
+
+
+
+    /* =====================
+
+       HEADER
+
+       ===================== */
+
+    .header {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      margin-bottom: 16px;
+
+    }
+
+
+
+    .header img {
+
+      height: 32px;
+
+      width: auto;
+
+    }
+
+
+
+    .subtitle {
+
+      font-size: 15px;
+
+      color: #666;
+
+      margin-top: 4px;
+
+    }
+
+
+
+    /* =====================
+
+       MAIN CARD
+
+       ===================== */
+
+    .card {
+
+      background: #fff;
+
+      border-radius: 10px;
+
+      padding: 14px;
+
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+
+    }
+
+
+
+    /* =====================
+
+       TOP GRID (DETAILS + ALERT)
+
+       ===================== */
+
+    .top-grid {
+
+      display: flex;
+
+      gap: 12px;
+
+      margin-bottom: 12px;
+
+    }
+
+
+
+    .column {
+
+      flex: 1;
+
+    }
+
+
+
+    /* =====================
+
+       PATIENT DETAILS
+
+       ===================== */
+
+    .details h3 {
+
+      margin-bottom: 8px;
+
+    }
+
+    /* RTL-safe patient details table (HTML + PDF friendly) */
+    .patient-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+    }
+
+    .patient-table td {
+      padding: 4px 6px;
+      vertical-align: top;
+    }
+
+    .patient-table .label {
+      font-weight: 600;
+      text-align: start;
+      white-space: nowrap;
+    }
+
+    /* Colon after label */
+    .patient-table .label::after {
+      content: ":";
+      margin-inline-start: 4px;
+    }
+
+    .patient-table .value {
+      text-align: start;
+      unicode-bidi: plaintext; /* critical for numbers/dates */
+    }
+
+
+    /* =====================
+
+       ALERT BOX
+
+       ===================== */
+
+    .alert {
+
+      border-radius: 10px;
+
+      padding: 12px;
+
+    }
+
+    /* High / urgent (default screening worry tone) */
+    .alert--high {
+      background: #fff1f1;
+      border: 1px solid #f3b3b3;
+    }
+
+    .alert--moderate {
+      background: #fff8e6;
+      border: 1px solid #e6c25a;
+    }
+
+    .alert--low {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      color: #1b5e20;
+    }
+
+    .alert--low h3 {
+      color: #1b5e20;
+    }
+
+
+
+    .alert h3 {
+
+      margin-bottom: 8px;
+
+    }
+
+
+
+    /* CTA removed from report (HTML + PDF) */
+
+
+
+    /* =====================
+
+       SECTION
+
+       ===================== */
+
+    .section {
+
+      margin-top: 12px;
+
+    }
+
+
+
+    .section h3 {
+
+      margin-bottom: 6px;
+
+    }
+
+
+
+    .section ul {
+
+      margin: 0;
+
+      padding-inline-start: 20px;
+
+    }
+
+
+
+    .section li {
+
+      margin-bottom: 6px;
+
+    }
+
+
+
+    /* =====================
+
+       SOLUTION BLOCK
+
+       ===================== */
+
+    .solution {
+
+      margin-top: 12px;
+
+      line-height: 1.55;
+
+      font-size: 14px;
+
+    }
+
+    /* Solution block with optional image/video */
+
+    .solution-grid {
+
+      display: flex;
+
+      gap: 10px;
+
+      align-items: stretch;
+
+      margin-top: 10px;
+
+    }
+
+
+
+    .solution-text {
+
+      flex: 1.8;
+
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+
+    }
+
+    .solution-text p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 6px 0;
+    }
+
+    .solution-text a {
+      display: inline-block;
+      margin-top: 8px;
+      color: #1e4bff;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+
+
+    .solution-media {
+
+      flex: 1.2;
+
+      /* Prevent the image column from collapsing too small */
+      min-width: 280px;
+
+      /* Allow a visibly larger image area */
+      max-width: 360px;
+
+      /* Match the height of the text column */
+      display: flex;
+      flex-direction: column;
+      align-self: stretch;
+
+      /* Clip any edge padding (common with PNGs that include transparent margins) */
+      overflow: hidden;
+      border-radius: 10px;
+      position: relative;
+
+      /* Ensure the media has a reasonable height when text is short */
+      min-height: 240px;
+
+    }
+
+
+
+    .solution-media img,
+    .solution-media video {
+
+      width: 100%;
+
+      display: block;
+
+      /* Don't let the image dictate layout height; fill the media box instead */
+      position: absolute;
+      inset: 0;
+      height: 100%;
+      /* Resize without cropping */
+      object-fit: contain;
+      object-position: center;
+      /* If the PNG has transparency, don't show the page grey behind it */
+      background-color: #fff;
+
+    }
+
+
+
+    /* In RTL: image should be on the LEFT (before text in reading order) */
+    /* So we use normal row direction, image comes first in HTML, appears on left visually */
+
+    html[dir="rtl"] .solution-grid {
+
+      /* In RTL we want the image on the RIGHT of the text */
+      flex-direction: row-reverse;
+
+    }
+
+    /* LTR: text column on the left, image on the right */
+    html[dir="ltr"] .solution-grid {
+      flex-direction: row-reverse;
+    }
+
+
+
+    /* =====================
+
+       DISCLAIMER
+
+       ===================== */
+
+    .disclaimer {
+
+      margin-top: 18px;
+
+      font-size: 12px;
+
+      color: #666;
+
+      border-top: 1px solid #ddd;
+
+      padding-top: 8px;
+
+    }
+
+
+
+    /* =====================
+
+       IMAGES (DON'T FLIP)
+
+       ===================== */
+
+    img {
+
+      direction: ltr;
+
+    }
+
+  </style>
+
+</head>
+
+
+
+<body>
+
+
+  <div class="card">
+
+
+
+    <!-- TOP GRID -->
+
+    <div class="top-grid">
+
+
+
+      <!-- PATIENT DETAILS -->
+
+      <div class="column details">
+
+        <h3>{{ labels.patient_details }}</h3>
+
+        <table class="patient-table" dir="{{ dir }}">
+          <tbody>
+            <tr>
+              <td class="label">{{ labels.risk_level }}</td>
+              <td class="value">{{risk_level}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{ labels.full_name }}</td>
+              <td class="value">{{full_name}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{ labels.gender }}</td>
+              <td class="value">{{gender}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{ labels.date_of_birth }}</td>
+              <td class="value">{{dob}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{ labels.height }}</td>
+              <td class="value">{{height}}</td>
+            </tr>
+            <tr>
+              <td class="label">{{ labels.weight }}</td>
+              <td class="value">{{weight}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+
+
+
+      <!-- ALERT -->
+
+      <div class="column">
+
+        <div class="alert {{ alert_risk_class|default('alert--high', true) }}">
+
+          <h3>{{alert_title}}</h3>
+
+          <p>{{alert_text}}</p>
+
+        </div>
+
+      </div>
+
+
+
+    </div>
+
+
+
+    <!-- RECOMMENDATIONS -->
+
+    <div class="section">
+
+      <h3>{{ labels.recommendations }}</h3>
+
+      <ul>
+
+        {{recommendations_list|safe}}
+
+      </ul>
+
+    </div>
+
+
+
+    <!-- SYMPTOMS -->
+
+    <div class="section">
+
+      <h3>{{ labels.reported_symptoms }}</h3>
+
+      <p>{{symptoms_text}}</p>
+
+    </div>
+
+
+
+    <!-- SOLUTION -->
+
+    <div class="section">
+
+      <h3>{{solution_title}}</h3>
+
+
+
+      <div class="solution-grid">
+
+        <!-- Image comes FIRST in RTL (appears on left visually) -->
+        <div class="solution-media">
+
+          <!-- Option A: image -->
+
+          <img src="{{solution_image_url}}" alt="{{solution_image_alt}}" />
+
+          <!-- Option B: video -->
+          <!--
+          <video controls poster="{{solution_video_poster}}">
+            <source src="{{solution_video_url}}" type="video/mp4">
+          </video>
+          -->
+
+        </div>
+
+        <div class="solution-text">
+
+          <div class="{% if lang == 'he' %}rtl-text{% endif %}" dir="{{ dir }}">
+
+            {{ solution_text|safe }}
+
+          </div>
+
+          <a href="{{solution_link}}" target="_blank" rel="noopener noreferrer">{{solution_link_text}}</a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- DISCLAIMER -->
+
+    <div class="disclaimer">
+
+      {{disclaimer_text}}
+
+    </div>
+
+
+
+  </div>
+
+
+
+</body>
+
+</html>
+
+

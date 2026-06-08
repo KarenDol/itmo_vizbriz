@@ -1,0 +1,355 @@
+<!-- Billing Tab HTML -->
+<div id="billing" class="col s12 tab-content">
+    <div class="card dark-card">
+        <div class="card-content">
+            <span class="card-title">Billing Files</span>
+            <!-- Display uploaded billing files -->
+            <ul class="file-list" id="billing-file-list">
+                {% if uploaded_files.billing %}
+                    {% for file in uploaded_files.billing %}
+                        <li>
+                            <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No billing files uploaded yet.</li>
+                {% endif %}
+            </ul>
+
+            <!-- Drag-and-Drop File Upload Area -->
+            <div id="dropzone-billing" class="upload-area drop-zone dark-upload-area center">
+                <i class="material-icons large">cloud_upload</i>
+                <p>Drag & drop billing files or folders here<br>Or use the buttons below</p>
+                <input type="file" id="fileElemBilling" name="billing_files[]" style="display:none" multiple>
+                <input type="file" id="folderElemBilling" name="billing_folder[]" webkitdirectory directory style="display:none">
+            </div>
+
+            <!-- Upload Buttons -->
+            <div class="button-group center-align">
+                <button class="btn green" id="upload-files-btn" type="button">Upload Files</button>
+                <button class="btn green" id="upload-folder-btn" type="button">Upload Folder</button>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn green waves-effect waves-light" id="submit-billing-files-btn">Upload Billing Files</button>
+        </div>
+    </div>
+
+    <!-- Download Button -->
+    <div class="button-group center-align">
+        <a href="{{ url_for('filemgmt.download_billing_files', patient_id=patient.id) }}" class="btn blue waves-effect waves-light">Download Files</a>
+    </div>
+</div>
+
+<!-- Loader Overlay -->
+<div class="overlay hidden">
+    <div class="preloader-wrapper big active">
+        <div class="spinner-layer spinner-green-only">
+            <div class="circle-clipper left">
+                <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+                <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Structure -->
+<div id="uploadResultModal" class="modal dark-card">
+    <div class="modal-content">
+        <h4 class="white-text">Upload Summary</h4>
+        <p id="uploadResultMessage" class="grey-text text-lighten-2"></p>
+    </div>
+    <div class="modal-footer dark-card no-background">
+        <button class="modal-close btn waves-effect waves-light teal darken-2" id="modalConfirmBtn">OK</button>
+    </div>
+</div>
+
+<style>
+    .modal-footer.no-background {
+        background-color: transparent;
+        border-top: none;
+    }
+
+    /* Make all Material Icons in menus dark blue */
+    .sidenav .material-icons,
+    .nav-wrapper .material-icons,
+    ul.right .material-icons {
+        color: #021757 !important;
+    }
+</style>
+
+<!-- JavaScript for drag-and-drop and file upload functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropzoneBilling = document.getElementById('dropzone-billing');
+        const fileElemBilling = document.getElementById('fileElemBilling');
+        const folderElemBilling = document.getElementById('folderElemBilling');
+        const fileListBilling = document.getElementById('billing-file-list');
+        const submitBtn = document.getElementById('submit-billing-files-btn');
+        const overlay = document.querySelector('.overlay');
+        const modalElem = document.getElementById('uploadResultModal');
+        const modalInstance = M.Modal.init(modalElem);
+
+        let filesToUpload = [];
+        let totalUploadCount = 0;
+
+       
+        // Update Session on Tab Click
+            const billingTabAnchor = document.querySelector('.tabs .tab a[href="#billing"]');
+            if (billingTabAnchor) {
+                billingTabAnchor.addEventListener('click', function () {
+                    sessionStorage.setItem('activeTab', 'billing');
+                });
+        }
+
+
+        function showLoader() {
+            overlay.classList.remove('hidden');
+            overlay.style.display = 'flex';
+        }
+
+        function hideLoader() {
+            overlay.classList.add('hidden');
+            overlay.style.display = 'none';
+        }
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzoneBilling.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropzoneBilling.addEventListener('dragenter', () => dropzoneBilling.classList.add('highlight'));
+        dropzoneBilling.addEventListener('dragleave', () => dropzoneBilling.classList.remove('highlight'));
+        dropzoneBilling.addEventListener('drop', () => dropzoneBilling.classList.remove('highlight'));
+
+        dropzoneBilling.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const items = dt.items;
+
+            if (items) {
+                Array.from(items).forEach(item => {
+                    const entry = item.webkitGetAsEntry();
+                    if (entry) {
+                        traverseFileTree(entry);
+                    }
+                });
+            }
+        }
+
+        function traverseFileTree(item, path = '') {
+            if (item.isFile) {
+                item.file(file => {
+                    file.relativePath = path + file.name;
+                    filesToUpload.push(file);
+                    previewFile(file);
+                });
+            } else if (item.isDirectory) {
+                const dirReader = item.createReader();
+                dirReader.readEntries(entries => {
+                    entries.forEach(entry => {
+                        traverseFileTree(entry, path + item.name + '/');
+                    });
+                });
+            }
+        }
+
+        fileElemBilling.addEventListener('change', function (e) {
+            handleFiles(e.target.files);
+        });
+
+        folderElemBilling.addEventListener('change', function (e) {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                file.relativePath = file.webkitRelativePath || file.name;
+                filesToUpload.push(file);
+                previewFile(file);
+            });
+        }
+
+        function previewFile(file) {
+            const li = document.createElement('li');
+            li.textContent = file.relativePath || file.name;
+            li.classList.add('new-file-entry');
+            fileListBilling.appendChild(li);
+        }
+
+        const uploadFilesBtn = document.getElementById('upload-files-btn');
+        uploadFilesBtn.addEventListener('click', function () {
+            fileElemBilling.click();
+        });
+
+        const uploadFolderBtn = document.getElementById('upload-folder-btn');
+        uploadFolderBtn.addEventListener('click', function () {
+            folderElemBilling.click();
+        });
+
+        async function processUploads() {
+            if (filesToUpload.length === 0) {
+                M.toast({html: '<span class="red-text">No files to upload!</span>', classes: 'red darken-4'});
+                return;
+            }
+
+            showLoader();
+            submitBtn.disabled = true;
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const file of filesToUpload) {
+                try {
+                    console.log(`Processing file: ${file.relativePath || file.name}`);
+                    
+                    // Step 1: Get presigned URL
+                    console.log('Requesting presigned URL...');
+                    const presignedResponse = await fetch('{{ url_for("filemgmt.generate_client_presigned_url") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filename: file.relativePath || file.name,
+                            section: 'billing',
+                            patient_id: '{{ patient.id }}',
+                            category: 'billing'
+                        })
+                    });
+
+                    const presignedData = await presignedResponse.json();
+                    if (!presignedResponse.ok || !presignedData.success) {
+                        console.error('Presigned URL error:', presignedData);
+                        throw new Error(presignedData.message || 'Failed to get presigned URL');
+                    }
+
+                    console.log('Presigned URL received:', presignedData);
+                    console.log('S3 Key:', presignedData.s3_key);
+
+                    // Step 2: Upload to S3
+                    console.log('Uploading to S3...');
+                    const formData = new FormData();
+                    Object.entries(presignedData.fields).forEach(([key, value]) => {
+                        formData.append(key, value);
+                        console.log(`Form field: ${key} = ${value}`);
+                    });
+                    formData.append('file', file);
+
+                    const uploadResponse = await fetch(presignedData.url, { method: 'POST', body: formData });
+                    if (!uploadResponse.ok) {
+                        console.error('S3 upload error:', uploadResponse);
+                        throw new Error(`Upload failed for ${file.relativePath || file.name}`);
+                    }
+
+                    console.log('File uploaded to S3 successfully');
+
+                    // Step 3: Store metadata
+                    console.log('Storing metadata...');
+                    
+                    // Helper function to retry metadata storage
+                    const storeMetadata = async (retryCount = 0, maxRetries = 3) => {
+                        const metadataPayload = {
+                            patient_id: '{{ patient.id }}',
+                            s3_key: presignedData.s3_key,
+                            file_size: file.size,
+                            file_type: file.type || 'application/octet-stream',
+                            category: 'billing',
+                            subcategory: 'billing'
+                        };
+                        
+                        // Log detailed metadata payload
+                        console.log('Metadata payload to be sent:', JSON.stringify(metadataPayload, null, 2));
+                        console.log('Patient ID type:', typeof metadataPayload.patient_id);
+                        console.log('Patient ID value:', metadataPayload.patient_id);
+                        console.log('S3 key value:', metadataPayload.s3_key);
+
+                        try {
+                            const metadataResponse = await fetch('{{ url_for("main.store_file_metadata") }}', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(metadataPayload),
+                                credentials: 'same-origin' // Ensure cookies are sent with the request
+                            });
+
+                            // Log the raw response
+                            console.log('Metadata response status:', metadataResponse.status);
+                            console.log('Metadata response headers:', [...metadataResponse.headers].reduce((obj, [key, val]) => {
+                                obj[key] = val;
+                                return obj;
+                            }, {}));
+                            
+                            const responseText = await metadataResponse.text();
+                            console.log('Raw response text:', responseText);
+                            
+                            // Parse the JSON response
+                            let metadataResult;
+                            try {
+                                metadataResult = JSON.parse(responseText);
+                                console.log('Parsed metadata result:', metadataResult);
+                            } catch (e) {
+                                console.error('Error parsing response JSON:', e);
+                                throw new Error('Failed to parse metadata response');
+                            }
+
+                            if (!metadataResponse.ok || !metadataResult.success) {
+                                console.error('Metadata storage error:', metadataResult);
+                                throw new Error(metadataResult.message || 'Failed to store metadata');
+                            }
+
+                            console.log('Metadata stored successfully with file ID:', metadataResult.file_id);
+                            return metadataResult;
+                        } catch (error) {
+                            console.error(`Attempt ${retryCount + 1} failed:`, error);
+                            
+                            if (retryCount < maxRetries) {
+                                console.log(`Retrying metadata storage (${retryCount + 1}/${maxRetries})...`);
+                                // Wait with exponential backoff between retries
+                                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+                                return storeMetadata(retryCount + 1, maxRetries);
+                            } else {
+                                throw new Error(`Failed to store metadata after ${maxRetries} attempts: ${error.message}`);
+                            }
+                        }
+                    };
+                    
+                    // Call the retry function
+                    await storeMetadata();
+                    successCount++;
+                } catch (error) {
+                    console.error('Upload process error:', error);
+                    errorCount++;
+                }
+            }
+
+            hideLoader();
+            submitBtn.disabled = false;
+            filesToUpload = [];
+            fileListBilling.innerHTML = '';
+
+            document.getElementById('uploadResultMessage').innerHTML = `
+                Upload completed: <span class="green-text">${successCount} successful</span>, 
+                <span class="red-text">${errorCount} failed</span>.
+            `;
+            modalInstance.open();
+
+            // Refresh the page after modal confirmation
+            document.getElementById('modalConfirmBtn').addEventListener('click', () => {
+                window.location.reload();
+            });
+        }
+
+        submitBtn.addEventListener('click', processUploads);
+    });
+</script>
+
+

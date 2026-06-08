@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Submissions Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #1565c0 0%, #2196f3 100%);
+      color: #333;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+    }
+
+    .header-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .logo-title {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      height: 100px;
+      width: auto;
+      max-width: 400px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1565c0;
+      margin-bottom: 30px;
+    }
+
+    .export-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .export-btn:hover {
+      background-color: #43a047;
+    }
+
+    .export-btn i {
+      margin-right: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1400px;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 0.9rem;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 12px 8px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      border-right: 1px solid #f5f5f5;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+
+    th:last-child, td:last-child {
+      border-right: none;
+    }
+
+    /* Column-specific widths to prevent gaps */
+    th:nth-child(1), td:nth-child(1) { width: 60px; }  /* ID */
+    th:nth-child(2), td:nth-child(2) { width: 140px; } /* Patient Email */
+    th:nth-child(3), td:nth-child(3) { width: 140px; } /* Clinic Email */
+    th:nth-child(4), td:nth-child(4) { width: 90px; }  /* Quiz Type */
+    th:nth-child(5), td:nth-child(5) { width: 90px; }  /* Risk Level */
+    th:nth-child(6), td:nth-child(6) { width: 120px; } /* User Actions */
+    th:nth-child(7), td:nth-child(7) { width: 110px; } /* Latest Action */
+    th:nth-child(8), td:nth-child(8) { width: 70px; }  /* User ID */
+    th:nth-child(9), td:nth-child(9) { width: 70px; }  /* Clinic ID */
+    th:nth-child(10), td:nth-child(10) { width: 120px; } /* Referral Doctor */
+    th:nth-child(11), td:nth-child(11) { width: 130px; } /* Created */
+    th:nth-child(12), td:nth-child(12) { width: 120px; } /* Actions */
+
+    th {
+      background-color: #f6f8fc;
+      color: #555;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      white-space: nowrap;
+    }
+
+    .badge.high { background-color: #e74c3c; }
+    .badge.moderate { background-color: #f39c12; }
+    .badge.low { background-color: #2ecc71; }
+    .badge.diagnosed { background-color: #3498db; }
+    .badge.diagnosed_not_using_treatment { background-color: #e74c3c; }
+    .badge.diagnosed_using_no_symptoms { background-color: #2ecc71; }
+    .badge.diagnosed_still_symptomatic { background-color: #f39c12; }
+    .badge.basic { background-color: #2196f3; }
+    .badge.advanced { background-color: #1565c0; }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .view-btn {
+      background-color: #2196f3;
+      color: white;
+    }
+
+    .view-btn:hover {
+      background-color: #1976d2;
+      color: white;
+    }
+
+    .download-btn {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .download-btn:hover {
+      background-color: #229954;
+      color: white;
+    }
+
+    .patient-btn {
+      background-color: #9c27b0;
+      color: white;
+    }
+
+    .patient-btn:hover {
+      background-color: #7b1fa2;
+      color: white;
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .filters input[type="text"] {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 180px;
+    }
+
+    .filters button {
+      padding: 10px 20px;
+      background-color: #1976d2;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .filters button:hover {
+      background-color: #1565c0;
+    }
+
+    .email-cell {
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .id-cell {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .cta-actions {
+      max-width: 120px;
+      overflow: visible;
+    }
+
+    .action-indicators {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .action-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: white;
+      white-space: nowrap;
+      margin: 1px;
+    }
+
+    .action-badge.scheduled { background-color: #27ae60; }
+    .action-badge.consultation { background-color: #2196f3; }
+    .action-badge.advanced { background-color: #1565c0; }
+    .action-badge.none { background-color: #e74c3c; }
+
+    .interaction-summary {
+      margin-top: 4px;
+    }
+
+    .interaction-count {
+      font-size: 0.7rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    .latest-action {
+      max-width: 110px;
+    }
+
+    .latest-action-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .action-type {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #2c3e50;
+    }
+
+    .action-date {
+      font-size: 0.7rem;
+      color: #7f8c8d;
+    }
+
+    .action-source {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 600;
+      color: white;
+      width: fit-content;
+    }
+
+    .action-source.email {
+      background-color: #e67e22;
+    }
+
+    .action-source.web {
+      background-color: #16a085;
+    }
+
+    .no-action {
+      color: #bdc3c7;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #1976d2;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #1565c0;
+    }
+
+    .back-btn i {
+      margin-right: 8px;
+    }
+
+    .grouped-submission {
+      background-color: #f8f9fa !important;
+      border-left: 3px solid #2196f3;
+    }
+
+    .grouped-submission:hover {
+      background-color: #e9ecef !important;
+    }
+
+    .grouped-submission td {
+      border-top: 1px dashed #dee2e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-section">
+      <div class="logo-title">
+        <img src="{{ url_for('static', filename='branding/vizbrizz_logo color.svg') }}" alt="VizBriz Logo" class="logo">
+        <h1 style="margin: 0;">Quiz Submissions Management</h1>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('forms_mgmt.dashboard') }}" class="back-btn">
+          <i class="fa fa-arrow-left"></i> Back to Forms Dashboard
+        </a>
+      </div>
+    </div>
+    
+    <h1 style="display: none;">Quiz Submissions Management</h1>
+    <a href="/export_csv" class="export-btn"><i class="fa fa-file-csv"></i> Export to CSV</a>
+
+    <div class="filters">
+      <form method="GET" action="/quiz-dashboard" style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <select name="quiz_type" style="padding: 10px 12px; border-radius: 6px; border: 1px solid #ccc; width: 180px;">
+          <option value="">All Quiz Types</option>
+          <option value="basic_quiz" {{ 'selected' if quiz_type_filter == 'basic_quiz' }}>Basic Quiz</option>
+          <option value="advanced_quiz" {{ 'selected' if quiz_type_filter == 'advanced_quiz' }}>Advanced Quiz</option>
+        </select>
+        
+        <select name="risk_level" style="padding: 10px 12px; border-radius: 6px; border: 1px solid #ccc; width: 180px;">
+          <option value="">All Risk Levels</option>
+          <option value="Low" {{ 'selected' if risk_filter == 'Low' }}>Low Risk</option>
+          <option value="Moderate" {{ 'selected' if risk_filter == 'Moderate' }}>Moderate Risk</option>
+          <option value="High" {{ 'selected' if risk_filter == 'High' }}>High Risk</option>
+        </select>
+        
+        <select name="date_range" style="padding: 10px 12px; border-radius: 6px; border: 1px solid #ccc; width: 180px;">
+          <option value="">All Time</option>
+          <option value="today" {{ 'selected' if date_filter == 'today' }}>Today</option>
+          <option value="week" {{ 'selected' if date_filter == 'week' }}>This Week</option>
+          <option value="month" {{ 'selected' if date_filter == 'month' }}>This Month</option>
+        </select>
+        
+        <button type="submit">Apply Filters</button>
+        <a href="/quiz-dashboard" style="padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Clear</a>
+      </form>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Patient Email</th>
+          <th>Clinic Email</th>
+          <th>Quiz Type</th>
+          <th>Risk Level</th>
+          <th>User Actions</th>
+          <th>Latest Action</th>
+          <th>User ID</th>
+          <th>Clinic ID</th>
+          <th>Referral Doctor</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for patient_group in submissions %}
+        {% set cta_data = patient_group.cta_summary %}
+        {% set outer_loop = loop %}
+        {% for submission_tuple in patient_group.submissions %}
+        {% set quiz = submission_tuple[0] %}
+        {% set patient = submission_tuple[1] %}
+        {% set ai_data = quiz.ai_response|from_json if quiz.ai_response else {} %}
+        {% set is_first_submission = loop.index == 1 %}
+        <tr class="{% if not is_first_submission %}grouped-submission{% endif %}">
+          <td class="id-cell">{{ quiz.id }}</td>
+          <td class="email-cell">
+            {{ quiz.patient_email }}
+            {% if patient_group.submissions|length > 1 %}
+              <small style="color: #666; display: block; font-size: 0.7rem;">
+                ({{ loop.index }}/{{ patient_group.submissions|length }} submissions)
+              </small>
+            {% endif %}
+          </td>
+          <td class="email-cell">{{ quiz.clinic_email }}</td>
+          <td>
+            {% if quiz.quiz_type %}
+              <span class="badge {{ 'basic' if quiz.quiz_type == 'basic_quiz' else 'advanced' }}">
+                {{ 'Basic Quiz' if quiz.quiz_type == 'basic_quiz' else 'Advanced Quiz' }}
+              </span>
+            {% else %}
+              <span class="badge low">Unknown</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if ai_data.risk_level %}
+              <span class="badge {{ ai_data.risk_level|lower|replace(' ', '_')|replace('–', '') }}">{{ ai_data.risk_level }}</span>
+            {% else %}
+              <span class="badge low">—</span>
+            {% endif %}
+          </td>
+          <td class="cta-actions">
+            {% if is_first_submission %}
+            <div class="action-indicators">
+              {% if cta_data.scheduled_sleep_test %}
+                <span class="action-badge scheduled" title="Scheduled Sleep Test">🏠 Sleep Test</span>
+              {% endif %}
+              {% if cta_data.requested_consultation %}
+                <span class="action-badge consultation" title="Requested Consultation">👨‍⚕️ Consultation</span>
+              {% endif %}
+              {% if cta_data.completed_advanced %}
+                <span class="action-badge advanced" title="Completed Advanced Assessment">📋 Advanced</span>
+              {% endif %}
+              {% if cta_data.total_interactions == 0 %}
+                <span class="action-badge none" title="No Actions Taken">❌ No Actions</span>
+              {% endif %}
+              {% if cta_data.total_interactions > 0 %}
+                <div class="interaction-summary">
+                  <small class="interaction-count">
+                    {{ cta_data.total_interactions }} interaction{{ 's' if cta_data.total_interactions != 1 else '' }}
+                    {% if cta_data.email_clicks > 0 %}({{ cta_data.email_clicks }} email{% if cta_data.web_clicks > 0 %}, {{ cta_data.web_clicks }} web{% endif %}){% endif %}
+                  </small>
+                </div>
+              {% endif %}
+            </div>
+            {% else %}
+            <span style="color: #bdc3c7; font-style: italic;">—</span>
+            {% endif %}
+          </td>
+          <td class="latest-action">
+            {% if is_first_submission and cta_data.latest_action %}
+              <div class="latest-action-info">
+                <span class="action-type">{{ cta_data.latest_action.type|replace('_', ' ')|title }}</span>
+                <small class="action-date">{{ cta_data.latest_action.date.strftime('%m/%d %H:%M') }}</small>
+                <span class="action-source {{ 'email' if cta_data.latest_action.source == 'Email' else 'web' }}">{{ cta_data.latest_action.source }}</span>
+              </div>
+            {% else %}
+              <span style="color: #bdc3c7; font-style: italic;">—</span>
+            {% endif %}
+          </td>
+          <td>{{ quiz.user_id if quiz.user_id is not none else '—' }}</td>
+          <td>{{ quiz.clinic_id if quiz.clinic_id is not none else '—' }}</td>
+          <td>{{ quiz.referral_doctor if quiz.referral_doctor else '—' }}</td>
+          <td>{{ quiz.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td class="actions">
+            <a href="{{ url_for('conversion_quiz_agent.submission_details', submission_id=quiz.id) }}" title="View Full Details" class="action-btn view-btn">
+              <i class="fa fa-eye"></i> View
+            </a>
+            <a href="{{ url_for('conversion_quiz_agent.download_quiz_answers', submission_id=quiz.id) }}" title="Download Quiz Answers" class="action-btn download-btn">
+              <i class="fa fa-download"></i> Answers
+            </a>
+            {% if patient and patient.id %}
+            <a href="{{ url_for('main.patient_workflow_manifest', patient_id=patient.id) }}" title="View Patient Workflow" class="action-btn patient-btn">
+              <i class="fa fa-user"></i> Patient
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

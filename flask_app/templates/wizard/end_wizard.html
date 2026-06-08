@@ -1,0 +1,71 @@
+{% extends "wizard_base.html" %}
+{% block content %}
+<div class="container text-center">
+    <h2>Thank You for Completing the Form!</h2>
+    <div id="sleep-info-result" style="font-size: 1.2em;"></div>
+</div>
+
+<!-- Responsive Image Section -->
+<div class="text-center mt-4">
+    <img src="{{ url_for('static', filename='cute_dog_sleeping.jpg') }}" 
+         alt="Cute Dog Sleeping" 
+         class="img-fluid my-4" 
+         style="max-width: 100%; height: auto; max-height: 300px; object-fit: cover; margin: 0 auto;">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set the progress bar to 100%
+        if (typeof updateProgressBar === 'function') {
+            updateProgressBar(100);
+        } else {
+            console.error('updateProgressBar function is not defined.');
+        }
+
+        // Fetch sleep test info from session variables provided by server-side rendering
+        const sleepInfo = {
+            sleepTest: "{{ session['sleep_info']['sleep_test'] if session.get('sleep_info') else '' }}",
+            sleepTestDate: "{{ session['sleep_info']['sleep_test_date'] if session.get('sleep_info') else '' }}",
+            isRecentTest: "{{ session['sleep_info']['is_recent_test'] if session.get('sleep_info') else '' }}"
+        };
+
+        // Debug log for sleep test session data
+        console.log('Session sleepInfo:', sleepInfo);
+
+        const sleepInfoResult = document.getElementById('sleep-info-result');
+
+        // Check the sleep test conditions and update the UI
+        if (sleepInfo.sleepTest === 'Yes' && sleepInfo.isRecentTest === 'True') {
+            console.log('User has a recent sleep test.');
+            sleepInfoResult.innerHTML = `
+                <p>Your sleep test is recent (within the past year). Your onboarding process is complete. Thank you for providing your information. We look forward to assisting you further with your treatment!</p>
+            `;
+        } else if (sleepInfo.sleepTest === 'Yes' && sleepInfo.isRecentTest === 'False') {
+            console.log('User has an outdated sleep test (over a year old).');
+            sleepInfoResult.innerHTML = `
+                <p>Your sleep test is over one year old. To proceed, you need to complete a new sleep test. You can schedule it with one of our partners:</p>
+                <ul class="list-unstyled">
+                    <li><a href="https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75" target="_blank">iSleep Insurance Package (Medicare/Insurance)</a></li>
+                    <li><a href="https://portal.isleepemr.com/booking/create-appointment/?booking=67d8f750532ff1ecaaf98700" target="_blank">iSleep Private Package</a></li>
+                </ul>
+                <p>Alternatively, you can consult your preferred medical provider for a new sleep test. Once completed, we will be automatically notified and will inform you about the next steps.</p>
+            `;
+        } else if (sleepInfo.sleepTest === 'No' || !sleepInfo.sleepTestDate) {
+            console.log('User has not completed a sleep test.');
+            sleepInfoResult.innerHTML = `
+                <p>It appears you have not had a sleep test. To continue your treatment, please schedule a sleep test with one of our partners:</p>
+                <ul class="list-unstyled">
+                    <li><a href="https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75" target="_blank">iSleep Insurance Package (Medicare/Insurance)</a></li>
+                    <li><a href="https://portal.isleepemr.com/booking/create-appointment/?booking=67d8f750532ff1ecaaf98700" target="_blank">iSleep Private Package</a></li>
+                </ul>
+                <p>Once your sleep test is completed, we will be automatically informed and will contact you with further details.</p>
+            `;
+        } else {
+            console.warn('Unable to determine sleep test status. Debugging required.');
+            sleepInfoResult.innerHTML = `
+                <p>We were unable to determine your sleep test status. Please ensure your sleep test information is complete for proper processing.</p>
+            `;
+        }
+    });
+</script>
+{% endblock %}

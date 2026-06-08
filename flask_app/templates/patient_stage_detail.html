@@ -1,0 +1,914 @@
+{% extends "base.html" %}
+
+{% block title %}{{ stage_config.title }} - {{ patient.name }} | Dr. Briz{% endblock %}
+
+{% block content %}
+<style>
+    .stage-header {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stage-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .stage-subtitle {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .patient-info {
+        background-color: #ecf0f1;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .patient-info strong {
+        color: #2c3e50;
+    }
+
+    .stage-status {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .status-completed {
+        background-color: #27ae60;
+        color: white;
+    }
+
+    .status-pending {
+        background-color: #f39c12;
+        color: white;
+    }
+
+    .status-blocked {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .prerequisites-list {
+        list-style: none;
+    }
+
+    .prerequisites-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #ecf0f1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .prerequisites-list li:last-child {
+        border-bottom: none;
+    }
+
+    .prerequisite-met {
+        color: #27ae60;
+    }
+
+    .prerequisite-missing {
+        color: #e74c3c;
+    }
+
+    .requirements-list {
+        list-style: none;
+    }
+
+    .requirements-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #ecf0f1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .requirements-list li:last-child {
+        border-bottom: none;
+    }
+
+    .requirements-list li::before {
+        content: "•";
+        color: #3498db;
+        font-weight: bold;
+    }
+
+    .action-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .action-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #ecf0f1;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #ecf0f1;
+        border-radius: 6px;
+        font-size: 1rem;
+        min-height: 100px;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background-color: #27ae60;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: #229954;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+    }
+
+    .existing-data {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .existing-data h4 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .data-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+    .data-item:last-child {
+        border-bottom: none;
+    }
+
+    .data-label {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .data-value {
+        color: #7f8c8d;
+    }
+
+    .quiz-link {
+        display: inline-block;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .quiz-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .material-icons {
+        font-size: 1.2em;
+    }
+
+    /* Enhanced Chat Widget Styles */
+    .chat-widget {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 500px;
+        height: 600px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        z-index: 1000;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+    }
+
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .chat-info {
+        flex: 1;
+    }
+
+    .chat-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .chat-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .chat-toggle {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+    }
+
+    .chat-toggle:hover {
+        background-color: rgba(255,255,255,0.1);
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+
+    .chat-message {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .chat-message.user {
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .chat-message:not(.user) .message-avatar {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .chat-message.user .message-avatar {
+        background-color: #27ae60;
+        color: white;
+    }
+
+    .message-bubble {
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: 18px;
+        max-width: 70%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        line-height: 1.5;
+    }
+
+    .chat-message.user .message-bubble {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .chat-input-area {
+        padding: 1.5rem;
+        background: white;
+        border-top: 1px solid #ecf0f1;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        border: 2px solid #ecf0f1;
+        border-radius: 25px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .chat-input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+
+    .chat-send {
+        background: #3498db;
+        color: white;
+        border: none;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .chat-send:hover {
+        background-color: #2980b9;
+        transform: scale(1.05);
+    }
+
+    .chat-minimized {
+        height: 80px;
+    }
+
+    .chat-minimized .chat-body,
+    .chat-minimized .chat-input-area {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .chat-widget {
+            width: 90vw;
+            height: 70vh;
+            right: 5vw;
+            bottom: 1rem;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Stage Header -->
+            <div class="stage-header">
+                <h1 class="stage-title">{{ stage_config.title }}</h1>
+                <p class="stage-subtitle">{{ stage_config.description }}</p>
+                
+                <div class="patient-info">
+                    <strong>Patient:</strong> {{ patient.name }} (ID: {{ patient.id }})
+                    {% if patient.gender %} • <strong>Gender:</strong> {{ patient.gender }}{% endif %}
+                    {% if patient.clinic %} • <strong>Clinic:</strong> {{ patient.clinic.name }}{% endif %}
+                </div>
+                
+                <div class="stage-status {% if current_stage_data and current_stage_data.value == 'yes' %}status-completed{% elif prerequisites_missing %}status-blocked{% else %}status-pending{% endif %}">
+                    {% if current_stage_data and current_stage_data.value == 'yes' %}
+                        ✅ Completed
+                    {% elif prerequisites_missing %}
+                        ❌ Blocked - Prerequisites Missing
+                    {% else %}
+                        ⏳ Pending
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Prerequisites -->
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="material-icons">check_circle</i>
+                        Prerequisites
+                    </h3>
+                    {% if stage_config.prerequisites %}
+                        <ul class="prerequisites-list">
+                            {% for prereq in stage_config.prerequisites %}
+                                <li class="{% if prereq in prerequisites_met %}prerequisite-met{% else %}prerequisite-missing{% endif %}">
+                                    <i class="material-icons">
+                                        {% if prereq in prerequisites_met %}check_circle{% else %}cancel{% endif %}
+                                    </i>
+                                    {{ prereq.replace('_', ' ').title() }}
+                                    {% if prereq in prerequisites_met %}
+                                        <span class="data-value">(Completed)</span>
+                                    {% else %}
+                                        <span class="data-value">(Not completed)</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="data-value">No prerequisites required for this stage.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Requirements -->
+                <div class="card">
+                    <h3 class="card-title">
+                        <i class="material-icons">assignment</i>
+                        Requirements
+                    </h3>
+                    <ul class="requirements-list">
+                        {% for requirement in stage_config.requirements %}
+                            <li>{{ requirement }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div class="action-section">
+                <h3 class="action-title">
+                    <i class="material-icons">edit</i>
+                    {% if current_stage_data and current_stage_data.value == 'yes' %}
+                        Update Stage Information
+                    {% else %}
+                        Complete This Stage
+                    {% endif %}
+                </h3>
+
+                {% if stage_config.form_type == 'quiz_link' %}
+                    <!-- Quiz Link -->
+                    <p>Patient needs to complete the OSA screening questionnaire to proceed to the next stage.</p>
+                    <a href="{{ stage_config.quiz_url }}" class="quiz-link">
+                        <i class="material-icons">quiz</i>
+                        Start OSA Screening Quiz
+                    </a>
+
+                {% elif stage_config.form_type == 'consultation_schedule' %}
+                    <!-- Consultation Schedule Form -->
+                    {% if consultation_schedules %}
+                        <div class="existing-data">
+                            <h4>Existing Consultation Schedules</h4>
+                            {% for schedule in consultation_schedules %}
+                                {% if schedule.consult_type == stage_config.consult_type %}
+                                    <div class="data-item">
+                                        <span class="data-label">Scheduled:</span>
+                                        <span class="data-value">{{ schedule.scheduled_datetime.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                                        {% if schedule.notes %}
+                                            <br><span class="data-label">Notes:</span>
+                                            <span class="data-value">{{ schedule.notes }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <input type="hidden" name="form_type" value="consultation_schedule">
+                        <input type="hidden" name="consult_type" value="{{ stage_config.consult_type }}">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" name="scheduled_date" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Time</label>
+                                <input type="time" name="scheduled_time" class="form-input" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-textarea" placeholder="Any additional notes about the consultation..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="material-icons">schedule</i>
+                            Schedule Consultation
+                        </button>
+                    </form>
+
+                {% elif stage_config.form_type == 'consultation_complete' %}
+                    <!-- Consultation Complete Form -->
+                    {% if consultation_schedules %}
+                        <div class="existing-data">
+                            <h4>Existing Consultation</h4>
+                            {% for schedule in consultation_schedules %}
+                                {% if schedule.consult_type == stage_config.consult_type %}
+                                    <div class="data-item">
+                                        <span class="data-label">Scheduled:</span>
+                                        <span class="data-value">{{ schedule.scheduled_datetime.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                                        <br><span class="data-label">Status:</span>
+                                        <span class="data-value">{{ schedule.status.title() }}</span>
+                                        {% if schedule.completed_datetime %}
+                                            <br><span class="data-label">Completed:</span>
+                                            <span class="data-value">{{ schedule.completed_datetime.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                                        {% endif %}
+                                        {% if schedule.comment %}
+                                            <br><span class="data-label">Notes:</span>
+                                            <span class="data-value">{{ schedule.comment }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        <input type="hidden" name="form_type" value="consultation_complete">
+                        <input type="hidden" name="consult_type" value="{{ stage_config.consult_type }}">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Completion Date</label>
+                                <input type="date" name="completed_date" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Completion Time</label>
+                                <input type="time" name="completed_time" class="form-input" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Consultation Notes</label>
+                            <textarea name="comment" class="form-textarea" placeholder="Notes about the consultation, recommendations, etc..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="material-icons">check_circle</i>
+                            Mark as Completed
+                        </button>
+                    </form>
+
+                {% elif stage_config.form_type == 'file_upload' %}
+                    <!-- File Upload Section -->
+                    <div class="existing-data">
+                        <h4>Existing Files</h4>
+                        {% if patient_files or admin_files %}
+                            {% for file in patient_files %}
+                                {% if file.category == stage_config.file_category %}
+                                    <div class="data-item">
+                                        <span class="data-label">File:</span>
+                                        <span class="data-value">{{ file.name }}</span>
+                                        <br><span class="data-label">Uploaded:</span>
+                                        <span class="data-value">{{ file.upload_date.strftime('%B %d, %Y') if file.upload_date else 'Unknown' }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            {% for file in admin_files %}
+                                <div class="data-item">
+                                    <span class="data-label">Admin File:</span>
+                                    <span class="data-value">{{ file.name }}</span>
+                                    <br><span class="data-label">Uploaded:</span>
+                                    <span class="data-value">{{ file.upload_date.strftime('%B %d, %Y') if file.upload_date else 'Unknown' }}</span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="data-value">No files uploaded yet.</p>
+                        {% endif %}
+                    </div>
+
+                    <p>Upload the required files using the file upload system.</p>
+                    <a href="{{ url_for('main.upload_new') }}?patient_id={{ patient.id }}" class="btn btn-primary">
+                        <i class="material-icons">upload_file</i>
+                        Upload Files
+                    </a>
+
+                {% elif stage_config.form_type == 'appliance_order' %}
+                    <!-- Appliance Order Form -->
+                    <form method="POST">
+                        <input type="hidden" name="form_type" value="appliance_order">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Device Type</label>
+                                <select name="device_type" class="form-input" required>
+                                    <option value="">Select device type...</option>
+                                    <option value="MAD">Mandibular Advancement Device (MAD)</option>
+                                    <option value="TAP">Tongue Advancement Device (TAP)</option>
+                                    <option value="CPAP">CPAP Alternative</option>
+                                    <option value="Custom">Custom Device</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Device Name/Model</label>
+                                <input type="text" name="device_name" class="form-input" placeholder="e.g., SomnoDent, TAP-PAP" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Order Notes</label>
+                            <textarea name="notes" class="form-textarea" placeholder="Any special instructions or notes for the order..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="material-icons">shopping_cart</i>
+                            Place Order
+                        </button>
+                    </form>
+
+                {% else %}
+                    <!-- Default Form -->
+                    <p>This stage requires manual completion. Please update the patient's records accordingly.</p>
+                {% endif %}
+
+                {% if stage_config.next_stage %}
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ecf0f1;">
+                        <p><strong>Next Stage:</strong> {{ stage_config.next_stage.replace('_', ' ').title() }}</p>
+                        <a href="{{ url_for('main.patient_stage_detail', patient_id=patient.id, stage_key=stage_config.next_stage) }}" class="btn btn-secondary">
+                            <i class="material-icons">arrow_forward</i>
+                            Go to Next Stage
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced AI Chat Widget -->
+<div class="chat-widget" id="chatWidget">
+    <div class="chat-header" onclick="toggleChat()">
+        <div class="chat-avatar">B</div>
+        <div class="chat-info">
+            <div class="chat-name">Dr. Briz</div>
+            <div class="chat-subtitle">AI-powered dental assistant</div>
+        </div>
+        <button class="chat-toggle">
+            <i class="material-icons" id="chatToggleIcon">remove</i>
+        </button>
+    </div>
+    <div class="chat-body" id="chatBody">
+        <div class="chat-message">
+            <div class="message-avatar">B</div>
+            <div class="message-bubble">
+                Hello! I'm Dr. Briz, your AI assistant. I can help you with this patient's {{ stage_config.title }} stage. What would you like to know about their treatment progress or next steps?
+            </div>
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Ask about this stage or patient..." onkeypress="handleChatKeyPress(event)">
+        <button class="chat-send" onclick="sendChatMessage()">
+            <i class="material-icons" style="font-size: 18px;">send</i>
+        </button>
+    </div>
+</div>
+
+<script>
+    // Patient data from backend
+    const patientData = {
+        id: {{ patient.id }},
+        name: "{{ patient.name }}",
+        stageKey: "{{ stage_key }}",
+        stageConfig: {{ stage_config | tojson | safe }}
+    };
+
+    // Chat functionality
+    function toggleChat() {
+        const widget = document.getElementById('chatWidget');
+        const icon = document.getElementById('chatToggleIcon');
+        
+        if (widget.classList.contains('chat-minimized')) {
+            widget.classList.remove('chat-minimized');
+            icon.textContent = 'remove';
+        } else {
+            widget.classList.add('chat-minimized');
+            icon.textContent = 'add';
+        }
+    }
+
+    function handleChatKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendChatMessage();
+        }
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (message) {
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // Send to backend
+            sendMessageToBackend(message);
+        }
+    }
+
+    function addChatMessage(text, sender) {
+        const chatBody = document.getElementById('chatBody');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${sender}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.textContent = sender === 'user' ? 'U' : 'B';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.textContent = text;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
+        chatBody.appendChild(messageDiv);
+        
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function sendMessageToBackend(message) {
+        fetch('/osaagent/api/bedrock_chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                patient_id: patientData.id,
+                message: message,
+                stage_key: patientData.stageKey,
+                stage_config: patientData.stageConfig
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addChatMessage(data.response, 'ai');
+            } else {
+                addChatMessage('Sorry, I encountered an error. Please try again.', 'ai');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addChatMessage('Sorry, I encountered an error. Please try again.', 'ai');
+        });
+    }
+
+    // Set default date/time values to current date/time
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().slice(0, 5);
+        
+        // Set default values for date inputs
+        const dateInputs = document.querySelectorAll('input[type="date"]');
+        dateInputs.forEach(input => {
+            if (!input.value) {
+                input.value = dateStr;
+            }
+        });
+        
+        // Set default values for time inputs
+        const timeInputs = document.querySelectorAll('input[type="time"]');
+        timeInputs.forEach(input => {
+            if (!input.value) {
+                input.value = timeStr;
+            }
+        });
+    });
+</script>
+{% endblock %} 

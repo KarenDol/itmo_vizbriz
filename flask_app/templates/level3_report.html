@@ -1,0 +1,2168 @@
+{% extends "base.html" %}
+
+{% block title %}Level-3 OSA Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #1e8e82;
+        --primary-light: #26a69a;
+        --bg-light: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #111827;
+        --text-secondary: #374151;
+        --text-label: #1f2937;
+        --border-color: #d1d5db;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+    }
+    
+    .level3-wrapper {
+        max-width: 1200px;
+        margin: 24px auto;
+        padding: 0 24px;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 12px;
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        color: white;
+        box-shadow: 0 8px 24px rgba(30, 142, 130, 0.25);
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .page-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .patient-selector {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .patient-selector label {
+        color: var(--text-primary);
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .patient-autocomplete {
+        position: relative;
+    }
+    
+    .patient-autocomplete input {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--bg-light);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .patient-autocomplete input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(30, 142, 130, 0.15);
+    }
+    
+    .suggestion-box {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 2px solid var(--primary);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        z-index: 100;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .suggestion-item {
+        padding: 14px 16px;
+        cursor: pointer;
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s;
+    }
+    
+    .suggestion-item:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .report-form {
+        display: none;
+    }
+    
+    .report-form.visible {
+        display: block;
+    }
+    
+    .section-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .section-header {
+        background: linear-gradient(90deg, rgba(30, 142, 130, 0.1) 0%, transparent 100%);
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .section-header h3 {
+        color: var(--text-primary);
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .section-header .icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.1rem;
+    }
+    
+    .section-content {
+        padding: 20px;
+    }
+    
+    .field-group {
+        margin-bottom: 16px;
+    }
+    
+    .field-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .field-label {
+        color: var(--text-label);
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .field-input {
+        width: 100%;
+        padding: 12px 14px;
+        background: #ffffff;
+        border: 2px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .field-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(30, 142, 130, 0.1);
+        background: white;
+    }
+    
+    textarea.field-input {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+    
+    .field-input::placeholder {
+        color: #9ca3af;
+        font-weight: 400;
+    }
+    
+    /* Rich Text Editor */
+    .rich-editor-container {
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+    }
+    
+    .rich-editor-container:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(30, 142, 130, 0.1);
+    }
+    
+    .rich-editor-toolbar {
+        background: #f3f4f6;
+        padding: 8px 12px;
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .rich-editor-toolbar button {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 6px 10px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s;
+    }
+    
+    .rich-editor-toolbar button:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .rich-editor-toolbar button.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .rich-editor-toolbar button i {
+        font-size: 18px;
+    }
+    
+    .rich-editor-toolbar .separator {
+        width: 1px;
+        background: var(--border-color);
+        margin: 0 8px;
+    }
+    
+    .rich-editor-content {
+        min-height: 150px;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 16px;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    .rich-editor-content:focus {
+        outline: none;
+    }
+    
+    .rich-editor-content ul {
+        margin: 8px 0;
+        padding-left: 28px;
+        list-style-type: disc !important;
+        display: block;
+        color: var(--text-primary);
+    }
+    
+    .rich-editor-content ol {
+        margin: 8px 0;
+        padding-left: 28px;
+        list-style-type: decimal !important;
+        display: block;
+        color: var(--text-primary);
+    }
+    
+    .rich-editor-content li {
+        margin: 6px 0;
+        display: list-item !important;
+        list-style-position: outside;
+        color: var(--text-primary) !important;
+    }
+    
+    .rich-editor-content ul li {
+        list-style-type: disc !important;
+    }
+    
+    .rich-editor-content ol li {
+        list-style-type: decimal !important;
+    }
+    
+    .rich-editor-content li::marker {
+        color: var(--primary) !important;
+        font-weight: bold;
+    }
+    
+    /* Fallback for browsers that don't support ::marker well */
+    .rich-editor-content ul li::before,
+    .rich-editor-content ol li::before {
+        color: var(--primary);
+    }
+    
+    /* Force override any CSS resets (like Materialize) */
+    .rich-editor-content ul,
+    .rich-editor-content ul li,
+    .rich-editor-content ol,
+    .rich-editor-content ol li {
+        list-style: inherit !important;
+    }
+    
+    .rich-editor-content > ul {
+        list-style-type: disc !important;
+        margin-left: 0 !important;
+    }
+    
+    .rich-editor-content > ol {
+        list-style-type: decimal !important;
+        margin-left: 0 !important;
+    }
+    
+    .rich-editor-content p {
+        margin: 8px 0;
+    }
+    
+    .rich-editor-content:empty::before {
+        content: attr(data-placeholder);
+        color: #9ca3af;
+        font-style: italic;
+    }
+    
+    .field-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    
+    .field-row-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
+    .field-row-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .field-row-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .field-row-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* CBCT measurements list */
+    .measurements-list { margin-top: 12px; }
+    .measurement-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .measurement-row .field-input { margin-bottom: 0; }
+    .btn-remove-row {
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-remove-row:hover { background: #dc2626; }
+    .btn-add-measurement {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .btn-add-measurement:hover { background: var(--primary-light); }
+    
+    /* Structural observations table */
+    .structural-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .structural-table th,
+    .structural-table td {
+        padding: 14px 16px;
+        text-align: left;
+        border: 2px solid var(--border-color);
+    }
+    
+    .structural-table th {
+        background: var(--primary);
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    
+    .structural-table td:first-child {
+        font-weight: 700;
+        color: var(--text-primary);
+        width: 220px;
+        background: #f3f4f6;
+        font-size: 0.95rem;
+    }
+    
+    .structural-table tr:nth-child(even) td:last-child {
+        background: #fafafa;
+    }
+    
+    /* Autocomplete dropdown for structural observations */
+    .autocomplete-wrapper {
+        position: relative;
+    }
+    
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--primary);
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 50;
+        display: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .autocomplete-dropdown.visible {
+        display: block;
+    }
+    
+    .autocomplete-item {
+        padding: 12px 14px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .autocomplete-item:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Clinical Images */
+    .clinical-images-section {
+        margin-top: 16px;
+    }
+    
+    .paste-zone {
+        min-height: 120px;
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 16px;
+    }
+    
+    .paste-zone:hover {
+        border-color: var(--primary);
+        background: rgba(30, 142, 130, 0.05);
+    }
+    
+    .paste-zone.drag-over {
+        border-color: var(--primary);
+        background: rgba(30, 142, 130, 0.1);
+        border-style: solid;
+    }
+    
+    .paste-zone-text {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    .paste-zone-text i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        display: block;
+        color: var(--primary);
+    }
+    
+    .image-gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .image-tile {
+        width: 180px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .image-tile img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        display: block;
+    }
+    
+    .image-tile .caption-input {
+        width: 100%;
+        border: none;
+        border-top: 2px solid var(--border-color);
+        padding: 10px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        background: #fafafa;
+    }
+    
+    .image-tile .caption-input::placeholder {
+        color: #9ca3af;
+        font-weight: 400;
+    }
+    
+    .image-tile .delete-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .image-tile:hover .delete-btn {
+        opacity: 1;
+    }
+    
+    .image-tile .upload-status {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+    
+    .image-tile .upload-status.uploading {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .image-tile .upload-status.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    /* Action bar */
+    .action-bar {
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(0deg, white 0%, rgba(255,255,255,0.95) 100%);
+        padding: 20px;
+        margin: 24px -24px -24px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .btn-generate {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(30, 142, 130, 0.3);
+    }
+    
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 142, 130, 0.4);
+    }
+    
+    .btn-generate:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .btn-reset {
+        background: var(--bg-light);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 14px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-reset:hover {
+        background: var(--border-color);
+    }
+    
+    .btn-translate {
+        background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-translate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-translate:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        display: none;
+    }
+    
+    .loading-overlay.visible {
+        display: flex;
+    }
+    
+    .loading-content {
+        text-align: center;
+        color: var(--text-primary);
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--border-color);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Success message */
+    .success-message {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 32px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        display: none;
+    }
+    
+    .success-message.visible {
+        display: block;
+    }
+    
+    .success-message .icon {
+        font-size: 4rem;
+        color: var(--success);
+        margin-bottom: 16px;
+    }
+    
+    .success-message h3 {
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+    
+    .success-message p {
+        color: var(--text-secondary);
+        margin: 0 0 20px 0;
+    }
+    
+    .success-message .btn-view {
+        background: var(--primary);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 12px;
+    }
+    
+    .success-message .btn-upload-reports {
+        background: #2563eb;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    
+    .success-message .btn-upload-reports:hover {
+        background: #1d4ed8;
+    }
+    
+    .success-message .btn-upload-reports:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+    
+    .success-message .btn-upload-reports.uploaded {
+        background: #10b981;
+    }
+    
+    .success-message .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+    
+    .success-message .btn-new-report {
+        background: #6b7280;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .success-message .btn-new-report:hover {
+        background: #4b5563;
+    }
+    
+    .upload-status-text {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 12px;
+    }
+    
+    .upload-status-text.success {
+        color: #10b981;
+    }
+    
+    /* Radiologist note */
+    .radiologist-note {
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #78350f;
+        line-height: 1.5;
+    }
+    
+    @media (max-width: 768px) {
+        .field-row, .field-row-5, .field-row-4, .field-row-3, .field-row-2 {
+            grid-template-columns: 1fr;
+        }
+        
+        .structural-table td:first-child {
+            width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="level3-wrapper">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loading-message">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="material-icons">description</i>
+            Level-3 OSA Report
+        </h1>
+        <p>Create a comprehensive OSA Data Assessment Report. All content is entered manually by the clinician.</p>
+    </div>
+
+    <!-- Patient Selector -->
+    <div class="patient-selector">
+        <label>Search and Select Patient</label>
+        <div class="patient-autocomplete">
+            <input type="text" id="patient-input" placeholder="Type patient name or ID..." autocomplete="off">
+            <input type="hidden" id="patient-id">
+            <div id="patient-suggestions" class="suggestion-box"></div>
+        </div>
+    </div>
+
+    <!-- Success Message (shown after generation) -->
+    <div id="success-message" class="success-message">
+        <div class="icon">✓</div>
+        <h3>Report Generated Successfully!</h3>
+        <p id="success-message-text">The Level 3 report has been created. Preview it below, then click "Upload to Reports" to save it to the patient's records.</p>
+        <div class="action-buttons">
+            <a id="view-report-link" href="#" target="_blank" class="btn-view">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 4px; font-size: 18px;">visibility</i>
+                Preview PDF
+            </a>
+            <button id="upload-to-reports-btn" class="btn-upload-reports" onclick="uploadToReports()">
+                <i class="material-icons" style="font-size: 18px;">cloud_upload</i>
+                Upload to Reports
+            </button>
+            <button class="btn-new-report" onclick="startNewReport()">
+                <i class="material-icons" style="font-size: 18px;">add</i>
+                New Report
+            </button>
+        </div>
+        <p id="upload-status-text" class="upload-status-text" style="display: none;"></p>
+    </div>
+
+    <!-- Report Form -->
+    <div id="report-form" class="report-form">
+        
+        <!-- 1. Report Purpose -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">description</i></span>
+                    1. Report Purpose
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Report purpose</label>
+                    <textarea class="field-input" id="field-report-purpose" rows="3">{{ default_report_purpose }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Details Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">person</i></span>
+                    Personal Details
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="field-row field-row-5">
+                    <div class="field-group">
+                        <label class="field-label">Gender</label>
+                        <input type="text" class="field-input" data-path="patient.sex" id="field-gender" placeholder="M / F">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Age</label>
+                        <input type="text" class="field-input" data-path="patient.age" id="field-age" placeholder="Years">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">BMI</label>
+                        <input type="text" class="field-input" data-path="patient.bmi" id="field-bmi" placeholder="kg/m²">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Weight (kg)</label>
+                        <input type="text" class="field-input" data-path="patient.weight_kg" id="field-weight" placeholder="kg">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Height (cm)</label>
+                        <input type="text" class="field-input" data-path="patient.height_cm" id="field-height" placeholder="cm">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinical Background Section (Patient Overview) -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">local_hospital</i></span>
+                    Clinical Background, Complaints & Goals
+                </h3>
+            </div>
+            <div class="section-content">
+                <p class="field-label" style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">Generate Patient Overview from available patient data (AI), then review and edit as needed.</p>
+                <button type="button" class="btn-add-measurement" id="btn-generate-overview-ai" style="margin-bottom: 12px;">
+                    <i class="material-icons" style="font-size: 18px;">auto_awesome</i>
+                    Generate Patient Overview with AI
+                </button>
+                <div class="field-group">
+                    <label class="field-label">Clinical Background / Medical History</label>
+                    <textarea class="field-input" data-path="clinical_background" id="field-clinical-background" rows="3" placeholder="Enter medical history, comorbidities, medications..."></textarea>
+                </div>
+                <div class="field-row field-row-2">
+                    <div class="field-group">
+                        <label class="field-label">Patient Complaints</label>
+                        <textarea class="field-input" data-path="complaints" id="field-complaints" rows="3" placeholder="Enter patient complaints..."></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Patient Goals</label>
+                        <textarea class="field-input" data-path="goals" id="field-goals" rows="3" placeholder="Enter patient goals..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Key Sleep Study Data -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">bedtime</i></span>
+                    3. Key Sleep Study Data
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Intro line (e.g. Sleep study performed with oral appliance in place)</label>
+                    <input type="text" class="field-input" id="field-sleep-intro" placeholder="Sleep study performed with oral appliance in place">
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">AHI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.ahi" id="field-ahi" placeholder="events/hour">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">REM AHI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.rem_ahi" id="field-rem-ahi" placeholder="events/hour">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">RDI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.rdi" id="field-rdi" placeholder="events/hour">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">REM RDI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.rem_rdi" id="field-rem-rdi" placeholder="events/hour">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">ODI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.odi" id="field-odi" placeholder="events/hour">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">REM ODI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.rem_odi" id="field-rem-odi" placeholder="events/hour">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Supine AHI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.supine_ahi" id="field-supine-ahi" placeholder="events/hour">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Non-Supine AHI</label>
+                        <input type="text" class="field-input" data-path="sleep_study.non_supine_ahi" id="field-non-supine-ahi" placeholder="events/hour">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">Snoring %</label>
+                        <input type="text" class="field-input" data-path="sleep_study.snoring_pct" id="field-snoring-pct" placeholder="%">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">O2 Nadir</label>
+                        <input type="text" class="field-input" data-path="sleep_study.o2_nadir" id="field-o2-nadir" placeholder="%">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Sleep Efficiency</label>
+                        <input type="text" class="field-input" data-path="sleep_study.sleep_efficiency" id="field-sleep-efficiency" placeholder="%">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Total Sleep Time</label>
+                        <input type="text" class="field-input" data-path="sleep_study.total_sleep_time_min" id="field-total-sleep-time" placeholder="minutes">
+                    </div>
+                </div>
+                <div class="field-group" style="margin-top: 16px;">
+                    <label class="field-label">Brief summary</label>
+                    <textarea class="field-input" id="field-sleep-brief-summary" rows="3" placeholder="Brief interpretation of the sleep data..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Structural Observations Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">biotech</i></span>
+                    Structural Observations from Imaging Data
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="radiologist-note">
+                    <strong>Important Note:</strong> This section presents observations based on imaging data and does not constitute an official radiological interpretation. Any imaging findings must be reviewed by a certified radiologist or physician before making clinical decisions.
+                </div>
+                
+                <table class="structural-table">
+                    <thead>
+                        <tr>
+                            <th>Key Observations</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Obstruction Sites</td>
+                            <td>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="field-input autocomplete-input" data-path="anatomy.primary_obstruction_site" id="field-obstruction-sites" data-field="obstruction_sites" placeholder="Start typing for suggestions... Multiple observations separated by comma.">
+                                    <div class="autocomplete-dropdown" id="dropdown-obstruction-sites"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Soft Palate & Uvula</td>
+                            <td>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="field-input autocomplete-input" data-path="anatomy.soft_palate" id="field-soft-palate" data-field="soft_palate" placeholder="Start typing for suggestions... Multiple observations separated by comma.">
+                                    <div class="autocomplete-dropdown" id="dropdown-soft-palate"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Tongue Position</td>
+                            <td>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="field-input autocomplete-input" data-path="anatomy.tongue_base" id="field-tongue-position" data-field="tongue_position" placeholder="Start typing for suggestions... Multiple observations separated by comma.">
+                                    <div class="autocomplete-dropdown" id="dropdown-tongue-position"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Bite & Jaw Structure</td>
+                            <td>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="field-input autocomplete-input" data-path="anatomy.bite_jaw" id="field-bite-jaw" data-field="bite_jaw" placeholder="Start typing for suggestions... Multiple observations separated by comma.">
+                                    <div class="autocomplete-dropdown" id="dropdown-bite-jaw"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Hyoid Bone</td>
+                            <td>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="field-input autocomplete-input" data-path="anatomy.hyoid" id="field-hyoid-bone" data-field="hyoid_bone" placeholder="Start typing for suggestions... Multiple observations separated by comma.">
+                                    <div class="autocomplete-dropdown" id="dropdown-hyoid-bone"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Nasal & Sinus Findings</td>
+                            <td>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="field-input autocomplete-input" data-path="anatomy.nasal_sinus" id="field-nasal-sinus" data-field="nasal_sinus" placeholder="Start typing for suggestions... Multiple observations separated by comma.">
+                                    <div class="autocomplete-dropdown" id="dropdown-nasal-sinus"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Clinical Images -->
+                <div class="clinical-images-section">
+                    <label class="field-label" style="margin-top: 20px;">Clinical Images</label>
+                    <div id="paste-zone" class="paste-zone" tabindex="0">
+                        <div class="paste-zone-text">
+                            <i class="material-icons">add_photo_alternate</i>
+                            Paste images here (Ctrl+V / Cmd+V)<br>
+                            <small>or drag & drop image files</small>
+                        </div>
+                    </div>
+                    <div id="image-gallery" class="image-gallery"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Anatomical Contributors – CBCT-Based Observations -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">straighten</i></span>
+                    Key Anatomical Contributors – CBCT-Based Observations
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label" style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="field-exclude-cbct-section" style="width: auto; margin: 0;">
+                        Exclude this section from the report (when cephalometric/CBCT data is not used)
+                    </label>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Measurements (CBCT-derived cephalometric)</label>
+                    <p class="field-label" style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">Add measurement name and value. Leave empty to omit from report.</p>
+                    <div id="cbct-measurements-list" class="measurements-list"></div>
+                    <button type="button" class="btn-add-measurement" id="btn-add-cbct-measurement">
+                        <i class="material-icons" style="font-size: 18px;">add</i>
+                        Add measurement
+                    </button>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Craniofacial and dental context (CBCT-derived cephalometric data)</label>
+                    <textarea class="field-input" id="field-craniofacial-context" rows="4" placeholder="Enter craniofacial and dental context when cephalometric information exists..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Integrated Therapeutic Pathway and Next Steps -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">medical_services</i></span>
+                    5. Integrated Therapeutic Pathway and Next Steps
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Treatment pathway, considerations, and next steps</label>
+                    <p class="field-label" style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">Generate pathway automatically from patient data (AI), then review and edit as needed.</p>
+                    <button type="button" class="btn-add-measurement" id="btn-generate-pathway-ai" style="margin-bottom: 12px;">
+                        <i class="material-icons" style="font-size: 18px;">auto_awesome</i>
+                        Generate pathway with AI
+                    </button>
+                    <div class="rich-editor-container">
+                        <div class="rich-editor-toolbar">
+                            <button type="button" onclick="formatText('bold', 'editor-integrated-pathway')" title="Bold">
+                                <i class="material-icons">format_bold</i>
+                            </button>
+                            <button type="button" onclick="formatText('italic', 'editor-integrated-pathway')" title="Italic">
+                                <i class="material-icons">format_italic</i>
+                            </button>
+                            <div class="separator"></div>
+                            <button type="button" onclick="formatText('insertUnorderedList', 'editor-integrated-pathway')" title="Bullet List">
+                                <i class="material-icons">format_list_bulleted</i>
+                            </button>
+                            <button type="button" onclick="formatText('insertOrderedList', 'editor-integrated-pathway')" title="Numbered List">
+                                <i class="material-icons">format_list_numbered</i>
+                            </button>
+                            <div class="separator"></div>
+                            <button type="button" onclick="clearFormatting('editor-integrated-pathway')" title="Clear Formatting">
+                                <i class="material-icons">format_clear</i>
+                            </button>
+                        </div>
+                        <div class="rich-editor-content" contenteditable="true" id="editor-integrated-pathway" data-placeholder="Enter integrated therapeutic pathway, treatment considerations, recommendations for further evaluation, and next steps..."></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disclaimer Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>
+                    <span class="icon"><i class="material-icons">gavel</i></span>
+                    Disclaimer
+                </h3>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Report Disclaimer</label>
+                    <textarea class="field-input" id="field-disclaimer" rows="4">This report is intended as a clinical data-integration and pathway-orientation tool. It does not replace clinical judgment, establish a standard of care, or provide definitive treatment recommendations. Final treatment decisions remain the responsibility of the treating clinician.</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="btn-reset" onclick="resetForm()">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 4px;">restore</i>
+                Reset Form
+            </button>
+            <button class="btn-translate" id="translate-btn" onclick="translateToEnglish()">
+                <i class="material-icons">translate</i>
+                Translate to English
+            </button>
+            <button class="btn-generate" id="generate-btn" onclick="generateReport()">
+                <i class="material-icons">picture_as_pdf</i>
+                Generate Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Default report purpose (used when loading a patient with no saved value)
+window.LEVEL3_DEFAULT_REPORT_PURPOSE = {{ default_report_purpose|tojson }};
+
+// Rich Text Editor Functions (global scope)
+function formatText(command, editorId) {
+    const editor = document.getElementById(editorId);
+    if (editor) {
+        editor.focus();
+        document.execCommand(command, false, null);
+    }
+}
+
+function clearFormatting(editorId) {
+    const editor = document.getElementById(editorId);
+    if (editor) {
+        editor.focus();
+        document.execCommand('removeFormat', false, null);
+        // Also remove lists
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+            const li = container.nodeType === 3 ? container.parentElement.closest('li') : container.closest('li');
+            if (li) {
+                const ul = li.closest('ul, ol');
+                if (ul) {
+                    const text = ul.innerText;
+                    ul.outerHTML = `<p>${text}</p>`;
+                }
+            }
+        }
+    }
+}
+
+function getEditorHtml(editorId) {
+    const editor = document.getElementById(editorId);
+    return editor ? editor.innerHTML : '';
+}
+
+function setEditorHtml(editorId, html) {
+    const editor = document.getElementById(editorId);
+    if (editor) {
+        editor.innerHTML = html;
+    }
+}
+
+// Handle paste - strip formatting for plain text paste
+document.addEventListener('paste', function(e) {
+    const target = e.target;
+    if (target.classList.contains('rich-editor-content')) {
+        // Allow rich paste in editor, but clean up unwanted tags
+        setTimeout(() => {
+            // Clean up any spans with weird styles
+            const spans = target.querySelectorAll('span[style]');
+            spans.forEach(span => {
+                const text = span.textContent;
+                span.outerHTML = text;
+            });
+        }, 0);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const patientInput = document.getElementById('patient-input');
+    const patientIdField = document.getElementById('patient-id');
+    const suggestionBox = document.getElementById('patient-suggestions');
+    const reportForm = document.getElementById('report-form');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingMessage = document.getElementById('loading-message');
+    const successMessage = document.getElementById('success-message');
+    const pasteZone = document.getElementById('paste-zone');
+    const imageGallery = document.getElementById('image-gallery');
+    
+    let suggestions = [];
+    let debounce;
+    let currentPatientId = null;
+    let currentPatientName = null;
+    let imageCounter = 0;
+    let uploadedImages = [];
+    
+    // Store generated report info for later upload
+    let generatedReport = {
+        s3_key: null,
+        filename: null,
+        size: 0,
+        uploaded: false
+    };
+
+    // Default CBCT measurement rows: 5 empty fields (no pre-filled values)
+    const DEFAULT_CBCT_MEASUREMENT_COUNT = 5;
+
+    // CBCT measurements: add/remove rows
+    window.addCbctMeasurementRow = function() {
+        const list = document.getElementById('cbct-measurements-list');
+        if (!list) return null;
+        const row = document.createElement('div');
+        row.className = 'measurement-row';
+        row.innerHTML = `
+            <input type="text" class="field-input cbct-meas-name" placeholder="e.g. SNA, SNB, ANB" data-cbct="name">
+            <input type="text" class="field-input cbct-meas-value" placeholder="e.g. 82°, 80 mm" data-cbct="value">
+            <button type="button" class="btn-remove-row" title="Remove this measurement">
+                <i class="material-icons" style="font-size: 18px;">delete</i>
+            </button>
+        `;
+        row.querySelector('.btn-remove-row').addEventListener('click', () => {
+            row.remove();
+        });
+        list.appendChild(row);
+        return row;
+    };
+    window.removeCbctMeasurementRow = function(rowEl) {
+        if (rowEl && rowEl.parentNode) rowEl.remove();
+    };
+
+    document.getElementById('btn-add-cbct-measurement').addEventListener('click', () => addCbctMeasurementRow());
+    
+    // Patient search
+    patientInput.addEventListener('input', (e) => {
+        patientIdField.value = '';
+        clearTimeout(debounce);
+        debounce = setTimeout(() => fetchPatients(e.target.value.trim()), 250);
+    });
+    
+    async function fetchPatients(query) {
+        if (!query || query.length < 2) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+        try {
+            const resp = await fetch(`/reports/api/level3_report/patient_search?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            suggestions = data.patients || [];
+            renderSuggestions();
+        } catch (err) {
+            console.error('Patient search error:', err);
+        }
+    }
+    
+    function renderSuggestions() {
+        if (!suggestions.length) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+        suggestionBox.innerHTML = suggestions.map(p => 
+            `<div class="suggestion-item" data-id="${p.id}" data-name="${p.name}">${p.name} (#${p.id})</div>`
+        ).join('');
+        suggestionBox.style.display = 'block';
+    }
+    
+    suggestionBox.addEventListener('click', (e) => {
+        const item = e.target.closest('.suggestion-item');
+        if (item) {
+            const id = item.dataset.id;
+            const name = item.dataset.name;
+            patientInput.value = name;
+            patientIdField.value = id;
+            currentPatientId = id;
+            currentPatientName = name;
+            suggestionBox.style.display = 'none';
+            loadPatientData(id);
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!suggestionBox.contains(e.target) && e.target !== patientInput) {
+            suggestionBox.style.display = 'none';
+        }
+    });
+    
+    // Load patient data
+    async function loadPatientData(patientId) {
+        showLoading('Loading patient data...');
+        successMessage.classList.remove('visible');
+        
+        try {
+            const resp = await fetch(`/reports/api/level3_report/patient/${patientId}/data`);
+            const data = await resp.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load data');
+            }
+            
+            // Show warning if no canonical data found
+            if (data.warning) {
+                M.toast({html: data.warning, classes: 'orange darken-2', displayLength: 5000});
+            }
+            
+            populateFields(data.canonical_json);
+            reportForm.classList.add('visible');
+            
+        } catch (err) {
+            console.error('Load patient data error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Helper to get nested value from object using dot notation path
+    function getNestedValue(obj, path) {
+        return path.split('.').reduce((o, k) => (o || {})[k], obj);
+    }
+    
+    // Populate form fields from canonical JSON (same approach as Level 4)
+    function populateFields(data) {
+        console.log('Populating fields with canonical data:', data);
+        
+        const reportPurposeEl = document.getElementById('field-report-purpose');
+        if (reportPurposeEl) reportPurposeEl.value = (data.report_purpose != null && data.report_purpose !== '') ? data.report_purpose : (window.LEVEL3_DEFAULT_REPORT_PURPOSE || '');
+        const sleepIntroEl = document.getElementById('field-sleep-intro');
+        if (sleepIntroEl && data.sleep_study_intro != null) sleepIntroEl.value = data.sleep_study_intro || '';
+        const sleepBriefEl = document.getElementById('field-sleep-brief-summary');
+        if (sleepBriefEl && data.sleep_brief_summary != null) sleepBriefEl.value = data.sleep_brief_summary || '';
+        // Iterate through all fields with data-path attribute (like Level 4)
+        document.querySelectorAll('[data-path]').forEach(field => {
+            const path = field.dataset.path;
+            const value = getNestedValue(data, path);
+            
+            if (Array.isArray(value)) {
+                field.value = value.join(', ');
+            } else if (typeof value === 'object' && value !== null) {
+                // Handle nested objects like snoring.avg_db
+                if (value.avg_db !== undefined) {
+                    field.value = `${value.avg_db} dB`;
+                } else {
+                    field.value = JSON.stringify(value);
+                }
+            } else {
+                field.value = value || '';
+            }
+        });
+        
+        // Populate Integrated Therapeutic Pathway (merge treatment + recommendations if from canonical)
+        const pathwayEditor = document.getElementById('editor-integrated-pathway');
+        if (pathwayEditor) {
+            const toStr = (v) => (v != null && typeof v === 'string') ? v : (v != null ? String(v) : '');
+            const treatment = toStr(data.treatment_considerations || data.anatomy?.treatment_considerations).trim();
+            const recommendations = toStr(data.recommendations || data.anatomy?.recommendations).trim();
+            const parts = [treatment, recommendations].filter(Boolean);
+            setEditorHtml('editor-integrated-pathway', parts.length ? parts.join('<br><br>') : '');
+        }
+        const cranioField = document.getElementById('field-craniofacial-context');
+        if (cranioField && (data.craniofacial_dental_context != null)) {
+            cranioField.value = data.craniofacial_dental_context || '';
+        }
+        const excludeCbct = document.getElementById('field-exclude-cbct-section');
+        if (excludeCbct && data.include_cbct_section === false) {
+            excludeCbct.checked = true;
+        }
+        const measurementsList = document.getElementById('cbct-measurements-list');
+        if (measurementsList) {
+            measurementsList.innerHTML = '';
+            const measurements = (Array.isArray(data.cbct_measurements) && data.cbct_measurements.length > 0)
+                ? data.cbct_measurements
+                : Array(DEFAULT_CBCT_MEASUREMENT_COUNT).fill({ name: '', value: '' });
+            measurements.forEach(m => {
+                const row = addCbctMeasurementRow();
+                if (row) {
+                    const nameInp = row.querySelector('.cbct-meas-name');
+                    const valueInp = row.querySelector('.cbct-meas-value');
+                    if (nameInp) nameInp.value = m.name || '';
+                    if (valueInp) valueInp.value = m.value || '';
+                }
+            });
+        }
+
+        // Clear images (will be added fresh)
+        imageGallery.innerHTML = '';
+        uploadedImages = [];
+        
+        console.log('Fields populated successfully');
+    }
+    
+    // For comma-separated observation fields: use only the current segment (after last comma) for autocomplete
+    function getCurrentSegment(value) {
+        if (value == null) return '';
+        const s = String(value).trim();
+        const i = s.lastIndexOf(',');
+        return i === -1 ? s : s.slice(i + 1).trim();
+    }
+    function setCurrentSegment(fullValue, replacement) {
+        const s = String(fullValue ?? '').trim();
+        const i = s.lastIndexOf(',');
+        const prefix = i === -1 ? '' : s.slice(0, i + 1);
+        return prefix + replacement;
+    }
+
+    // Autocomplete functionality
+    const autocompleteInputs = document.querySelectorAll('.autocomplete-input');
+    
+    autocompleteInputs.forEach(input => {
+        const field = input.dataset.field;
+        const dropdownId = 'dropdown-' + input.id.replace('field-', '');
+        const dropdown = document.getElementById(dropdownId);
+        
+        input.addEventListener('focus', () => {
+            fetchAutocomplete(field, input, dropdown);
+        });
+        
+        input.addEventListener('input', () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(() => fetchAutocomplete(field, input, dropdown), 150);
+        });
+        
+        input.addEventListener('blur', () => {
+            setTimeout(() => dropdown.classList.remove('visible'), 200);
+        });
+    });
+    
+    async function fetchAutocomplete(field, inputEl, dropdown) {
+        const query = getCurrentSegment(inputEl.value);
+        try {
+            const resp = await fetch(`/reports/api/level3_report/autocomplete?field=${field}&q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+                dropdown.innerHTML = data.suggestions.map(s => 
+                    `<div class="autocomplete-item">${s}</div>`
+                ).join('');
+                dropdown.classList.add('visible');
+                
+                dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        const input = dropdown.parentElement.querySelector('input');
+                        const suggestion = item.textContent.trim();
+                        input.value = setCurrentSegment(input.value, suggestion + ', ');
+                        input.focus();
+                        dropdown.classList.remove('visible');
+                    });
+                });
+            } else {
+                dropdown.classList.remove('visible');
+            }
+        } catch (err) {
+            console.error('Autocomplete error:', err);
+        }
+    }
+    
+    // Image paste/drop functionality
+    document.addEventListener('paste', function(e) {
+        if (!reportForm.classList.contains('visible')) return;
+        
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const file = items[i].getAsFile();
+                handleImageFile(file);
+                break;
+            }
+        }
+    });
+    
+    pasteZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        pasteZone.classList.add('drag-over');
+    });
+    
+    pasteZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        pasteZone.classList.remove('drag-over');
+    });
+    
+    pasteZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        pasteZone.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith('image/')) {
+                handleImageFile(files[i]);
+            }
+        }
+    });
+    
+    pasteZone.addEventListener('click', function() {
+        pasteZone.focus();
+    });
+    
+    function handleImageFile(file) {
+        const tileId = 'image-tile-' + (++imageCounter);
+        
+        // Create preview immediately
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const tile = createImageTile(tileId, e.target.result);
+            imageGallery.appendChild(tile);
+            
+            // Upload to server
+            uploadImage(file, tileId);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function createImageTile(tileId, imageSrc) {
+        const tile = document.createElement('div');
+        tile.className = 'image-tile';
+        tile.id = tileId;
+        tile.innerHTML = `
+            <button class="delete-btn" onclick="removeImageTile('${tileId}')" title="Remove">×</button>
+            <span class="upload-status uploading">Uploading...</span>
+            <img src="${imageSrc}" alt="Clinical image">
+            <input type="text" class="caption-input" placeholder="Add caption..." data-tile-id="${tileId}">
+        `;
+        return tile;
+    }
+    
+    async function uploadImage(file, tileId) {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('patient_id', currentPatientId);
+        
+        try {
+            const resp = await fetch('/reports/api/level3_report/upload_image', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            
+            const tile = document.getElementById(tileId);
+            const statusEl = tile.querySelector('.upload-status');
+            
+            if (data.success) {
+                const img = tile.querySelector('img');
+                img.src = data.url;
+                img.dataset.s3Key = data.s3_key;
+                
+                statusEl.className = 'upload-status success';
+                statusEl.textContent = '✓ Uploaded';
+                
+                uploadedImages.push({
+                    tileId: tileId,
+                    url: data.url,
+                    s3_key: data.s3_key
+                });
+                
+                setTimeout(() => {
+                    statusEl.style.opacity = '0';
+                    setTimeout(() => statusEl.remove(), 300);
+                }, 2000);
+            } else {
+                statusEl.className = 'upload-status';
+                statusEl.style.background = '#fee2e2';
+                statusEl.style.color = '#991b1b';
+                statusEl.textContent = 'Failed';
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            const tile = document.getElementById(tileId);
+            if (tile) {
+                const statusEl = tile.querySelector('.upload-status');
+                statusEl.textContent = 'Upload failed';
+                statusEl.style.background = '#fee2e2';
+                statusEl.style.color = '#991b1b';
+            }
+        }
+    }
+    
+    window.removeImageTile = function(tileId) {
+        const tile = document.getElementById(tileId);
+        if (tile) {
+            tile.style.opacity = '0';
+            tile.style.transform = 'scale(0.9)';
+            setTimeout(() => tile.remove(), 200);
+            
+            // Remove from uploadedImages array
+            uploadedImages = uploadedImages.filter(img => img.tileId !== tileId);
+        }
+    };
+    
+    // Translate Hebrew to English
+    window.translateToEnglish = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+        
+        // Collect all text fields (including rich editors as HTML)
+        const reportData = {
+            clinical_background: document.getElementById('field-clinical-background').value || '',
+            complaints: document.getElementById('field-complaints').value || '',
+            goals: document.getElementById('field-goals').value || '',
+            obstruction_sites: document.getElementById('field-obstruction-sites').value || '',
+            soft_palate: document.getElementById('field-soft-palate').value || '',
+            tongue_position: document.getElementById('field-tongue-position').value || '',
+            bite_jaw: document.getElementById('field-bite-jaw').value || '',
+            hyoid_bone: document.getElementById('field-hyoid-bone').value || '',
+            nasal_sinus: document.getElementById('field-nasal-sinus').value || '',
+            craniofacial_dental_context: document.getElementById('field-craniofacial-context').value || '',
+            integrated_therapeutic_pathway: getEditorHtml('editor-integrated-pathway') || ''
+        };
+        
+        // Check if there's any Hebrew text
+        const hebrewRegex = /[\u0590-\u05FF]/;
+        const hasHebrew = Object.values(reportData).some(v => hebrewRegex.test(v));
+        
+        if (!hasHebrew) {
+            M.toast({html: 'No Hebrew text detected', classes: 'orange'});
+            return;
+        }
+        
+        showLoading('Translating Hebrew to English...');
+        document.getElementById('translate-btn').disabled = true;
+        
+        try {
+            const resp = await fetch('/reports/api/level3_report/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    report_data: reportData
+                })
+            });
+            
+            const data = await resp.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Translation failed');
+            }
+            
+            // Update form fields with translated values
+            const translated = data.report_data;
+            if (translated.clinical_background) document.getElementById('field-clinical-background').value = translated.clinical_background;
+            if (translated.complaints) document.getElementById('field-complaints').value = translated.complaints;
+            if (translated.goals) document.getElementById('field-goals').value = translated.goals;
+            if (translated.obstruction_sites) document.getElementById('field-obstruction-sites').value = translated.obstruction_sites;
+            if (translated.soft_palate) document.getElementById('field-soft-palate').value = translated.soft_palate;
+            if (translated.tongue_position) document.getElementById('field-tongue-position').value = translated.tongue_position;
+            if (translated.bite_jaw) document.getElementById('field-bite-jaw').value = translated.bite_jaw;
+            if (translated.hyoid_bone) document.getElementById('field-hyoid-bone').value = translated.hyoid_bone;
+            if (translated.nasal_sinus) document.getElementById('field-nasal-sinus').value = translated.nasal_sinus;
+            if (translated.craniofacial_dental_context) document.getElementById('field-craniofacial-context').value = translated.craniofacial_dental_context;
+            if (translated.integrated_therapeutic_pathway) setEditorHtml('editor-integrated-pathway', translated.integrated_therapeutic_pathway);
+            
+            M.toast({html: `Translated ${data.translated_count || 0} field(s) to English`, classes: 'green'});
+            
+        } catch (err) {
+            console.error('Translation error:', err);
+            M.toast({html: `Translation error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+            document.getElementById('translate-btn').disabled = false;
+        }
+    };
+    
+    // Build report data from form (shared shape for generate and pathway API)
+    function buildReportDataFromForm() {
+        const fieldVal = (id, fallback) => (document.getElementById(id)?.value ?? fallback ?? '') || fallback || '';
+        const fieldChecked = (id) => document.getElementById(id)?.checked ?? false;
+        return {
+            report_purpose: fieldVal('field-report-purpose', ''),
+            sleep_study_intro: fieldVal('field-sleep-intro', ''),
+            sleep_brief_summary: fieldVal('field-sleep-brief-summary', ''),
+            // Personal details (Patient Overview)
+            gender: fieldVal('field-gender', 'Not provided'),
+            age: fieldVal('field-age', 'Not provided'),
+            bmi: fieldVal('field-bmi', 'Not provided'),
+            weight: fieldVal('field-weight', 'Not provided'),
+            height: fieldVal('field-height', 'Not provided'),
+            
+            // Clinical background
+            clinical_background: fieldVal('field-clinical-background', 'Not provided'),
+            complaints: fieldVal('field-complaints', 'Not provided'),
+            goals: fieldVal('field-goals', 'Not provided'),
+            
+            // Sleep study
+            ahi: fieldVal('field-ahi', 'Not provided'),
+            rem_ahi: fieldVal('field-rem-ahi', 'Not provided'),
+            rdi: fieldVal('field-rdi', 'Not provided'),
+            rem_rdi: fieldVal('field-rem-rdi', 'Not provided'),
+            odi: fieldVal('field-odi', 'Not provided'),
+            rem_odi: fieldVal('field-rem-odi', 'Not provided'),
+            supine_ahi: fieldVal('field-supine-ahi', 'Not provided'),
+            non_supine_ahi: fieldVal('field-non-supine-ahi', 'Not provided'),
+            snoring_pct: fieldVal('field-snoring-pct', 'Not provided'),
+            o2_nadir: fieldVal('field-o2-nadir', 'Not provided'),
+            sleep_efficiency: fieldVal('field-sleep-efficiency', 'Not provided'),
+            total_sleep_time: fieldVal('field-total-sleep-time', 'Not provided'),
+            
+            // Structural observations (comma-separated = multiple distinct observations)
+            obstruction_sites: fieldVal('field-obstruction-sites', 'Not provided'),
+            soft_palate: fieldVal('field-soft-palate', 'Not provided'),
+            tongue_position: fieldVal('field-tongue-position', 'Not provided'),
+            bite_jaw: fieldVal('field-bite-jaw', 'Not provided'),
+            hyoid_bone: fieldVal('field-hyoid-bone', 'Not provided'),
+            nasal_sinus: fieldVal('field-nasal-sinus', 'Not provided'),
+
+            // CBCT section: include in report unless user checks "Exclude"
+            include_cbct_section: !fieldChecked('field-exclude-cbct-section'),
+            craniofacial_dental_context: fieldVal('field-craniofacial-context', ''),
+            cbct_measurements: (function() {
+                const list = document.getElementById('cbct-measurements-list');
+                if (!list) return [];
+                const rows = list.querySelectorAll('.measurement-row');
+                const out = [];
+                rows.forEach(row => {
+                    const nameInp = row.querySelector('.cbct-meas-name');
+                    const valueInp = row.querySelector('.cbct-meas-value');
+                    const name = nameInp ? nameInp.value.trim() : '';
+                    const value = valueInp ? valueInp.value.trim() : '';
+                    if (name || value) out.push({ name: name, value: value });
+                });
+                return out;
+            })(),
+
+            // Integrated Therapeutic Pathway and Next Steps (unified)
+            integrated_therapeutic_pathway: getEditorHtml('editor-integrated-pathway') || '',
+
+            // Disclaimer
+            disclaimer: fieldVal('field-disclaimer', 'This report is intended as a clinical data-integration and pathway-orientation tool. It does not replace clinical judgment, establish a standard of care, or provide definitive treatment recommendations. Final treatment decisions remain the responsibility of the treating clinician.'),
+            
+            // Images - include captions
+            images: uploadedImages.map(img => {
+                const tile = document.getElementById(img.tileId);
+                const captionInput = tile ? tile.querySelector('.caption-input') : null;
+                return {
+                    ...img,
+                    caption: captionInput ? captionInput.value : ''
+                };
+            })
+        };
+    }
+
+    window.generateReport = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+        const reportData = buildReportDataFromForm();
+        showLoading('Generating Level 3 report...');
+        document.getElementById('generate-btn').disabled = true;
+        
+        try {
+            const resp = await fetch('/reports/api/level3_report/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    report_data: reportData
+                })
+            });
+            
+            const data = await resp.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Generation failed');
+            }
+            
+            // Store generated report info for later upload
+            generatedReport = {
+                s3_key: data.pdf_s3_key,
+                filename: data.pdf_filename,
+                size: data.pdf_size || 0,
+                uploaded: false
+            };
+            
+            // Reset upload button state
+            const uploadBtn = document.getElementById('upload-to-reports-btn');
+            uploadBtn.disabled = false;
+            uploadBtn.classList.remove('uploaded');
+            uploadBtn.innerHTML = '<i class="material-icons" style="font-size: 18px;">cloud_upload</i> Upload to Reports';
+            
+            // Reset status text
+            const statusText = document.getElementById('upload-status-text');
+            statusText.style.display = 'none';
+            statusText.classList.remove('success');
+            
+            // Update success message
+            document.getElementById('success-message-text').textContent = 
+                'The Level 3 report has been created. Preview it below, then click "Upload to Reports" to save it to the patient\'s records.';
+            
+            // Show success message
+            reportForm.classList.remove('visible');
+            successMessage.classList.add('visible');
+            document.getElementById('view-report-link').href = data.pdf_url;
+            
+            M.toast({html: 'Level 3 report generated! Preview and upload when ready.', classes: 'green'});
+            
+        } catch (err) {
+            console.error('Generate report error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+            document.getElementById('generate-btn').disabled = false;
+        }
+    };
+
+    // Generate "5. Integrated Therapeutic Pathway and Next Steps" with AI (same logic as Level 4)
+    window.generatePathwayWithAI = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+        const reportData = buildReportDataFromForm();
+        const btn = document.getElementById('btn-generate-pathway-ai');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="material-icons" style="font-size: 18px;">hourglass_empty</i> Generating...';
+        }
+        try {
+            const resp = await fetch('/reports/api/level3_report/generate_pathway', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    report_data: reportData
+                })
+            });
+            const data = await resp.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Pathway generation failed');
+            }
+            const content = (data.content || '').trim();
+            if (content) {
+                // Convert bullet lines to <ul><li> so editor and PDF show separate bullets (no long block)
+                const lines = content.split(/\n/).map(s => s.replace(/^[•\-]\s*/, '').trim()).filter(Boolean);
+                const html = lines.length > 0 ? '<ul>' + lines.map(l => '<li>' + l + '</li>').join('') + '</ul>' : content.replace(/\n/g, '<br>');
+                setEditorHtml('editor-integrated-pathway', html);
+                M.toast({html: 'Pathway generated. Review and edit as needed.', classes: 'green'});
+            } else {
+                M.toast({html: 'No content returned. Try again or enter manually.', classes: 'orange'});
+            }
+        } catch (err) {
+            console.error('Generate pathway error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    };
+
+    const btnPathwayAi = document.getElementById('btn-generate-pathway-ai');
+    if (btnPathwayAi) btnPathwayAi.addEventListener('click', () => generatePathwayWithAI());
+
+    // Generate Patient Overview (clinical background, complaints, goals) with AI
+    window.generateOverviewWithAI = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+        const btn = document.getElementById('btn-generate-overview-ai');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="material-icons" style="font-size: 18px;">hourglass_empty</i> Generating...';
+        }
+        try {
+            const resp = await fetch('/reports/api/level3_report/generate_overview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id: Number(currentPatientId) })
+            });
+            const data = await resp.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Overview generation failed');
+            }
+            const clinicalEl = document.getElementById('field-clinical-background');
+            const complaintsEl = document.getElementById('field-complaints');
+            const goalsEl = document.getElementById('field-goals');
+            if (clinicalEl && data.clinical_background != null) clinicalEl.value = data.clinical_background;
+            if (complaintsEl && data.complaints != null) complaintsEl.value = data.complaints;
+            if (goalsEl && data.goals != null) goalsEl.value = data.goals;
+            M.toast({html: 'Patient Overview generated. Review and edit as needed.', classes: 'green'});
+        } catch (err) {
+            console.error('Generate overview error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+    };
+
+    const btnOverviewAi = document.getElementById('btn-generate-overview-ai');
+    if (btnOverviewAi) btnOverviewAi.addEventListener('click', () => generateOverviewWithAI());
+    
+    // Upload generated report to user reports
+    window.uploadToReports = async function() {
+        if (!currentPatientId || !generatedReport.s3_key) {
+            M.toast({html: 'No report to upload', classes: 'red'});
+            return;
+        }
+        
+        if (generatedReport.uploaded) {
+            M.toast({html: 'Report already uploaded to user reports', classes: 'orange'});
+            return;
+        }
+        
+        const uploadBtn = document.getElementById('upload-to-reports-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="material-icons" style="font-size: 18px;">hourglass_empty</i> Uploading...';
+        
+        try {
+            const resp = await fetch('/reports/api/level3_report/upload_to_reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    s3_key: generatedReport.s3_key,
+                    filename: generatedReport.filename,
+                    size: generatedReport.size
+                })
+            });
+            
+            const data = await resp.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Upload failed');
+            }
+            
+            // Mark as uploaded
+            generatedReport.uploaded = true;
+            
+            // Update button state
+            uploadBtn.classList.add('uploaded');
+            uploadBtn.innerHTML = '<i class="material-icons" style="font-size: 18px;">check_circle</i> Uploaded!';
+            
+            // Update status text
+            const statusText = document.getElementById('upload-status-text');
+            statusText.textContent = '✓ Report saved to patient\'s user reports';
+            statusText.classList.add('success');
+            statusText.style.display = 'block';
+            
+            // Update success message
+            document.getElementById('success-message-text').textContent = 
+                'The Level 3 report has been saved to the patient\'s records.';
+            
+            // Update view link to permanent URL
+            document.getElementById('view-report-link').href = data.pdf_url;
+            
+            M.toast({html: 'Report uploaded to user reports!', classes: 'green'});
+            
+        } catch (err) {
+            console.error('Upload error:', err);
+            M.toast({html: `Upload error: ${err.message}`, classes: 'red'});
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="material-icons" style="font-size: 18px;">cloud_upload</i> Upload to Reports';
+        }
+    };
+    
+    // Start a new report (go back to form)
+    window.startNewReport = function() {
+        // Reset generated report state
+        generatedReport = {
+            s3_key: null,
+            filename: null,
+            size: 0,
+            uploaded: false
+        };
+        
+        // Show form, hide success message
+        successMessage.classList.remove('visible');
+        reportForm.classList.add('visible');
+        
+        // Optionally reset form or keep current patient
+        // loadPatientData(currentPatientId); // Uncomment to reload patient data
+    };
+    
+    // Reset form
+    window.resetForm = function() {
+        if (currentPatientId) {
+            loadPatientData(currentPatientId);
+        }
+    };
+    
+    // Loading helpers
+    function showLoading(message) {
+        loadingMessage.textContent = message || 'Loading...';
+        loadingOverlay.classList.add('visible');
+    }
+    
+    function hideLoading() {
+        loadingOverlay.classList.remove('visible');
+    }
+});
+</script>
+{% endblock %}

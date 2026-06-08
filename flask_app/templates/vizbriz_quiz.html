@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="{{ language }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VizBriz Multilingual Quiz</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-bg: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        /* RTL Support */
+        [dir="rtl"] {
+            text-align: right;
+        }
+        
+        [dir="rtl"] .form-check {
+            padding-right: 1.5em;
+            padding-left: 0;
+        }
+        
+        [dir="rtl"] .form-check-input {
+            margin-right: -1.5em;
+            margin-left: 0;
+        }
+        
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            position: relative;
+        }
+        
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light-bg);
+        }
+        
+        .quiz-title {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        /* Language Selector */
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        [dir="rtl"] .language-selector {
+            right: auto;
+            left: 20px;
+        }
+        
+        .language-selector .btn {
+            margin: 0 2px;
+        }
+        
+        /* Progress Bar */
+        .quiz-progress {
+            margin-bottom: 30px;
+        }
+        
+        .progress {
+            height: 10px;
+            border-radius: 10px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* Question Styles */
+        .question-card {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .question-card.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .question-subtitle {
+            font-size: 0.95rem;
+            color: #95a5a6;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .question-options {
+            margin: 20px 0;
+        }
+        
+        .form-check {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .form-check:hover {
+            border-color: var(--secondary-color);
+            background-color: #f8f9fa;
+        }
+        
+        .form-check-input:checked ~ .form-check-label {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        /* Text Input Styles */
+        .form-control, .form-select {
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #ecf0f1;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        /* Navigation Buttons */
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--light-bg);
+        }
+        
+        [dir="rtl"] .quiz-navigation {
+            flex-direction: row-reverse;
+        }
+        
+        .btn-quiz {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-quiz-primary {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+        }
+        
+        .btn-quiz-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-quiz-secondary {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+        }
+        
+        .btn-quiz-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        /* Result Display */
+        .result-container {
+            display: none;
+            text-align: center;
+        }
+        
+        .result-container.active {
+            display: block;
+        }
+        
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        
+        .result-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .result-score {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .result-message {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #34495e;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .result-cta {
+            margin-top: 30px;
+        }
+        
+        .risk-high { color: var(--danger-color); }
+        .risk-moderate { color: var(--warning-color); }
+        .risk-low { color: var(--success-color); }
+        
+        /* Loading Spinner */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background-color: #ffe6e6;
+            border: 2px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <button class="btn btn-sm btn-outline-primary" onclick="changeLanguage('en')">EN</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeLanguage('ru')">RU</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeLanguage('he')">HE</button>
+        </div>
+        
+        <!-- Quiz Header -->
+        <div class="quiz-header">
+            <h1 class="quiz-title">VizBriz Multilingual Quiz</h1>
+            <p class="quiz-subtitle">Please complete the questions below</p>
+            
+            <!-- Development Timestamp Marker -->
+            <div style="background: #e8f4fd; border: 1px solid #3498db; border-radius: 5px; padding: 8px; margin: 10px 0; font-size: 0.85rem; color: #2c3e50;">
+                <strong>🔧 Development Version</strong><br>
+                <span style="color: #7f8c8d;">Last Updated: 2024-10-21 16:00:00</span><br>
+                <span style="color: #27ae60;">✅ Gender Field Fix Applied</span> | 
+                <span style="color: #27ae60;">✅ Rehydration Logic Added</span> |
+                <span style="color: #e74c3c;">🔧 Force Blur Fix Applied</span>
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage"></div>
+        
+        <!-- Progress Bar -->
+        <div class="quiz-progress" id="quizProgress">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">Question 1 of 13</div>
+        </div>
+        
+        <!-- Quiz Form -->
+        <form id="quizForm">
+            <!-- Questions will be rendered here dynamically -->
+            <div id="questionsContainer"></div>
+            
+            <!-- Navigation Buttons -->
+            <div class="quiz-navigation">
+                <button type="button" class="btn btn-quiz btn-quiz-secondary" id="prevBtn" onclick="navigateQuestion(-1)" style="display: none;">
+                        Previous
+                </button>
+                <button type="button" class="btn btn-quiz btn-quiz-primary" id="nextBtn" onclick="navigateQuestion(1)">
+                        Next
+                </button>
+                <button type="button" class="btn btn-quiz btn-quiz-primary" id="submitBtn" onclick="submitQuiz()" style="display: none;">
+                        Submit
+                </button>
+            </div>
+        </form>
+        
+        <!-- Result Container -->
+        <div class="result-container" id="resultContainer">
+            <div class="result-icon" id="resultIcon"></div>
+            <h2 class="result-title" id="resultTitle"></h2>
+            <p class="result-score" id="resultScore"></p>
+            <div class="result-message" id="resultMessage"></div>
+            <div class="result-cta">
+                <button class="btn btn-quiz btn-quiz-primary btn-lg" id="ctaButton"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Quiz data from server
+        const quizPackage = {{ quiz_package | tojson | safe }};
+        const initialLanguage = '{{ language }}';
+        const clinicId = {{ clinic_id | tojson | safe }};
+        const referralDoctor = {{ referral_doctor | tojson | safe }};
+        
+        let currentLanguage = initialLanguage;
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let visibleQuestions = [];
+        
+        // Initialize quiz
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Quiz initializing...');
+            console.log('Quiz package loaded:', quizPackage);
+            alert('Quiz loaded! Check console for details.');
+            renderQuestions();
+            updateProgress();
+        });
+        
+        function getText(key) {
+            return quizPackage.i18n[currentLanguage][key] || key;
+        }
+        
+        function adjustSectionTitle(sectionName) {
+            // Adjust section numbers: "Section 0" -> "Section 1", "Section 1" -> "Section 2", etc.
+            return sectionName.replace(/Section (\d+)/, (match, num) => {
+                const newNum = parseInt(num) + 1;
+                return `Section ${newNum}`;
+            });
+        }
+
+        function renderQuestions() {
+            console.log('Rendering questions...');
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            visibleQuestions = [];
+            
+            // Group questions by section
+            const questionsBySection = {};
+            quizPackage.questions.forEach((question, index) => {
+                // Check if question should be displayed
+                const shouldShow = shouldDisplayQuestion(question);
+                console.log(`Question ${question.qid}: shouldShow = ${shouldShow}`);
+                
+                if (!shouldShow) {
+                    return;
+                }
+                
+                visibleQuestions.push(question);
+                const section = question.section || 'General';
+                
+                if (!questionsBySection[section]) {
+                    questionsBySection[section] = [];
+                }
+                questionsBySection[section].push({...question, originalIndex: index});
+            });
+            
+            // Render questions grouped by section
+            Object.keys(questionsBySection).forEach(sectionName => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'question-section';
+                const adjustedSectionName = adjustSectionTitle(sectionName);
+                sectionDiv.innerHTML = `<h3 class="section-title">${adjustedSectionName}</h3>`;
+                
+                questionsBySection[sectionName].forEach(question => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question-card';
+                    questionDiv.id = `question-${question.originalIndex}`;
+                    
+                    let optionsHtml = '';
+                console.log(`Building question ${question.qid}, type: ${question.type}`);
+                
+                // Add question title
+                const questionTitle = getText(`Q.${question.qid}.title`);
+                questionDiv.innerHTML = `
+                    <h4 class="question-title">${questionTitle}</h4>
+                    <div class="question-options"></div>
+                `;
+                
+                if (question.type === 'single_choice') {
+                    // Special handling for gender field - use select dropdown
+                    if (question.qid === 'DEMO_SEX') {
+                        optionsHtml = `
+                            <select class="form-select" 
+                                    name="${question.qid}" 
+                                    id="${question.qid}"
+                                    ${question.required ? 'required' : ''}
+                                    onchange="saveCurrentAnswer()"
+                                    oninput="saveCurrentAnswer()">
+                                <option value="">Select gender...</option>
+                        `;
+                        question.options.forEach(option => {
+                            const optionLabel = getText(option.label_key);
+                            const isSelected = answers[question.qid] === option.value;
+                            optionsHtml += `
+                                <option value="${option.value}" ${isSelected ? 'selected' : ''}>
+                                    ${optionLabel}
+                                </option>
+                            `;
+                        });
+                        optionsHtml += `</select>`;
+                    } else {
+                        // Standard radio buttons for other single_choice questions
+                        question.options.forEach(option => {
+                            const optionLabel = getText(option.label_key);
+                            optionsHtml += `
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="${question.qid}" 
+                                           id="${question.qid}_${option.value}" 
+                                           value="${option.value}"
+                                           ${answers[question.qid] === option.value ? 'checked' : ''}
+                                           onchange="saveCurrentAnswer()">
+                                    <label class="form-check-label" for="${question.qid}_${option.value}">
+                                        ${optionLabel}
+                                    </label>
+                                </div>
+                            `;
+                        });
+                    }
+                } else if (question.type === 'text' || question.type === 'email' || question.type === 'tel' || question.type === 'number') {
+                    // Special handling for date fields
+                    let inputType = question.type;
+                    const questionTitle = getText(`Q.${question.qid}.title`).toLowerCase();
+                    
+                    // Check if this is a date-related question
+                    if (question.qid === 'DEMO_DOB' || 
+                        question.qid === 'Q6' ||
+                        questionTitle.includes('date') ||
+                        questionTitle.includes('when') ||
+                        questionTitle.includes('performed') ||
+                        questionTitle.includes('study')) {
+                        inputType = 'date';
+                    }
+                    
+                    // Skip age field - we'll calculate it from DOB
+                    if (question.qid === 'DEMO_AGE') {
+                        return;
+                    }
+                    
+                    // No special handling needed - DEMO_SEX is now a proper single_choice question
+                    optionsHtml = `
+                        <input type="${inputType}" 
+                               class="form-control" 
+                               name="${question.qid}" 
+                               id="${question.qid}"
+                               ${question.required ? 'required' : ''}
+                               value="${answers[question.qid] || ''}"
+                               ${question.qid === 'DEMO_DOB' ? 'onchange="calculateAge()"' : ''}>
+                    `;
+                } else if (question.type === 'scale' && question.options) {
+                    question.options.forEach(option => {
+                        const optionLabel = getText(option.label_key);
+                        optionsHtml += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" 
+                                       name="${question.qid}" 
+                                       id="${question.qid}_${option.value}" 
+                                       value="${option.value}"
+                                       ${answers[question.qid] === option.value ? 'checked' : ''}
+                                       onchange="saveCurrentAnswer()">
+                                <label class="form-check-label" for="${question.qid}_${option.value}">
+                                    ${optionLabel}
+                                </label>
+                            </div>
+                        `;
+                    });
+                } else if (question.type === 'multi_choice' && question.options) {
+                    question.options.forEach(option => {
+                        const optionLabel = getText(option.label_key);
+                        const isChecked = (answers[question.qid] || []).includes(option.value);
+                        optionsHtml += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="${question.qid}[]" 
+                                       id="${question.qid}_${option.value}" 
+                                       value="${option.value}"
+                                       ${isChecked ? 'checked' : ''}
+                                       onchange="saveCurrentAnswer()">
+                                <label class="form-check-label" for="${question.qid}_${option.value}">
+                                    ${optionLabel}
+                                </label>
+                            </div>
+                        `;
+                    });
+                }
+                
+                const subtitle = question.subtitle_key ? 
+                    `<p class="question-subtitle">${getText(question.subtitle_key)}</p>` : '';
+                
+                questionDiv.innerHTML = `
+                    <h3 class="question-title">${getText(question.title_key)}</h3>
+                    ${subtitle}
+                    <div class="question-options">
+                        ${optionsHtml}
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+            
+            // Reapply saved answers after re-render (fix for gender field and others)
+            Object.keys(answers).forEach(qid => {
+                const el = document.getElementById(qid);
+                if (el) {
+                    if (el.type === 'select-one') {
+                        el.value = answers[qid];
+                        console.log(`Rehydrated select ${qid}: ${answers[qid]}`);
+                    } else if (el.type === 'text' || el.type === 'number' || el.type === 'email' || el.type === 'tel') {
+                        el.value = answers[qid];
+                        console.log(`Rehydrated input ${qid}: ${answers[qid]}`);
+                    } else if (el.type === 'radio') {
+                        // For radio buttons, check the one with matching value
+                        const radioGroup = document.querySelectorAll(`input[name="${qid}"]`);
+                        radioGroup.forEach(radio => {
+                            radio.checked = (radio.value === answers[qid]);
+                        });
+                        console.log(`Rehydrated radio ${qid}: ${answers[qid]}`);
+                    } else if (el.type === 'checkbox') {
+                        // For checkboxes, check if value is in the array
+                        const checkboxGroup = document.querySelectorAll(`input[name="${qid}[]"]`);
+                        const savedValues = Array.isArray(answers[qid]) ? answers[qid] : [answers[qid]];
+                        checkboxGroup.forEach(checkbox => {
+                            checkbox.checked = savedValues.includes(checkbox.value);
+                        });
+                        console.log(`Rehydrated checkbox ${qid}: ${answers[qid]}`);
+                    }
+                }
+            });
+            
+            showQuestion(currentQuestionIndex);
+        }
+        
+        function shouldDisplayQuestion(question) {
+            if (!question.display_if || !question.display_if.expr) {
+                return true;
+            }
+            
+            const expr = question.display_if.expr;
+            if (expr === 'true') return true;
+            if (expr === 'false') return false;
+            
+            // Try to evaluate the expression
+            try {
+                // Replace ANS.QID with actual answer values
+                let evalExpr = expr;
+                
+                // Find all ANS.QID patterns (including those with dashes)
+                const answerRefs = expr.match(/ANS\.([\w-]+)/g);
+                if (answerRefs) {
+                    answerRefs.forEach(ref => {
+                        const qid = ref.replace('ANS.', '');
+                        const value = answers[qid];
+                        // Replace with quoted value, handling dashes in variable names
+                        const safeRef = ref.replace(/\./g, '_').replace(/-/g, '_');
+                        evalExpr = evalExpr.replace(ref, value ? `'${value}'` : 'null');
+                    });
+                }
+                
+                // Replace == with === for JavaScript
+                evalExpr = evalExpr.replace(/==/g, '===');
+                
+                // Evaluate the expression
+                const result = eval(evalExpr);
+                
+                // Debug logging for Q6 and Q7
+                if (question.qid === 'Q6' || question.qid === 'Q7') {
+                    console.log(`${question.qid} condition check: ${expr} => ${evalExpr} => ${result}`);
+                    console.log('Current answers:', answers);
+                }
+                
+                return result;
+            } catch (e) {
+                console.warn(`Error evaluating condition for ${question.qid}:`, expr, e);
+                // For questions with dash in ID, try a simpler approach
+                if (expr.includes('Q32-trigger')) {
+                    const triggerValue = answers['Q32-trigger'];
+                    return triggerValue === 'yes';
+                }
+                return true; // Show question if condition fails to evaluate
+            }
+        }
+        
+        function showQuestion(index) {
+            const questions = document.querySelectorAll('.question-card');
+            questions.forEach((q, i) => {
+                q.classList.remove('active');
+                if (i === index) {
+                    q.classList.add('active');
+                }
+            });
+            
+            // Update buttons
+            document.getElementById('prevBtn').style.display = index > 0 ? 'block' : 'none';
+            document.getElementById('nextBtn').style.display = 
+                index < visibleQuestions.length - 1 ? 'block' : 'none';
+            document.getElementById('submitBtn').style.display = 
+                index === visibleQuestions.length - 1 ? 'block' : 'none';
+            
+            updateProgress();
+        }
+        
+        function navigateQuestion(direction) {
+            // 🔧 Force dropdowns to commit their values before saving
+            const genderSelect = document.getElementById('DEMO_SEX');
+            if (genderSelect) {
+                genderSelect.blur(); // Forces commit of current value
+                console.log('Forced gender select blur, value:', genderSelect.value);
+            }
+            
+            // Save current answer
+            saveCurrentAnswer();
+            
+            // Check if answer is required
+            const currentQuestion = visibleQuestions[currentQuestionIndex];
+            if (direction > 0 && currentQuestion.required) {
+                const currentAnswer = answers[currentQuestion.qid];
+                console.log(`Validating required field ${currentQuestion.qid}:`, currentAnswer);
+                
+                if (!currentAnswer || currentAnswer === '' || currentAnswer === null || currentAnswer === undefined) {
+                    showError(getText('error.required') || 'This question is required');
+                    return;
+                }
+            }
+            
+            // Store current question ID before re-rendering
+            const currentQid = currentQuestion.qid;
+            
+            // Always re-render when moving forward to show/hide conditional questions
+            if (direction > 0) {
+                renderQuestions();
+            }
+            
+            // Find the new index of the current question after re-rendering
+            const newIndex = visibleQuestions.findIndex(q => q.qid === currentQid);
+            if (newIndex !== -1) {
+                currentQuestionIndex = newIndex + direction;
+            } else {
+                currentQuestionIndex += direction;
+            }
+            
+            // Ensure index is within bounds
+            if (currentQuestionIndex < 0) currentQuestionIndex = 0;
+            if (currentQuestionIndex >= visibleQuestions.length) {
+                currentQuestionIndex = visibleQuestions.length - 1;
+            }
+            
+            showQuestion(currentQuestionIndex);
+        }
+        
+        function saveCurrentAnswer() {
+            const currentQuestion = visibleQuestions[currentQuestionIndex];
+            if (!currentQuestion) return;
+            
+            const qid = currentQuestion.qid;
+            console.log(`Saving answer for ${qid}, type: ${currentQuestion.type}`);
+            
+            // Special handling for gender field (DEMO_SEX) - now using select dropdown
+            if (qid === 'DEMO_SEX') {
+                const select = document.getElementById(qid);
+                console.log(`Gender field - select element:`, select);
+                console.log(`select.value at saveCurrentAnswer() call:`, select ? select.value : 'null', 'selectedIndex:', select ? select.selectedIndex : 'null');
+                
+                if (select) {
+                    answers[qid] = select.value;
+                    console.log(`Saved gender answer for ${qid}:`, select.value);
+                } else {
+                    console.log(`Gender select element not found for ${qid}`);
+                }
+            } else if (currentQuestion.type === 'single_choice' || currentQuestion.type === 'scale') {
+                const selected = document.querySelector(`input[name="${qid}"]:checked`);
+                if (selected) {
+                    answers[qid] = selected.value;
+                }
+            } else if (currentQuestion.type === 'multi_choice') {
+                const checkboxes = document.querySelectorAll(`input[name="${qid}[]"]:checked`);
+                answers[qid] = Array.from(checkboxes).map(cb => cb.value);
+            } else {
+                // For text fields, check if there are radio buttons with the same name (like gender)
+                const radioSelected = document.querySelector(`input[name="${qid}"]:checked`);
+                if (radioSelected) {
+                    answers[qid] = radioSelected.value;
+                    console.log(`Saved radio answer for ${qid}:`, radioSelected.value);
+                } else {
+                    const input = document.getElementById(qid);
+                    if (input) {
+                        answers[qid] = input.value;
+                        console.log(`Saved text answer for ${qid}:`, input.value);
+                    }
+                }
+            }
+            
+            console.log(`Current answers:`, answers);
+        }
+        
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / visibleQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = 
+                `Question ${currentQuestionIndex + 1} of ${visibleQuestions.length}`;
+        }
+        
+        function submitQuiz() {
+            saveCurrentAnswer();
+            
+            // Validate all required fields
+            for (let question of visibleQuestions) {
+                if (question.required && (!answers[question.qid] || answers[question.qid] === '')) {
+                    showError('Please answer all required questions');
+                    return;
+                }
+            }
+            
+            // Show loading
+            document.getElementById('loadingOverlay').classList.add('active');
+            
+            // Submit to server
+            fetch('/vizbriz/quiz/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    answers: answers,
+                    language: currentLanguage,
+                    clinic_id: clinicId,
+                    referral_doctor: referralDoctor
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingOverlay').classList.remove('active');
+                
+                if (data.success) {
+                    displayResults(data.result);
+                } else {
+                    showError(data.error || 'Failed to submit quiz');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loadingOverlay').classList.remove('active');
+                showError('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+        
+        function displayResults(result) {
+            // Hide quiz form
+            document.getElementById('quizForm').style.display = 'none';
+            document.getElementById('quizProgress').style.display = 'none';
+            
+            // Show results
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.classList.add('active');
+            
+            // Set risk icon
+            const icons = {
+                'high': '🔴',
+                'moderate': '🟡',
+                'low': '🟢'
+            };
+            document.getElementById('resultIcon').textContent = icons[result.risk_band] || '⚪';
+            
+            // Set title with risk class
+            const titleElement = document.getElementById('resultTitle');
+            titleElement.textContent = result.outcome_title;
+            titleElement.className = 'result-title risk-' + result.risk_band;
+            
+            // Set score
+            document.getElementById('resultScore').textContent = 
+                `Total Score: ${result.total_score} | Risk Level: ${result.risk_label}`;
+            
+            // Set message
+            document.getElementById('resultMessage').textContent = result.outcome_body;
+            
+            // Set CTA button
+            document.getElementById('ctaButton').textContent = result.cta_text;
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
+            
+            setTimeout(() => {
+                errorDiv.classList.remove('active');
+            }, 5000);
+        }
+        
+        function calculateAge() {
+            const dobInput = document.getElementById('DEMO_DOB');
+            if (dobInput && dobInput.value) {
+                const dob = new Date(dobInput.value);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                
+                // Store calculated age in answers
+                answers['DEMO_AGE'] = age.toString();
+                console.log(`Calculated age: ${age} from DOB: ${dobInput.value}`);
+            }
+        }
+        
+        function changeLanguage(lang) {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('lang', lang);
+            window.location.href = currentUrl.toString();
+        }
+    </script>
+</body>
+</html>
+

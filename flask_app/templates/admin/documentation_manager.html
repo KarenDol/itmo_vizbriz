@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% block title %}Documentation Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+  .docs-light-surface {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .docs-light-surface h4 { color: #111827; margin-top: 0; }
+  .docs-light-surface p { color: #4b5563; }
+  .docs-light-surface .card { background: #ffffff !important; border: 1px solid #e5e7eb; }
+  .docs-light-surface .card-content { color: #111827 !important; }
+
+  /* Materialize selects/inputs are styled for dark theme elsewhere; force readable */
+  .docs-light-surface input,
+  .docs-light-surface textarea,
+  .docs-light-surface .select-dropdown,
+  .docs-light-surface .dropdown-content li > span {
+    color: #111827 !important;
+  }
+  .docs-light-surface .dropdown-content { background: #ffffff !important; }
+  .docs-light-surface label { color: #374151 !important; }
+  .docs-light-surface .helper { color: #6b7280; margin-top: 6px; }
+
+  /* Tree (match user-facing documentation page) */
+  .docs-tree { 
+    margin: 14px 0 0 0; 
+    padding: 0; 
+    list-style: none; 
+  }
+  .docs-tree li { list-style: none; margin: 10px 0; }
+  
+  /* Root language folder styling - distinct design */
+  .docs-tree .root-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 18px;
+    color: #1f2937;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+    width: 100%;
+  }
+  .docs-tree .root-node:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+  }
+  .docs-tree .root-node .material-icons { 
+    color: #0ea5e9; 
+    font-size: 24px; 
+  }
+  .docs-tree .root-node .expand-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: #0ea5e9;
+  }
+  .docs-tree .root-node.collapsed .expand-icon {
+    transform: rotate(-90deg);
+  }
+  
+  /* Regular folder styling */
+  .docs-tree .node {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #374151;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    width: 100%;
+  }
+  .docs-tree .node:hover {
+    background-color: #f3f4f6;
+  }
+  .docs-tree .node .material-icons { 
+    color: #10b981; 
+    font-size: 20px; 
+  }
+  .docs-tree .node .expand-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: #6b7280;
+    font-size: 18px;
+  }
+  .docs-tree .node.collapsed .expand-icon {
+    transform: rotate(-90deg);
+  }
+  
+  .docs-tree .children { 
+    margin: 4px 0 0 28px; 
+    padding: 0; 
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+  }
+  .docs-tree .children.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+  }
+  .docs-tree .children:not(.collapsed) {
+    max-height: 5000px;
+    opacity: 1;
+  }
+
+  .docs-tree .file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+  }
+
+  .docs-tree .file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: 500;
+    flex: 1;
+  }
+  .docs-tree .file-link:hover { text-decoration: underline; }
+  .docs-tree .file-link .material-icons {
+    color: rgba(17, 24, 39, 0.65);
+    font-size: 18px;
+  }
+
+  .docs-tree .delete-btn {
+    background: rgba(211, 47, 47, 0.08);
+    border: 1px solid rgba(211, 47, 47, 0.28);
+    color: #c62828;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .docs-tree .delete-btn:hover { 
+    background: rgba(211,47,47,0.14); 
+    border-color: rgba(211,47,47,0.45); 
+  }
+  .docs-tree .delete-btn .material-icons { font-size: 18px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="docs-light-surface">
+    <h4>Documentation Manager</h4>
+    <p>Upload documentation files (stored locally).</p>
+
+    <div class="row">
+      <div class="col s12 m7">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">Upload</span>
+            <form method="POST" action="{{ url_for('admin.documentation_upload') }}" enctype="multipart/form-data" novalidate>
+              <div class="input-field">
+                <select name="language">
+                  <option value="" disabled selected>Choose language</option>
+                  <option value="english">English</option>
+                  <option value="hebrew">Hebrew</option>
+                </select>
+                <label>Language</label>
+              </div>
+
+              <div class="input-field">
+                <select name="folder_existing">
+                  <option value="" selected>(Optional) Select existing folder</option>
+                  {% for lang, folders in folders_by_lang.items() %}
+                    {% for f in folders if f != 'General' %}
+                      <option value="{{ lang }}::{{ f }}">{{ lang }} / {{ f }}</option>
+                    {% endfor %}
+                  {% endfor %}
+                </select>
+                <label>Existing folder</label>
+                <div class="helper">Choose an existing folder, or create a new one below.</div>
+              </div>
+
+              <div class="input-field">
+                <input id="folder_new" name="folder_new" type="text" maxlength="64">
+                <label for="folder_new">New folder (optional)</label>
+                <div class="helper">Required if you don’t select an existing folder.</div>
+              </div>
+
+              <div class="input-field">
+                <input id="title" name="title" type="text" maxlength="120">
+                <label for="title">Document title (optional)</label>
+                <div class="helper">If empty, the file name will be used.</div>
+              </div>
+
+              <div class="file-field input-field">
+                <div class="btn">
+                  <span>File</span>
+                  <input type="file" name="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" required>
+                </div>
+                <div class="file-path-wrapper">
+                  <input class="file-path validate" type="text" placeholder="Upload a file">
+                </div>
+              </div>
+
+              <button class="btn green" type="submit">Upload</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col s12 m5">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">Folders & documents</span>
+
+            <ul class="docs-tree">
+              {% for lang in ['english', 'hebrew'] %}
+                {% set lang_display = 'English' if lang == 'english' else 'עברית' %}
+                {% set lang_folders = doc_manifest.get(lang, {}) or {} %}
+                <li {% if lang == 'hebrew' %}dir="rtl"{% endif %}>
+                  <div class="root-node" onclick="toggleFolder(this)">
+                    <i class="material-icons">language</i>
+                    <span>{{ lang_display }}</span>
+                    <i class="material-icons expand-icon">keyboard_arrow_down</i>
+                  </div>
+
+                  <ul class="children">
+                    {% for folder_name, folder_items in lang_folders.items() %}
+                      {% set sys_items = (system_items.get(lang, {}) or {}).get(folder_name, []) %}
+                      {% set all_items = sys_items + folder_items %}
+                      {% if all_items %}
+                        <li>
+                          <div class="node" onclick="toggleFolder(this)">
+                            <i class="material-icons">folder</i>
+                            <span>{{ folder_name }}</span>
+                            <i class="material-icons expand-icon">keyboard_arrow_down</i>
+                          </div>
+
+                          <ul class="children">
+                            {% for item in sys_items %}
+                              <li class="file-row">
+                                <a class="file-link" href="{{ item.get('url') }}" target="_blank" rel="noopener">
+                                  <i class="material-icons">insert_drive_file</i>
+                                  {{ item.get('title','') }}
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.documentation_hide_system') }}" style="margin:0;">
+                                  <input type="hidden" name="language" value="{{ lang }}">
+                                  <input type="hidden" name="folder" value="{{ folder_name }}">
+                                  <input type="hidden" name="key" value="{{ item.get('key','') }}">
+                                  <button class="delete-btn" type="submit" title="Hide" aria-label="Hide"
+                                          onclick="return confirm('Hide this document from the documentation page?');">
+                                    <i class="material-icons">delete</i>
+                                  </button>
+                                </form>
+                              </li>
+                            {% endfor %}
+
+                            {% for item in folder_items %}
+                              <li class="file-row">
+                                <a class="file-link"
+                                   href="{{ url_for('main.download_local_document', lang=lang, relpath=item.get('path','')) }}"
+                                   target="_blank" rel="noopener">
+                                  <i class="material-icons">insert_drive_file</i>
+                                  {{ (item.get('title') or item.get('path') or 'Untitled') }}
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.documentation_delete') }}" style="margin:0;">
+                                  <input type="hidden" name="language" value="{{ lang }}">
+                                  <input type="hidden" name="path" value="{{ item.get('path','') }}">
+                                  <button class="delete-btn" type="submit" title="Delete" aria-label="Delete"
+                                          onclick="return confirm('Delete this document? This also deletes the local file.');">
+                                    <i class="material-icons">delete</i>
+                                  </button>
+                                </form>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  </ul>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    if (window.M && M.FormSelect) {
+      M.FormSelect.init(elems);
+    }
+  });
+
+  function toggleFolder(nodeElement) {
+    // Find the next sibling <ul> element (the children container)
+    const children = nodeElement.nextElementSibling;
+    if (!children || !children.classList.contains('children')) {
+      return;
+    }
+    
+    // Toggle collapsed class on both the node and children
+    nodeElement.classList.toggle('collapsed');
+    children.classList.toggle('collapsed');
+  }
+</script>
+{% endblock %}
+
+
+

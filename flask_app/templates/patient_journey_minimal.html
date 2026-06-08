@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Journey - Test | Dr. Briz{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Patient Journey Test</h1>
+    
+    <button onclick="executeActionDirectly('complete_sleep_doctor_followup', {})">
+        Test Button
+    </button>
+</div>
+
+<script>
+// Global variables
+const PATIENT_ID = 10318;
+
+function executeActionDirectly(actionKey, parameters) {
+    // Simple test - just show an alert
+    alert('Button clicked: ' + actionKey);
+    
+    // For now, just execute directly without modal
+    executeActionDirectlyFallback(actionKey, parameters);
+}
+
+function executeActionDirectlyFallback(actionKey, parameters) {
+    // Add patient_id to parameters if not present
+    if (!parameters.patient_id) {
+        parameters.patient_id = PATIENT_ID;
+    }
+    
+    alert('Executing action: ' + actionKey);
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBCT Viewer - MPR Mode - {{ folder_name }} - {{ patient_name }}</title>
+    
+    <!-- Cornerstone.js DICOM Viewer Libraries -->
+    <script src="{{ url_for('static', filename='js/dicomParser.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dicomParser.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstone.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneMath.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoader.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoaderWebWorker.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneWADOImageLoaderCodecs.js') }}"></script>
+    <script src="https://unpkg.com/cornerstone-web-image-loader@2.3.0/dist/cornerstoneWebImageLoader.min.js"></script>
+    <script src="{{ url_for('static', filename='js/hammer.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cornerstoneTools.min.js') }}"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #header {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            position: relative;
+        }
+        
+        #header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        #header .patient-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        #header .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: rgba(220, 38, 38, 0.8);
+        }
+        
+        button.secondary:hover {
+            background: rgba(220, 38, 38, 1);
+        }
+        
+        .mode-indicator {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #6ee7b7;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        #toolbar {
+            background: rgba(24, 24, 27, 0.95);
+            padding: 12px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            border-bottom: 1px solid #3a3a3a;
+            flex-wrap: wrap;
+        }
+        
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .tool-group label {
+            font-size: 13px;
+            color: #ccc;
+            margin-right: 4px;
+        }
+        
+        .tool-group input[type="range"] {
+            width: 260px;
+        }
+        
+        .tool-group input[type="number"] {
+            width: 72px;
+            padding: 6px 8px;
+            background: #1f2937;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            color: #f9fafb;
+        }
+
+        .tool-group select {
+            padding: 6px 12px;
+            background: #3a3a3a;
+            color: white;
+            border: 1px solid #4a4a4a;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        #viewer-container {
+            display: grid;
+            grid-template-columns: 1.85fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 140px);
+            gap: 6px;
+            background: #050505;
+            padding: 6px;
+        }
+        
+        .viewer-pane {
+            position: relative;
+            background: #111;
+            border: 1px solid #1f1f1f;
+            overflow: hidden;
+        }
+
+        #axial-pane {
+            grid-column: 1 / 2;
+            grid-row: 1 / span 2;
+        }
+
+        #sagittal-pane {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        #coronal-pane {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .viewer-pane.fullscreen {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            z-index: 100;
+        }
+        
+        .viewer-pane .viewport-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .orientation-label {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+        
+        .orientation-top { top: 12px; left: 50%; transform: translateX(-50%); }
+        .orientation-bottom { bottom: 12px; left: 50%; transform: translateX(-50%); }
+        .orientation-left { left: 12px; top: 50%; transform: translateY(-50%); }
+        .orientation-right { right: 12px; top: 50%; transform: translateY(-50%); }
+
+        #axial-pane .orientation-top,
+        #axial-pane .orientation-bottom { color: #ef4444; }
+        #axial-pane .orientation-left,
+        #axial-pane .orientation-right { color: #10b981; }
+
+        #coronal-pane .orientation-left,
+        #coronal-pane .orientation-right { color: #ef4444; }
+        #coronal-pane .orientation-top,
+        #coronal-pane .orientation-bottom { color: #38bdf8; }
+
+        #sagittal-pane .orientation-left,
+        #sagittal-pane .orientation-right { color: #10b981; }
+        #sagittal-pane .orientation-top,
+        #sagittal-pane .orientation-bottom { color: #38bdf8; }
+
+        .viewer-pane .cornerstone-element {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        
+        /* Crosshairs overlay */
+        .crosshairs-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .crosshairs-overlay svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .crosshair-line {
+            stroke-width: 2.5;
+            stroke-opacity: 0.95;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.85));
+        }
+
+        /* Slice indicator */
+        .slice-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        /* Window/Level indicator */
+        .wl-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        #loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #333;
+            border-top: 4px solid #0ea5e9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #error {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        #error h3 {
+            margin-bottom: 12px;
+        }
+
+        .status-banner {
+            background: rgba(234, 88, 12, 0.18);
+            border-top: 1px solid rgba(234, 88, 12, 0.4);
+            border-bottom: 1px solid rgba(234, 88, 12, 0.4);
+            color: #f97316;
+            padding: 10px 16px;
+            font-size: 13px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .status-banner button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .status-banner button:hover {
+            background: #2563eb;
+        }
+
+        .status-banner button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .warning-banner {
+            background: rgba(234, 179, 8, 0.18);
+            border-top: 1px solid rgba(234, 179, 8, 0.5);
+            border-bottom: 1px solid rgba(234, 179, 8, 0.5);
+            color: #fef08a;
+            padding: 8px 16px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+
+        .warning-banner .warning-icon {
+            margin-right: 8px;
+        }
+
+        .warning-banner .close-btn {
+            margin-left: 16px;
+            background: transparent;
+            border: none;
+            color: #fef08a;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .warning-banner .close-btn:hover {
+            opacity: 1;
+        }
+
+        #mpr-progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+        }
+
+        #mpr-progress-overlay.active {
+            display: flex;
+        }
+
+        .mpr-progress-container {
+            background: #1f2937;
+            border-radius: 12px;
+            padding: 32px;
+            min-width: 400px;
+            max-width: 600px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .mpr-progress-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .mpr-progress-message {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 24px;
+        }
+
+        .mpr-progress-bar-wrapper {
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .mpr-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .mpr-progress-bar.indeterminate {
+            position: relative;
+            width: 35%;
+            animation: mpr-progress-indeterminate 1.2s infinite;
+        }
+
+        @keyframes mpr-progress-indeterminate {
+            0% {
+                margin-left: 0%;
+            }
+            50% {
+                margin-left: 65%;
+            }
+            100% {
+                margin-left: 0%;
+            }
+        }
+
+        .mpr-progress-text {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div>
+            <h1 id="viewer-title">🧊 CBCT Viewer - MPR Mode</h1>
+            <div class="patient-info">Patient: {{ patient_name }} | Folder: {{ folder_name }}</div>
+        </div>
+        <div class="controls">
+            <span id="mode-indicator" class="mode-indicator">MPR Manifest</span>
+            <button id="view-manifest-btn" onclick="viewManifest()" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd;" title="View MPR manifest JSON">📋 MPR Manifest</button>
+            <button id="regenerate-mpr-btn" onclick="startMprGeneration()" style="display: inline-block !important; visibility: visible !important;" title="Regenerate MPR files with updated settings">🔄 Regenerate MPR</button>
+            <button onclick="resetAllViews()">🔄 Reset Views</button>
+            <button onclick="window.close()" class="secondary">✕ Close</button>
+        </div>
+    </div>
+    
+    <div id="toolbar">
+        <div class="tool-group">
+            <label>Window:</label>
+            <select id="window-preset">
+                <option value="custom">Custom</option>
+                <option value="bone">Bone (1500/400)</option>
+                <option value="soft">Soft Tissue (400/40)</option>
+                <option value="lung">Lung (1500/-600)</option>
+            </select>
+        </div>
+        <div class="tool-group">
+            <label>Window Width:</label>
+            <input type="range" id="window-width" min="1" max="512" value="255" step="1">
+            <input type="number" id="window-width-input" min="1" max="512" value="255" step="1">
+        </div>
+        <div class="tool-group">
+            <label>Window Center:</label>
+            <input type="range" id="window-center" min="0" max="255" value="127" step="1">
+            <input type="number" id="window-center-input" min="0" max="255" value="127" step="1">
+        </div>
+        <div class="tool-group">
+            <label>Tool:</label>
+            <select id="tool-select">
+                <option value="Wwwc">Window/Level</option>
+                <option value="Zoom">Zoom</option>
+                <option value="Pan">Pan</option>
+                <option value="Length">Measure Length</option>
+                <option value="Angle">Measure Angle</option>
+            </select>
+        </div>
+        <div class="tool-group">
+            <button onclick="clearAnnotations()">Clear Annotations</button>
+        </div>
+    </div>
+    
+    <div id="status-banner" class="status-banner" style="display:none;"></div>
+    <div id="warning-banner" class="warning-banner">
+        <span class="warning-icon">⚠️</span>
+        <span id="warning-message"></span>
+        <button class="close-btn" onclick="hideWarningBanner()">×</button>
+    </div>
+    
+    <!-- MPR Generation Progress Overlay -->
+    <div id="mpr-progress-overlay">
+        <div class="mpr-progress-container">
+            <div class="mpr-progress-title">Generating MPR Files</div>
+            <div class="mpr-progress-message" id="mpr-progress-message">Initializing...</div>
+            <div class="mpr-progress-bar-wrapper">
+                <div class="mpr-progress-bar" id="mpr-progress-bar"></div>
+            </div>
+            <div class="mpr-progress-text" id="mpr-progress-text">0%</div>
+        </div>
+    </div>
+    
+    <div id="viewer-container">
+        <!-- Sagittal View (Top Left) -->
+        <div class="viewer-pane" id="sagittal-pane">
+            <div class="viewport-label">Sagittal View</div>
+            <div class="orientation-label orientation-top">S</div>
+            <div class="orientation-label orientation-bottom">I</div>
+            <div class="orientation-label orientation-left">A</div>
+            <div class="orientation-label orientation-right">P</div>
+            <div class="cornerstone-element" id="sagittal-viewport"></div>
+            <div class="crosshairs-overlay" id="sagittal-crosshairs"></div>
+            <div class="slice-indicator" id="sagittal-slice">Slice: 0 / 0</div>
+            <div class="wl-indicator" id="sagittal-wl">W/L: 400 / 40</div>
+        </div>
+
+        <!-- Coronal View (Bottom Left) -->
+        <div class="viewer-pane" id="coronal-pane">
+            <div class="viewport-label">Coronal View</div>
+            <div class="orientation-label orientation-top">S</div>
+            <div class="orientation-label orientation-bottom">I</div>
+            <div class="orientation-label orientation-left">R</div>
+            <div class="orientation-label orientation-right">L</div>
+            <div class="cornerstone-element" id="coronal-viewport"></div>
+            <div class="crosshairs-overlay" id="coronal-crosshairs"></div>
+            <div class="slice-indicator" id="coronal-slice">Slice: 0 / 0</div>
+            <div class="wl-indicator" id="coronal-wl">W/L: 400 / 40</div>
+        </div>
+
+        <!-- Axial View (Bottom Right) -->
+        <div class="viewer-pane" id="axial-pane">
+            <div class="viewport-label">Axial View</div>
+            <div class="orientation-label orientation-top">A</div>
+            <div class="orientation-label orientation-bottom">P</div>
+            <div class="orientation-label orientation-left">R</div>
+            <div class="orientation-label orientation-right">L</div>
+            <div class="cornerstone-element" id="axial-viewport"></div>
+            <div class="crosshairs-overlay" id="axial-crosshairs"></div>
+            <div class="slice-indicator" id="axial-slice">Slice: 0 / 0</div>
+            <div class="wl-indicator" id="axial-wl">W/L: 400 / 40</div>
+        </div>
+    </div>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <div style="color: #fff; font-size: 14px; margin-top: 16px;">Loading DICOM files...</div>
+    </div>
+    
+    <div id="error" style="display: none;">
+        <h3>❌ Error Loading CBCT Data</h3>
+        <p id="error-message"></p>
+        <button onclick="window.close()" style="margin-top: 16px;">Close</button>
+    </div>
+    
+    <script>
+        // Configuration
+        const PATIENT_ID = Number('{{ patient_id }}');
+        const FOLDER_NAME = '{{ folder_name }}';
+        const WADO_WORKER_URL = "{{ url_for('static', filename='js/cornerstoneWADOImageLoaderWebWorker.js') }}";
+        const WADO_CODECS_URL = "{{ url_for('static', filename='js/cornerstoneWADOImageLoaderCodecs.js') }}";
+        
+        // Global state
+        let dicomFiles = [];
+        let imageIds = [];
+        let allImages = [];
+        
+        let sagittalElement = null;
+        let coronalElement = null;
+        let axialElement = null;
+        
+        let currentSagittalIndex = 0;
+        let currentCoronalIndex = 0;
+        let currentAxialIndex = 0;
+        
+        let activeTool = 'Wwwc';
+        // Default window/level for pre-rendered 8-bit PNG images
+        // PNG data is 0-255, so use full range as default
+        let windowWidth = 255;
+        let windowCenter = 127;
+        
+        // Crosshair positions (normalized 0-1)
+        let crosshairX = 0.5; // Sagittal slice position (0=left, 1=right)
+        let crosshairY = 0.5; // Coronal slice position (0=front, 1=back)
+        let crosshairZ = 0.5; // Axial slice position (0=top, 1=bottom)
+        let usingMprManifest = false;
+        let usingDicomFallback = false;
+        let mprStacks = { axial: [], coronal: [], sagittal: [] };
+        let mprCounts = { axial: 0, coronal: 0, sagittal: 0 };
+        let mprWindow = { center: 127, width: 255 };
+        let currentIndices = { x: 0, y: 0, z: 0 };
+        let volumeGeometry = null;
+        let crosshairDragState = { active: false, viewType: null, element: null };
+        let mprGenerationActive = false;
+        let mprStatusIntervalId = null;
+        const DEFAULT_WINDOW_PRESETS = [
+            { key: 'bone', label: 'Bone (2000/500)', width: 2000, center: 500 },
+            { key: 'soft', label: 'Soft Tissue (2000/1200)', width: 2000, center: 1200 },
+            { key: 'lung', label: 'Lung (1500/-600)', width: 1500, center: -600 }
+        ];
+        const DEFAULT_WINDOW_KEY = 'soft';
+        const CROSSHAIR_COLORS = {
+            axial: { vertical: '#ef4444', horizontal: '#10b981' },
+            coronal: { vertical: '#ef4444', horizontal: '#38bdf8' },
+            sagittal: { vertical: '#10b981', horizontal: '#38bdf8' }
+        };
+        // Orientation flip configuration
+        // MPR generator applies numpy flipud to coronal/sagittal during generation
+        // Viewer needs to apply vflip to coronal/sagittal to match radiological display
+        const VERTICAL_FLIP_VIEWS = new Set(['coronal', 'sagittal']);
+        const requiresVerticalFlip = (view) => VERTICAL_FLIP_VIEWS.has(view);
+        const requiresHorizontalFlip = (view) => false; // No horizontal flip needed
+        let windowPresetMap = {};
+        let windowControlBounds = {
+            width: { min: 1, max: 4000 },
+            center: { min: -2000, max: 2000 }
+        };
+        
+        // Initialize Cornerstone
+        cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+        cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+        cornerstoneWADOImageLoader.external.cornerstoneMath = cornerstoneMath;
+        cornerstoneWADOImageLoader.configure({
+            useWebWorkers: true
+        });
+        cornerstoneWADOImageLoader.webWorkerManager.initialize({
+            webWorkerPath: WADO_WORKER_URL,
+            taskConfiguration: {
+                decodeTask: {
+                    codecsPath: WADO_CODECS_URL
+                }
+            }
+        });
+
+        if (typeof cornerstoneWebImageLoader !== 'undefined') {
+            cornerstoneWebImageLoader.external.cornerstone = cornerstone;
+            cornerstoneWebImageLoader.configure({ useWebWorkers: false });
+            cornerstone.registerImageLoader('http', cornerstoneWebImageLoader.loadImage);
+            cornerstone.registerImageLoader('https', cornerstoneWebImageLoader.loadImage);
+        }
+
+        cornerstoneTools.external.cornerstone = cornerstone;
+        cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+        cornerstoneTools.external.Hammer = Hammer;
+        cornerstoneTools.init();
+        
+        // Configure image loader
+        cornerstoneWADOImageLoader.configure({
+            beforeSend: function(xhr) {
+                // Presigned URLs should work without additional headers
+            }
+        });
+        
+        // Initialize on load
+        window.addEventListener('load', function() {
+            initializeViewer();
+        });
+
+        function resetWindowControlBounds() {
+            windowControlBounds = {
+                width: { min: 1, max: 4000 },
+                center: { min: -2000, max: 2000 }
+            };
+        }
+        
+        function setMprWindowControlBounds() {
+            // For pre-generated PNG stacks (8-bit), use appropriate ranges
+            // PNGs are already windowed, so we use full 8-bit range for fine-tuning
+            windowControlBounds = {
+                width: { min: 1, max: 512 },
+                center: { min: 0, max: 255 }
+            };
+            applyWindowControlBoundsToInputs();
+        }
+
+        function updateWindowControlBoundsFromManifest(manifest) {
+            resetWindowControlBounds();
+            if (!manifest || !manifest.intensity) {
+                return;
+            }
+            const stats = manifest.intensity;
+            const minVal = Number(stats.min);
+            const maxVal = Number(stats.max);
+            if (!Number.isFinite(minVal) || !Number.isFinite(maxVal) || maxVal <= minVal) {
+                return;
+            }
+            const padding = Math.max(100, (maxVal - minVal) * 0.05);
+            windowControlBounds.center.min = Math.floor(minVal - padding);
+            windowControlBounds.center.max = Math.ceil(maxVal + padding);
+            const span = windowControlBounds.center.max - windowControlBounds.center.min;
+            windowControlBounds.width.min = 1;
+            windowControlBounds.width.max = Math.max(Math.ceil(span), 4000);
+        }
+
+        function applyWindowControlBoundsToInputs() {
+            const widthRange = windowControlBounds.width;
+            const centerRange = windowControlBounds.center;
+            const widthSlider = document.getElementById('window-width');
+            const widthInput = document.getElementById('window-width-input');
+            const centerSlider = document.getElementById('window-center');
+            const centerInput = document.getElementById('window-center-input');
+            if (widthSlider) {
+                widthSlider.min = String(widthRange.min);
+                widthSlider.max = String(widthRange.max);
+            }
+            if (widthInput) {
+                widthInput.min = String(widthRange.min);
+                widthInput.max = String(widthRange.max);
+            }
+            if (centerSlider) {
+                centerSlider.min = String(centerRange.min);
+                centerSlider.max = String(centerRange.max);
+            }
+            if (centerInput) {
+                centerInput.min = String(centerRange.min);
+                centerInput.max = String(centerRange.max);
+            }
+        }
+
+        function populateWindowPresetDropdown(manifest) {
+            const select = document.getElementById('window-preset');
+            if (!select) return;
+            const previousValue = select.value;
+            select.innerHTML = '';
+            windowPresetMap = { custom: null };
+
+            const customOption = document.createElement('option');
+            customOption.value = 'custom';
+            customOption.textContent = 'Custom';
+            select.appendChild(customOption);
+
+            // In MPR mode we display 8-bit PNG stacks where windowing is already baked in.
+            // Showing DICOM presets (e.g., 2000/1200) is misleading because those values
+            // get clamped to the 8-bit control bounds (W<=512, L<=255), making sliders
+            // appear "stuck" at max.
+            if (usingMprManifest) {
+                const pngOption = document.createElement('option');
+                pngOption.value = 'png_default';
+                pngOption.textContent = 'PNG Default (255/127)';
+                select.appendChild(pngOption);
+                windowPresetMap['png_default'] = { center: 127, width: 255 };
+
+                // Keep selection stable if possible
+                select.value = (previousValue === 'png_default') ? 'png_default' : 'custom';
+                return;
+            }
+
+            const manifestPresets = manifest && manifest.window_presets ? manifest.window_presets : null;
+            if (manifestPresets) {
+                Object.entries(manifestPresets).forEach(([key, preset]) => {
+                    if (!preset) return;
+                    const center = Number(preset.center);
+                    const width = Number(preset.width);
+                    if (!Number.isFinite(center) || !Number.isFinite(width)) {
+                        return;
+                    }
+                    const optionValue = `manifest:${key}`;
+                    const option = document.createElement('option');
+                    option.value = optionValue;
+                    option.textContent = preset.label || (key === 'auto' ? 'Auto (Full Range)' : `Preset: ${key}`);
+                    select.appendChild(option);
+                    windowPresetMap[optionValue] = { center, width };
+                });
+            }
+
+            DEFAULT_WINDOW_PRESETS.forEach(preset => {
+                const option = document.createElement('option');
+                option.value = preset.key;
+                option.textContent = preset.label;
+                select.appendChild(option);
+                windowPresetMap[preset.key] = { center: preset.center, width: preset.width };
+            });
+
+            if (select.querySelector(`option[value="${previousValue}"]`)) {
+                select.value = previousValue;
+            } else if (select.querySelector(`option[value="${DEFAULT_WINDOW_KEY}"]`)) {
+                select.value = DEFAULT_WINDOW_KEY;
+            } else if (select.querySelector('option[value="manifest:auto"]')) {
+                select.value = 'manifest:auto';
+            } else {
+                select.value = 'custom';
+            }
+        }
+
+        async function fetchMprManifest() {
+            try {
+                const url = `/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/mpr_manifest`;
+                console.log('Fetching MPR manifest from:', url);
+                const resp = await fetch(url, {
+                    credentials: 'include'
+                });
+                console.log('MPR manifest response status:', resp.status, resp.statusText);
+                if (!resp.ok) {
+                    const errorText = await resp.text();
+                    console.warn('MPR manifest fetch failed:', resp.status, errorText);
+                    return null;
+                }
+                const data = await resp.json();
+                console.log('MPR manifest response:', data);
+                return data;
+            } catch (err) {
+                console.error('MPR manifest fetch error:', err);
+                return null;
+            }
+        }
+
+        async function initializeViewer() {
+            try {
+                // Check if precomputed MPR data exists
+                const manifestData = await fetchMprManifest();
+                if (manifestData && manifestData.success && manifestData.planes && manifestData.planes.axial && manifestData.planes.axial.count) {
+                    usingMprManifest = true;
+                    usingDicomFallback = false;
+                    mprStacks.axial = (manifestData.planes.axial.urls || []);
+                    mprStacks.coronal = (manifestData.planes.coronal.urls || []);
+                    mprStacks.sagittal = (manifestData.planes.sagittal.urls || []);
+                    mprCounts.axial = mprStacks.axial.length;
+                    mprCounts.coronal = mprStacks.coronal.length;
+                    mprCounts.sagittal = mprStacks.sagittal.length;
+                    mprWindow = manifestData.window || mprWindow;
+                    volumeGeometry = manifestData.manifest && manifestData.manifest.volume ? manifestData.manifest.volume : null;
+                    updateWindowControlBoundsFromManifest(manifestData.manifest);
+                    populateWindowPresetDropdown(manifestData.manifest);
+                    applyWindowControlBoundsToInputs();
+                    console.log('MPR Manifest loaded:', manifestData);
+                    console.log('MPR Axial URLs (sample):', mprStacks.axial.slice(0, 5));
+                    console.log('MPR Coronal URLs (sample):', mprStacks.coronal.slice(0, 5));
+                    console.log('MPR Sagittal URLs (sample):', mprStacks.sagittal.slice(0, 5));
+                    await initializeMprMode(manifestData);
+                    setupTools();
+                    setupControls();
+                    setupCrosshairs();
+                    checkAndDisplayWarnings(manifestData);
+                    document.getElementById('loading').style.display = 'none';
+                    setViewerMode('mpr');
+                    hideStatusBanner();
+                    // Show regenerate button when MPR files exist
+                    const regenerateBtn = document.getElementById('regenerate-mpr-btn');
+                    if (regenerateBtn) {
+                        regenerateBtn.style.display = 'inline-block';
+                        console.log('Regenerate MPR button shown');
+                    } else {
+                        console.warn('Regenerate MPR button not found in DOM');
+                    }
+                    return;
+                }
+
+                usingDicomFallback = true;
+                setViewerMode('dicom');
+                showStatusBanner('No precomputed MPR stacks found. Displaying raw axial DICOM series without multi-planar synchronization.', true);
+                // Hide regenerate button when no MPR files exist
+                const regenerateBtn = document.getElementById('regenerate-mpr-btn');
+                if (regenerateBtn) {
+                    regenerateBtn.style.display = 'none';
+                }
+                
+                setupViewportElements();
+                resetWindowControlBounds();
+                populateWindowPresetDropdown(null);
+                applyWindowControlBoundsToInputs();
+
+                // Fallback to DICOM files list if no manifest
+                const response = await fetch(`/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/files`, {
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success || !data.files || data.files.length === 0) {
+                    showError('No DICOM files found in this CBCT folder.');
+                    return;
+                }
+                
+                dicomFiles = data.files;
+                imageIds = await buildImageIdsFromDicomFiles(dicomFiles);
+                
+                console.log(`Loaded ${imageIds.length} DICOM files`);
+                
+                setupViewportElements();
+                
+                // Load all images
+                await loadAllImages();
+                
+                // Set up tools
+                setupTools();
+                
+                // Set up controls
+                setupControls();
+                
+                // Set up crosshairs
+                setupCrosshairs();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error initializing viewer:', error);
+                showError('Failed to initialize CBCT viewer: ' + error.message);
+            }
+        }
+
+        async function buildImageIdsFromDicomFiles(files) {
+            const ids = [];
+            if (!files || files.length === 0) {
+                return ids;
+            }
+
+            const dataSetCacheManager = cornerstoneWADOImageLoader.wadouri.dataSetCacheManager;
+            for (const file of files) {
+                const baseId = `wadouri:${file.url}`;
+                try {
+                    const dataSet = await dataSetCacheManager.load(baseId);
+                    let numberOfFrames = 1;
+                    if (dataSet && typeof dataSet.intString === 'function') {
+                        const framesValue = dataSet.intString('x00280008');
+                        if (framesValue && !Number.isNaN(framesValue) && framesValue > 1) {
+                            numberOfFrames = framesValue;
+                        }
+                    } else if (dataSet && typeof dataSet.uint16 === 'function') {
+                        // Fallback when intString not available
+                        const framesValue = dataSet.uint16('x00280008');
+                        if (framesValue && !Number.isNaN(framesValue) && framesValue > 1) {
+                            numberOfFrames = framesValue;
+                        }
+                    }
+
+                    if (numberOfFrames > 1) {
+                        console.log(`Expanding multi-frame DICOM: ${file.name || baseId} -> ${numberOfFrames} frames`);
+                        for (let frameIndex = 0; frameIndex < numberOfFrames; frameIndex += 1) {
+                            ids.push(`${baseId}?frame=${frameIndex}`);
+                        }
+                    } else {
+                        ids.push(baseId);
+                    }
+                } catch (err) {
+                    console.warn('Failed to inspect DICOM dataset, falling back to single-frame handling:', file, err);
+                    ids.push(baseId);
+                }
+            }
+
+            return ids;
+        }
+
+        function setupViewportElements() {
+            sagittalElement = document.getElementById('sagittal-viewport');
+            coronalElement = document.getElementById('coronal-viewport');
+            axialElement = document.getElementById('axial-viewport');
+            cornerstone.enable(sagittalElement);
+            cornerstone.enable(coronalElement);
+            cornerstone.enable(axialElement);
+        }
+
+        function getPlaneElement(plane) {
+            switch (plane) {
+                case 'axial':
+                    return axialElement;
+                case 'coronal':
+                    return coronalElement;
+                case 'sagittal':
+                    return sagittalElement;
+                default:
+                    return axialElement;
+            }
+        }
+
+        function disableWindowControlsForMpr() {
+            ['window-width', 'window-center', 'window-preset'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.disabled = true;
+                    el.classList.add('disabled');
+                }
+            });
+        }
+
+        async function initializeMprMode(manifestData) {
+            setupViewportElements();
+            
+            // Set slider bounds for 8-bit PNG data
+            setMprWindowControlBounds();
+
+            // For pre-generated PNG stacks, use 8-bit range defaults (0-255)
+            // The W/L was already applied during PNG generation, so we use full range here
+            // This prevents "double windowing" which makes images appear too dark
+            windowWidth = 255;
+            windowCenter = 127;
+            mprWindow.width = 255;
+            mprWindow.center = 127;
+            
+            // Update slider values to match
+            const widthSlider = document.getElementById('window-width');
+            const centerSlider = document.getElementById('window-center');
+            const widthInput = document.getElementById('window-width-input');
+            const centerInput = document.getElementById('window-center-input');
+            if (widthSlider) widthSlider.value = windowWidth;
+            if (centerSlider) centerSlider.value = windowCenter;
+            if (widthInput) widthInput.value = windowWidth;
+            if (centerInput) centerInput.value = windowCenter;
+            
+            // Store the original DICOM W/L for reference (but don't apply it)
+            if (manifestData && manifestData.manifest && manifestData.manifest.window) {
+                const wnd = manifestData.manifest.window;
+                console.log('[MPR] Original DICOM W/L from manifest:', wnd.width, '/', wnd.center);
+                console.log('[MPR] Using 8-bit PNG defaults: W=255, L=127');
+                // Note: We intentionally DON'T use manifest values for PNG display
+                // because the windowing was already baked into the PNGs during generation
+            }
+
+            const dims = getVolumeShape();
+            currentIndices = {
+                x: Math.max(0, Math.floor((dims.x || 1) / 2)),
+                y: Math.max(0, Math.floor((dims.y || 1) / 2)),
+                z: Math.max(0, Math.floor((dims.z || 1) / 2))
+            };
+            syncLegacyIndicesFromCurrent();
+
+            await Promise.all([
+                displayPlaneFromMpr('axial', currentIndices.z),
+                displayPlaneFromMpr('coronal', currentIndices.y),
+                displayPlaneFromMpr('sagittal', currentIndices.x)
+            ]);
+
+            updateSliceIndicators();
+            updateCrosshairs();
+        }
+
+        async function displayPlaneFromMpr(plane, index) {
+            const ids = mprStacks[plane] || [];
+            if (!ids.length) {
+                return;
+            }
+            const clamped = Math.max(0, Math.min(index, ids.length - 1));
+            const element = getPlaneElement(plane);
+            try {
+                const url = ids[clamped];
+                const imageId = `mpr:${plane}:${clamped}`;
+                const cache = window.__mprImageCache = window.__mprImageCache || {};
+                let image = cache[imageId];
+                if (!image) {
+                    console.log('[MPR load] fetching', plane, clamped, url);
+                    image = await loadImageToCornerstone(url, imageId);
+                    cache[imageId] = image;
+                } else {
+                    console.log('[MPR load] cache hit', plane, clamped);
+                }
+                cornerstone.displayImage(element, image);
+                cornerstone.fitToWindow(element);
+                const viewport = cornerstone.getViewport(element);
+                viewport.voi.windowWidth = mprWindow.width;
+                viewport.voi.windowCenter = mprWindow.center;
+                viewport.vflip = requiresVerticalFlip(plane);
+                viewport.hflip = requiresHorizontalFlip(plane);
+                cornerstone.setViewport(element, viewport);
+                updateWLIndicator(plane);
+            } catch (err) {
+                console.error('Error displaying MPR plane', plane, err);
+            }
+        }
+        
+        async function loadImageToCornerstone(url, imageId) {
+            const response = await fetch(url, { cache: 'force-cache' });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${url}: ${response.status}`);
+            }
+            const blob = await response.blob();
+            const bitmap = await createImageBitmap(blob);
+            const canvas = document.createElement('canvas');
+            canvas.width = bitmap.width;
+            canvas.height = bitmap.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(bitmap, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const source = imageData.data;
+            const pixelCount = canvas.width * canvas.height;
+            const pixelData = new Float32Array(pixelCount);
+            let min = Number.POSITIVE_INFINITY;
+            let max = Number.NEGATIVE_INFINITY;
+            for (let i = 0, j = 0; i < source.length; i += 4, j++) {
+                const r = source[i];
+                const g = source[i + 1];
+                const b = source[i + 2];
+                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                pixelData[j] = gray;
+                if (gray < min) min = gray;
+                if (gray > max) max = gray;
+            }
+
+            return {
+                imageId,
+                minPixelValue: min,
+                maxPixelValue: max,
+                slope: 1,
+                intercept: 0,
+                windowCenter: mprWindow.center,
+                windowWidth: mprWindow.width,
+                render: cornerstone.renderGrayscaleImage,
+                getPixelData: () => pixelData,
+                rows: canvas.height,
+                columns: canvas.width,
+                height: canvas.height,
+                width: canvas.width,
+                color: false,
+                columnPixelSpacing: 1,
+                rowPixelSpacing: 1,
+                sizeInBytes: pixelData.length * 4,
+                invert: false,
+                getCanvas: undefined,
+                isPreScaled: true,
+                getImageData: () => imageData
+            };
+        }
+        
+        async function loadAllImages() {
+            try {
+                // Load first image to get dimensions
+                const firstImage = await cornerstone.loadImage(imageIds[0]);
+                console.log('First image loaded:', firstImage);
+                
+                // Load all images (limit to first 200 for performance)
+                const maxImages = Math.min(600, imageIds.length);
+                const loadPromises = imageIds.slice(0, maxImages).map(id => 
+                    cornerstone.loadImage(id).catch(err => {
+                        console.warn('Failed to load image:', id, err);
+                        return null;
+                    })
+                );
+                
+                const loadedImages = await Promise.all(loadPromises);
+                allImages = loadedImages.filter(img => img !== null);
+                
+                if (allImages.length === 0) {
+                    showError('Failed to load any DICOM images.');
+                    return;
+                }
+                
+                console.log(`Loaded ${allImages.length} valid DICOM images`);
+                
+                // Initialize slice indices to middle
+                currentSagittalIndex = Math.floor(allImages.length * crosshairX);
+                currentCoronalIndex = Math.floor(allImages.length * crosshairY);
+                currentAxialIndex = Math.floor(allImages.length * crosshairZ);
+                
+                // Display initial images
+                displayImage(sagittalElement, allImages[currentSagittalIndex], 'sagittal');
+                displayImage(coronalElement, allImages[currentCoronalIndex], 'coronal');
+                displayImage(axialElement, allImages[currentAxialIndex], 'axial');
+                
+                updateSliceIndicators();
+                updateCrosshairs();
+                
+            } catch (error) {
+                console.error('Error loading images:', error);
+                const message = error && error.message ? error.message : JSON.stringify(error);
+                showError('Failed to load DICOM images: ' + message);
+            }
+        }
+        
+        function displayImage(element, image, viewType) {
+            if (!image) return;
+            
+            try {
+                cornerstone.displayImage(element, image);
+                cornerstone.fitToWindow(element);
+            } catch (err) {
+                console.error('Error displaying image for view', viewType, err);
+                showError('Failed to render DICOM image. Check console for details.');
+                return;
+            }
+            
+            // Apply window/level
+            const viewportState = cornerstone.getViewport(element);
+            viewportState.voi.windowWidth = windowWidth;
+            viewportState.voi.windowCenter = windowCenter;
+            viewportState.vflip = requiresVerticalFlip(viewType);
+            viewportState.hflip = requiresHorizontalFlip(viewType);
+            cornerstone.setViewport(element, viewportState);
+            
+            updateWLIndicator(viewType);
+        }
+        
+        function setupTools() {
+            const elements = [sagittalElement, coronalElement, axialElement];
+            
+            // Enable default tools
+            cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
+            cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
+            cornerstoneTools.addTool(cornerstoneTools.PanTool);
+            cornerstoneTools.addTool(cornerstoneTools.LengthTool);
+            cornerstoneTools.addTool(cornerstoneTools.AngleTool);
+
+            // Associate tools with each enabled element
+            elements.forEach(el => {
+                if (!el) return;
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.WwwcTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.ZoomTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.PanTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.LengthTool);
+                cornerstoneTools.addToolForElement(el, cornerstoneTools.AngleTool);
+                cornerstoneTools.setToolPassiveForElement(el, 'Wwwc');
+                cornerstoneTools.setToolPassiveForElement(el, 'Zoom');
+                cornerstoneTools.setToolPassiveForElement(el, 'Pan');
+                cornerstoneTools.setToolPassiveForElement(el, 'Length');
+                cornerstoneTools.setToolPassiveForElement(el, 'Angle');
+            });
+            
+            // Set active tool
+            setActiveTool(activeTool);
+            
+            // Mouse wheel for slice navigation
+            elements.forEach((element, index) => {
+                element.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 1 : -1;
+                    const viewType = index === 0 ? 'sagittal' : (index === 1 ? 'coronal' : 'axial');
+                    navigateSlice(viewType, delta);
+                });
+            });
+            
+            // Click to set crosshair position
+            elements.forEach((element, index) => {
+                const viewType = index === 0 ? 'sagittal' : (index === 1 ? 'coronal' : 'axial');
+
+                const updateCrosshair = (evt) => {
+                    if (activeTool === 'Pan' || activeTool === 'Zoom') {
+                        return;
+                    }
+                    updateCrosshairFromPointer(element, viewType, evt);
+                };
+
+                element.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return;
+                    crosshairDragState = { active: true, viewType, element };
+                    updateCrosshair(e);
+                });
+
+                element.addEventListener('mousemove', function(e) {
+                    if (!crosshairDragState.active || crosshairDragState.element !== element) return;
+                    updateCrosshair(e);
+                });
+
+                ['mouseup', 'mouseleave', 'mouseout'].forEach(evtName => {
+                    element.addEventListener(evtName, function() {
+                        if (crosshairDragState.element === element) {
+                            crosshairDragState = { active: false, viewType: null, element: null };
+                        }
+                    });
+                });
+            });
+
+            document.addEventListener('mouseup', function() {
+                crosshairDragState = { active: false, viewType: null, element: null };
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT') {
+                    return;
+                }
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        navigateSlice('axial', -1);
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        navigateSlice('axial', 1);
+                        break;
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        navigateSlice('coronal', -1);
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        navigateSlice('coronal', 1);
+                        break;
+                    case 'PageUp':
+                        e.preventDefault();
+                        navigateSlice('sagittal', -1);
+                        break;
+                    case 'PageDown':
+                        e.preventDefault();
+                        navigateSlice('sagittal', 1);
+                        break;
+                }
+            });
+        }
+        
+        function setActiveTool(toolName) {
+            activeTool = toolName;
+            
+            const elements = [sagittalElement, coronalElement, axialElement];
+            const toolNames = ['Wwwc', 'Zoom', 'Pan', 'Length', 'Angle'];
+            const mouseButtonMask = 1;
+
+            elements.forEach(el => {
+                if (!el) return;
+                toolNames.forEach(name => {
+                    if (name === toolName) {
+                        cornerstoneTools.setToolActiveForElement(el, name, { mouseButtonMask });
+                    } else {
+                        cornerstoneTools.setToolPassiveForElement(el, name);
+                    }
+                });
+            });
+        }
+        
+        function setupControls() {
+            // Window/Level controls
+            const windowWidthSlider = document.getElementById('window-width');
+            const windowCenterSlider = document.getElementById('window-center');
+            const windowWidthInput = document.getElementById('window-width-input');
+            const windowCenterInput = document.getElementById('window-center-input');
+            const presetSelect = document.getElementById('window-preset');
+            applyWindowControlBoundsToInputs();
+
+            const clampWidth = (value) => Math.max(windowControlBounds.width.min, Math.min(windowControlBounds.width.max, value));
+            const clampCenter = (value) => Math.max(windowControlBounds.center.min, Math.min(windowControlBounds.center.max, value));
+
+            const defaultPreset = windowPresetMap[DEFAULT_WINDOW_KEY];
+            if (defaultPreset && Number.isFinite(defaultPreset.width) && Number.isFinite(defaultPreset.center)) {
+                windowWidth = clampWidth(Number(defaultPreset.width));
+                windowCenter = clampCenter(Number(defaultPreset.center));
+                if (presetSelect && presetSelect.value !== DEFAULT_WINDOW_KEY) {
+                    presetSelect.value = DEFAULT_WINDOW_KEY;
+                }
+            } else {
+                windowWidth = clampWidth(windowWidth);
+                windowCenter = clampCenter(windowCenter);
+            }
+
+            windowWidthSlider.value = windowWidth;
+            windowCenterSlider.value = windowCenter;
+            windowWidthInput.value = windowWidth;
+            windowCenterInput.value = windowCenter;
+
+            mprWindow.width = windowWidth;
+            mprWindow.center = windowCenter;
+            updateWindowLevel();
+
+            windowWidthSlider.addEventListener('input', function(e) {
+                windowWidth = parseInt(e.target.value, 10);
+                windowWidthInput.value = windowWidth;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+            
+            windowCenterSlider.addEventListener('input', function(e) {
+                windowCenter = parseInt(e.target.value, 10);
+                windowCenterInput.value = windowCenter;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+
+            windowWidthInput.addEventListener('change', function(e) {
+                let val = parseInt(e.target.value, 10);
+                if (Number.isNaN(val)) {
+                    val = windowWidth;
+                }
+                windowWidth = clampWidth(val);
+                windowWidthInput.value = windowWidth;
+                windowWidthSlider.value = windowWidth;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+
+            windowCenterInput.addEventListener('change', function(e) {
+                let val = parseInt(e.target.value, 10);
+                if (Number.isNaN(val)) {
+                    val = windowCenter;
+                }
+                windowCenter = clampCenter(val);
+                windowCenterInput.value = windowCenter;
+                windowCenterSlider.value = windowCenter;
+                if (presetSelect) {
+                    presetSelect.value = 'custom';
+                }
+                updateWindowLevel();
+            });
+            
+            // Window presets
+            if (presetSelect) {
+                presetSelect.addEventListener('change', function(e) {
+                    const presetKey = e.target.value;
+                    if (presetKey === 'custom') {
+                        return;
+                    }
+                    const preset = windowPresetMap[presetKey];
+                    if (preset && Number.isFinite(preset.width) && Number.isFinite(preset.center)) {
+                        windowWidth = clampWidth(Number(preset.width));
+                        windowCenter = clampCenter(Number(preset.center));
+                        windowWidthSlider.value = windowWidth;
+                        windowCenterSlider.value = windowCenter;
+                        windowWidthInput.value = windowWidth;
+                        windowCenterInput.value = windowCenter;
+                        updateWindowLevel();
+                    }
+                }
+                );
+            }
+            
+            // Tool selector
+            document.getElementById('tool-select').addEventListener('change', function(e) {
+                setActiveTool(e.target.value);
+            });
+        }
+        
+        function setupCrosshairs() {
+            // Create SVG crosshairs for each viewport
+            ['sagittal', 'coronal', 'axial'].forEach(viewType => {
+                const overlay = document.getElementById(`${viewType}-crosshairs`);
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                overlay.appendChild(svg);
+            });
+        }
+        
+        function updateCrosshairs() {
+            const sagittalOverlay = document.getElementById('sagittal-crosshairs');
+            const coronalOverlay = document.getElementById('coronal-crosshairs');
+            const axialOverlay = document.getElementById('axial-crosshairs');
+
+            if (usingMprManifest) {
+                const dims = getVolumeShape();
+                const normX = dims.x > 1 ? currentIndices.x / (dims.x - 1) : 0.5;
+                const normY = dims.y > 1 ? currentIndices.y / (dims.y - 1) : 0.5;
+                const normZ = dims.z > 1 ? currentIndices.z / (dims.z - 1) : 0.5;
+
+                crosshairX = normX;
+                crosshairY = normY;
+                crosshairZ = normZ;
+
+                updateViewportCrosshairs(axialOverlay, normX, normY, 'axial', 'vertical', 'horizontal');
+                updateViewportCrosshairs(coronalOverlay, normX, normZ, 'coronal', 'vertical', 'horizontal', false, true);
+                updateViewportCrosshairs(sagittalOverlay, normY, normZ, 'sagittal', 'vertical', 'horizontal', false, true);
+                return;
+            }
+
+            // Sagittal view: vertical line at crosshairX, horizontal line at crosshairZ
+            updateViewportCrosshairs(sagittalOverlay, crosshairX, crosshairZ, 'sagittal', 'vertical', 'horizontal', false, true);
+
+            // Coronal view: vertical line at crosshairX, horizontal line at crosshairY
+            updateViewportCrosshairs(coronalOverlay, crosshairX, crosshairY, 'coronal', 'vertical', 'horizontal', false, true);
+
+            // Axial view: vertical line at crosshairY, horizontal line at crosshairZ
+            updateViewportCrosshairs(axialOverlay, crosshairY, crosshairZ, 'axial', 'vertical', 'horizontal');
+        }
+        
+        function updateViewportCrosshairs(overlay, x, y, viewType, line1Type, line2Type, invertX = false, invertY = false) {
+            const svg = overlay.querySelector('svg');
+            if (!svg) return;
+
+            svg.innerHTML = '';
+
+            const width = overlay.offsetWidth || 512;
+            const height = overlay.offsetHeight || 512;
+
+            const clamp = (val) => {
+                if (!Number.isFinite(val)) return 0.5;
+                return Math.max(0, Math.min(1, val));
+            };
+
+            const clampedX = clamp(x);
+            const clampedY = clamp(y);
+            const xPos = (invertX ? (1 - clampedX) : clampedX) * width;
+            const yPos = (invertY ? (1 - clampedY) : clampedY) * height;
+
+            const palette = CROSSHAIR_COLORS[viewType] || {};
+            const verticalColor = palette.vertical || '#f87171';
+            const horizontalColor = palette.horizontal || '#38bdf8';
+
+            if (line1Type === 'vertical') {
+                const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', xPos);
+                line1.setAttribute('y1', 0);
+                line1.setAttribute('x2', xPos);
+                line1.setAttribute('y2', height);
+                line1.setAttribute('class', 'crosshair-line crosshair-vertical');
+                line1.setAttribute('stroke', verticalColor);
+                svg.appendChild(line1);
+            }
+
+            if (line2Type === 'horizontal') {
+                const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line2.setAttribute('x1', 0);
+                line2.setAttribute('y1', yPos);
+                line2.setAttribute('x2', width);
+                line2.setAttribute('y2', yPos);
+                line2.setAttribute('class', 'crosshair-line crosshair-horizontal');
+                line2.setAttribute('stroke', horizontalColor);
+                svg.appendChild(line2);
+            }
+
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', xPos);
+            dot.setAttribute('cy', yPos);
+            dot.setAttribute('r', 4.5);
+            dot.setAttribute('fill', verticalColor);
+            dot.setAttribute('stroke', '#0f172a');
+            dot.setAttribute('stroke-width', 1.2);
+            svg.appendChild(dot);
+        }
+        
+        function drawCrosshair(svg, x, y, width, height, line1Type, line2Type) {
+            if (!svg) return;
+            svg.innerHTML = '';
+            
+            const xPos = width * x;
+            const yPos = height * y;
+            
+            if (line1Type === 'vertical') {
+                // Vertical line
+                const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line1.setAttribute('x1', xPos);
+                line1.setAttribute('y1', 0);
+                line1.setAttribute('x2', xPos);
+                line1.setAttribute('y2', height);
+                line1.setAttribute('class', 'crosshair-line');
+                svg.appendChild(line1);
+            }
+            
+            if (line2Type === 'horizontal') {
+                // Horizontal line
+                const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line2.setAttribute('x1', 0);
+                line2.setAttribute('y1', yPos);
+                line2.setAttribute('x2', width);
+                line2.setAttribute('y2', yPos);
+                line2.setAttribute('class', 'crosshair-line');
+                svg.appendChild(line2);
+            }
+        }
+        
+        function updateSlicesFromCrosshair() {
+            if (usingMprManifest) {
+                return;
+            }
+            if (!Array.isArray(allImages) || allImages.length === 0) {
+                return;
+            }
+
+            const clampIndex = (value) => {
+                if (typeof value !== 'number' || Number.isNaN(value)) {
+                    return 0;
+                }
+                return Math.max(0, Math.min(allImages.length - 1, value));
+            };
+
+            currentSagittalIndex = clampIndex(currentSagittalIndex);
+            currentCoronalIndex = clampIndex(currentCoronalIndex);
+            currentAxialIndex = clampIndex(currentAxialIndex);
+
+            if (sagittalElement) {
+                displayImage(sagittalElement, allImages[currentSagittalIndex], 'sagittal');
+            }
+            if (coronalElement) {
+                displayImage(coronalElement, allImages[currentCoronalIndex], 'coronal');
+            }
+            if (axialElement) {
+                displayImage(axialElement, allImages[currentAxialIndex], 'axial');
+            }
+
+            updateSliceIndicators();
+        }
+
+        function setCrosshairPosition(viewType, x, y) {
+            if (usingMprManifest) {
+                return;
+            }
+            // Update crosshair position based on which view was clicked
+            if (viewType === 'sagittal') {
+                crosshairX = Math.max(0, Math.min(1, x));
+                crosshairZ = Math.max(0, Math.min(1, y));
+                currentSagittalIndex = Math.floor(allImages.length * crosshairX);
+            } else if (viewType === 'coronal') {
+                crosshairX = Math.max(0, Math.min(1, x));
+                crosshairY = Math.max(0, Math.min(1, y));
+                currentCoronalIndex = Math.floor(allImages.length * crosshairY);
+            } else if (viewType === 'axial') {
+                crosshairY = Math.max(0, Math.min(1, x));
+                crosshairZ = Math.max(0, Math.min(1, y));
+                currentAxialIndex = Math.floor(allImages.length * crosshairZ);
+            }
+            updateSlicesFromCrosshair();
+            updateCrosshairs();
+        }
+
+        function updateCrosshairFromPointer(element, viewType, event) {
+            if (event && typeof event.preventDefault === 'function') {
+                event.preventDefault();
+            }
+            if (usingMprManifest) {
+                setMprCrosshairFromEvent(element, viewType, event);
+                return;
+            }
+            const point = extractClientPoint(event);
+            if (!point) return;
+            const rect = element.getBoundingClientRect();
+            if (!rect || rect.width === 0 || rect.height === 0) return;
+            const x = (point.x - rect.left) / rect.width;
+            const y = (point.y - rect.top) / rect.height;
+            const clampedX = Math.max(0, Math.min(1, x));
+            const clampedY = Math.max(0, Math.min(1, y));
+            setCrosshairPosition(viewType, clampedX, clampedY);
+        }
+
+        function extractClientPoint(event) {
+            if (!event) return null;
+            if (event.touches && event.touches.length) {
+                return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+            }
+            if (typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+                return { x: event.clientX, y: event.clientY };
+            }
+            return null;
+        }
+
+        function setMprCrosshairFromEvent(element, viewType, event) {
+            try {
+                event.preventDefault();
+                const enabled = cornerstone.getEnabledElement(element);
+                if (!enabled || !enabled.image) {
+                    return;
+                }
+                const pixel = cornerstone.pageToPixel(element, event.pageX, event.pageY);
+                if (!pixel) {
+                    return;
+                }
+                const image = enabled.image;
+                const dims = getVolumeShape();
+                const axesChanged = new Set();
+
+                const clampPixel = (value, max) => Math.max(0, Math.min(max, Math.round(value)));
+
+                if (viewType === 'axial') {
+                    const px = clampPixel(pixel.x, image.columns - 1);
+                    const py = clampPixel(pixel.y, image.rows - 1);
+                    const xIdx = clampIndex('x', px);
+                    const yIdx = clampIndex('y', py);
+                    if (xIdx !== currentIndices.x) {
+                        currentIndices.x = xIdx;
+                        axesChanged.add('x');
+                    }
+                    if (yIdx !== currentIndices.y) {
+                        currentIndices.y = yIdx;
+                        axesChanged.add('y');
+                    }
+                } else if (viewType === 'coronal') {
+                    const px = clampPixel(pixel.x, image.columns - 1);
+                    const py = clampPixel(pixel.y, image.rows - 1);
+                    const xIdx = clampIndex('x', px);
+                    const zIdx = clampIndex('z', (dims.z - 1) - py);
+                    if (xIdx !== currentIndices.x) {
+                        currentIndices.x = xIdx;
+                        axesChanged.add('x');
+                    }
+                    if (zIdx !== currentIndices.z) {
+                        currentIndices.z = zIdx;
+                        axesChanged.add('z');
+                    }
+                } else if (viewType === 'sagittal') {
+                    const px = clampPixel(pixel.x, image.columns - 1);
+                    const py = clampPixel(pixel.y, image.rows - 1);
+                    const yIdx = clampIndex('y', px);
+                    const zIdx = clampIndex('z', (dims.z - 1) - py);
+                    if (yIdx !== currentIndices.y) {
+                        currentIndices.y = yIdx;
+                        axesChanged.add('y');
+                    }
+                    if (zIdx !== currentIndices.z) {
+                        currentIndices.z = zIdx;
+                        axesChanged.add('z');
+                    }
+                }
+
+                if (axesChanged.size === 0) {
+                    return;
+                }
+
+                syncLegacyIndicesFromCurrent();
+                axesChanged.forEach(axis => refreshPlaneForAxis(axis));
+                updateSliceIndicators();
+                updateCrosshairs();
+            } catch (err) {
+                console.warn('Failed to update crosshair from event', err);
+            }
+        }
+        
+        function navigateSlice(viewType, direction) {
+            if (usingMprManifest) {
+                const axisMap = { sagittal: 'x', coronal: 'y', axial: 'z' };
+                const axis = axisMap[viewType];
+                if (!axis) {
+                    return;
+                }
+                const currentValue = currentIndices[axis];
+                currentIndices[axis] = clampIndex(axis, currentValue + direction);
+                syncLegacyIndicesFromCurrent();
+                refreshPlaneForAxis(axis);
+                updateSliceIndicators();
+                updateCrosshairs();
+                return;
+            }
+            let currentIndex;
+            switch(viewType) {
+                case 'sagittal':
+                    currentIndex = currentSagittalIndex;
+                    currentSagittalIndex = Math.max(0, Math.min(allImages.length - 1, currentIndex + direction));
+                    crosshairX = currentSagittalIndex / allImages.length;
+                    if (allImages[currentSagittalIndex]) {
+                        displayImage(sagittalElement, allImages[currentSagittalIndex], 'sagittal');
+                    }
+                    break;
+                case 'coronal':
+                    currentIndex = currentCoronalIndex;
+                    currentCoronalIndex = Math.max(0, Math.min(allImages.length - 1, currentIndex + direction));
+                    crosshairY = currentCoronalIndex / allImages.length;
+                    if (allImages[currentCoronalIndex]) {
+                        displayImage(coronalElement, allImages[currentCoronalIndex], 'coronal');
+                    }
+                    break;
+                case 'axial':
+                    currentIndex = currentAxialIndex;
+                    currentAxialIndex = Math.max(0, Math.min(allImages.length - 1, currentIndex + direction));
+                    crosshairZ = currentAxialIndex / allImages.length;
+                    if (allImages[currentAxialIndex]) {
+                        displayImage(axialElement, allImages[currentAxialIndex], 'axial');
+                    }
+                    break;
+            }
+            updateSliceIndicators();
+            updateCrosshairs();
+        }
+        
+        function updateSliceIndicators() {
+            if (usingMprManifest) {
+                const dims = getVolumeShape();
+                const sagittalTotal = dims.x || mprCounts.sagittal || 0;
+                const coronalTotal = dims.y || mprCounts.coronal || 0;
+                const axialTotal = dims.z || mprCounts.axial || 0;
+                document.getElementById('sagittal-slice').textContent = `Slice: ${currentIndices.x + 1} / ${sagittalTotal}`;
+                document.getElementById('coronal-slice').textContent = `Slice: ${currentIndices.y + 1} / ${coronalTotal}`;
+                document.getElementById('axial-slice').textContent = `Slice: ${currentIndices.z + 1} / ${axialTotal}`;
+                return;
+            }
+            document.getElementById('sagittal-slice').textContent = 
+                `Slice: ${currentSagittalIndex + 1} / ${allImages.length}`;
+            document.getElementById('coronal-slice').textContent = 
+                `Slice: ${currentCoronalIndex + 1} / ${allImages.length}`;
+            document.getElementById('axial-slice').textContent = 
+                `Slice: ${currentAxialIndex + 1} / ${allImages.length}`;
+        }
+        
+        function updateWLIndicator(viewType) {
+            const wlElement = document.getElementById(`${viewType}-wl`);
+            if (wlElement) {
+                wlElement.textContent = `W/L: ${windowWidth.toFixed(2)} / ${windowCenter.toFixed(2)}`;
+            }
+        }
+        
+        function updateWindowLevel() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+
+            if (usingMprManifest) {
+                mprWindow.width = windowWidth;
+                mprWindow.center = windowCenter;
+                displayPlaneFromMpr('axial', currentAxialIndex);
+                displayPlaneFromMpr('coronal', currentCoronalIndex);
+                displayPlaneFromMpr('sagittal', currentSagittalIndex);
+                updateSliceIndicators();
+                updateCrosshairs();
+                return;
+            }
+
+            [sagittalElement, coronalElement, axialElement].forEach((element, index) => {
+                const viewport = cornerstone.getViewport(element);
+                viewport.voi.windowWidth = windowWidth;
+                viewport.voi.windowCenter = windowCenter;
+                cornerstone.setViewport(element, viewport);
+
+                const viewType = index === 0 ? 'sagittal' : (index === 1 ? 'coronal' : 'axial');
+                updateWLIndicator(viewType);
+            });
+        }
+        
+        function resetAllViews() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+            
+            [sagittalElement, coronalElement, axialElement].forEach(element => {
+                cornerstone.reset(element);
+            });
+        }
+        
+        function clearAnnotations() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+            
+            [sagittalElement, coronalElement, axialElement].forEach(element => {
+                cornerstoneTools.clearToolState(element, 'Length');
+                cornerstoneTools.clearToolState(element, 'Angle');
+                cornerstone.updateImage(element);
+            });
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+        }
+        
+        function showStatusBanner(message, showGenerateButton = false) {
+            const banner = document.getElementById('status-banner');
+            if (!banner) return;
+            
+            if (showGenerateButton) {
+                banner.innerHTML = `
+                    <span>${message}</span>
+                    <button id="generate-mpr-btn" onclick="startMprGeneration()">Generate MPR Files</button>
+                `;
+                // Ensure the freshly rendered button is enabled
+                setGenerateMprButtonEnabled(true);
+            } else {
+                banner.textContent = message;
+            }
+            banner.style.display = 'block';
+        }
+        
+        function hideStatusBanner() {
+            const banner = document.getElementById('status-banner');
+            if (!banner) return;
+            banner.style.display = 'none';
+        }
+
+        function showWarningBanner(message) {
+            const banner = document.getElementById('warning-banner');
+            const msgEl = document.getElementById('warning-message');
+            if (!banner || !msgEl) return;
+            msgEl.textContent = message;
+            banner.style.display = 'block';
+        }
+
+        function hideWarningBanner() {
+            const banner = document.getElementById('warning-banner');
+            if (!banner) return;
+            banner.style.display = 'none';
+        }
+
+        function checkAndDisplayWarnings(manifestData) {
+            if (!manifestData || !manifestData.manifest) return;
+            const warnings = manifestData.manifest.warnings;
+            if (warnings && warnings.multi_region) {
+                showWarningBanner(warnings.multi_region);
+            }
+        }
+
+        function setGenerateMprButtonEnabled(enabled) {
+            const btn = document.getElementById('generate-mpr-btn');
+            if (!btn) return;
+            if (enabled) {
+                btn.removeAttribute('disabled');
+            } else {
+                btn.setAttribute('disabled', 'disabled');
+            }
+        }
+        
+        function setRegenerateMprButtonEnabled(enabled) {
+            const btn = document.getElementById('regenerate-mpr-btn');
+            if (!btn) return;
+            if (enabled) {
+                btn.removeAttribute('disabled');
+                btn.textContent = '🔄 Regenerate MPR';
+            } else {
+                btn.setAttribute('disabled', 'disabled');
+                btn.textContent = '⏳ Generating...';
+            }
+        }
+
+        function showMprProgressOverlay(message, progressPercent = null, progressLabel = null) {
+            const overlay = document.getElementById('mpr-progress-overlay');
+            const msgEl = document.getElementById('mpr-progress-message');
+            const bar = document.getElementById('mpr-progress-bar');
+            const text = document.getElementById('mpr-progress-text');
+            if (!overlay) return;
+            overlay.classList.add('active');
+            if (msgEl) {
+                msgEl.textContent = message;
+            }
+            if (bar) {
+                if (progressPercent === null) {
+                    bar.style.width = '35%';
+                    bar.classList.add('indeterminate');
+                } else {
+                    bar.classList.remove('indeterminate');
+                    bar.style.width = `${Math.max(0, Math.min(100, progressPercent))}%`;
+                }
+            }
+            if (text) {
+                text.textContent = progressLabel || (progressPercent === null ? '' : `${progressPercent.toFixed(0)}%`);
+            }
+        }
+
+        function hideMprProgressOverlay() {
+            const overlay = document.getElementById('mpr-progress-overlay');
+            const bar = document.getElementById('mpr-progress-bar');
+            const text = document.getElementById('mpr-progress-text');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+            if (bar) {
+                bar.style.width = '0%';
+                bar.classList.remove('indeterminate');
+            }
+            if (text) {
+                text.textContent = '';
+            }
+        }
+
+        function formatElapsed(seconds) {
+            if (!seconds && seconds !== 0) return '';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            if (mins > 0) {
+                return `${mins}m ${secs}s`;
+            }
+            return `${secs}s`;
+        }
+
+        function stopMprStatusPolling() {
+            if (mprStatusIntervalId) {
+                clearInterval(mprStatusIntervalId);
+                mprStatusIntervalId = null;
+            }
+        }
+
+        function startMprStatusPolling() {
+            stopMprStatusPolling();
+
+            const checkStatus = async () => {
+                try {
+                    const resp = await fetch(`/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/mpr_status`, {
+                        credentials: 'include'
+                    });
+                    const data = await resp.json().catch(() => ({}));
+                    if (!resp.ok || data.success === false) {
+                        throw new Error(data.error || `Status ${resp.status}`);
+                    }
+
+                    const status = (data.status || '').toLowerCase();
+                    const elapsedLabel = data.elapsed_seconds != null ? `Elapsed: ${formatElapsed(data.elapsed_seconds)}` : '';
+
+                    switch (status) {
+                        case 'running':
+                            showMprProgressOverlay('MPR generation in progress...', null, elapsedLabel);
+                            break;
+                        case 'completed':
+                            showMprProgressOverlay('MPR generation complete! Loading viewer...', 100, 'Done');
+                            stopMprStatusPolling();
+                            mprGenerationActive = false;
+                            setTimeout(() => {
+                                hideMprProgressOverlay();
+                                window.location.reload();
+                            }, 1200);
+                            break;
+                        case 'failed':
+                            stopMprStatusPolling();
+                            mprGenerationActive = false;
+                            hideMprProgressOverlay();
+                            showStatusBanner(`MPR generation failed: ${data.message || 'Unknown error'}`, true);
+                            setGenerateMprButtonEnabled(true);
+                            setRegenerateMprButtonEnabled(true);
+                            break;
+                        case 'not_started':
+                        default:
+                            // No update yet; keep polling
+                            showMprProgressOverlay('Waiting for MPR generation to start...', null, elapsedLabel);
+                            break;
+                    }
+                } catch (err) {
+                    console.error('Error polling MPR status:', err);
+                    stopMprStatusPolling();
+                    mprGenerationActive = false;
+                    hideMprProgressOverlay();
+                    showStatusBanner(`Error checking MPR status: ${err.message || err}`, true);
+                    setGenerateMprButtonEnabled(true);
+                    setRegenerateMprButtonEnabled(true);
+                }
+            };
+
+            // Run immediately, then poll every 5 seconds
+            checkStatus();
+            mprStatusIntervalId = setInterval(checkStatus, 5000);
+        }
+
+        function viewManifest() {
+            // Open the MPR manifest JSON in a new tab
+            const manifestUrl = `/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/mpr_manifest`;
+            window.open(manifestUrl, '_blank');
+        }
+
+        async function startMprGeneration() {
+            if (mprGenerationActive) {
+                return;
+            }
+            mprGenerationActive = true;
+            setGenerateMprButtonEnabled(false);
+            setRegenerateMprButtonEnabled(false);
+            showStatusBanner('Regenerating MPR stacks...', false);
+            showMprProgressOverlay('Starting MPR regeneration...', 10, 'Preparing...');
+
+            try {
+                const resp = await fetch(`/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/generate_mpr`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await resp.json().catch(() => ({}));
+
+                if (!resp.ok || data.success === false) {
+                    throw new Error(data.error || `Status ${resp.status}`);
+                }
+
+                showMprProgressOverlay('MPR generation in progress...', null, 'Processing...');
+                startMprStatusPolling();
+            } catch (err) {
+                console.error('Error starting MPR generation:', err);
+                hideMprProgressOverlay();
+                showStatusBanner(`Failed to start MPR generation: ${err.message || err}`, true);
+                setGenerateMprButtonEnabled(true);
+                setRegenerateMprButtonEnabled(true);
+                mprGenerationActive = false;
+            }
+        }
+        
+        function setViewerMode(mode) {
+            const title = document.getElementById('viewer-title');
+            const indicator = document.getElementById('mode-indicator');
+            if (!title || !indicator) return;
+            if (mode === 'mpr') {
+                title.textContent = '🧊 CBCT Viewer - MPR Mode';
+                indicator.textContent = 'MPR Manifest';
+                indicator.style.background = 'rgba(16,185,129,0.2)';
+                indicator.style.borderColor = 'rgba(16,185,129,0.35)';
+                indicator.style.color = '#6ee7b7';
+            } else {
+                title.textContent = '🧊 CBCT Viewer - DICOM Mode';
+                indicator.textContent = 'Raw DICOM';
+                indicator.style.background = 'rgba(234,88,12,0.2)';
+                indicator.style.borderColor = 'rgba(234,88,12,0.45)';
+                indicator.style.color = '#fb923c';
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sagittalElement = document.getElementById('sagittal-viewport');
+            const coronalElement = document.getElementById('coronal-viewport');
+            const axialElement = document.getElementById('axial-viewport');
+            
+            [sagittalElement, coronalElement, axialElement].forEach(element => {
+                cornerstone.resize(element);
+            });
+            
+            // Update crosshairs after resize
+            setTimeout(updateCrosshairs, 100);
+        });
+
+        function getVolumeShape() {
+            const shape = volumeGeometry && volumeGeometry.shape ? volumeGeometry.shape : null;
+            return {
+                x: typeof (shape && shape.x) === 'number' ? shape.x : (mprCounts.sagittal || 0),
+                y: typeof (shape && shape.y) === 'number' ? shape.y : (mprCounts.coronal || 0),
+                z: typeof (shape && shape.z) === 'number' ? shape.z : (mprCounts.axial || 0)
+            };
+        }
+
+        function clampIndex(axis, value) {
+            const dims = getVolumeShape();
+            const max = Math.max(0, (axis === 'x' ? dims.x : axis === 'y' ? dims.y : dims.z) - 1);
+            return Math.max(0, Math.min(max, value));
+        }
+
+        function syncLegacyIndicesFromCurrent() {
+            currentSagittalIndex = currentIndices.x;
+            currentCoronalIndex = currentIndices.y;
+            currentAxialIndex = currentIndices.z;
+        }
+
+        function refreshPlaneForAxis(axis) {
+            switch (axis) {
+                case 'x':
+                    displayPlaneFromMpr('sagittal', currentIndices.x);
+                    break;
+                case 'y':
+                    displayPlaneFromMpr('coronal', currentIndices.y);
+                    break;
+                case 'z':
+                    displayPlaneFromMpr('axial', currentIndices.z);
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>

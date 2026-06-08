@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vizbriz Sleep Apnea Assessment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <meta name="theme-color" content="#3498db">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container { 
+      background: #fff; 
+      border-radius: 20px; 
+      max-width: 900px; 
+      margin: auto; 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: url('{{ url_for('static', filename='images/header-bg.png') }}') center center no-repeat, #061a4d;
+      background-size: cover;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      position: relative;
+    }
+
+    .logo {
+      height: 70.8px;
+      width: auto;
+      vertical-align: middle;
+      margin-bottom: 20px;
+    }
+
+    .dso-logo {
+      height: 90px;
+      width: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* No extra background or padding since logo has white bg */
+      margin-left: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .dso-logo img {
+      max-height: 90px;
+      max-width: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .dso-logo {
+        margin-left: 0;
+        height: 70px;
+      }
+      .dso-logo img {
+        max-height: 70px;
+      }
+    }
+
+    .logos-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .logos-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .dso-logo {
+        margin-left: 0;
+        height: 50px;
+      }
+      
+      .logo {
+        height: 60px;
+      }
+    }
+
+    .header h1 {
+      font-size: 3.3em;
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.5em;
+      opacity: 0.9;
+    }
+
+    .quiz-section {
+      padding: 40px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.1em;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e1e8ed;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #3498db;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      color: white;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 25px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #666;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Results Section */
+    .results-section {
+      padding: 40px;
+      display: none;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e1e8ed;
+      margin-bottom: 30px;
+    }
+
+    .tab {
+      padding: 15px 30px;
+      background: #f8f9fa;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      color: #666;
+      transition: all 0.3s ease;
+      border-radius: 10px 10px 0 0;
+      margin-right: 5px;
+    }
+
+    .tab.active {
+      background: #3498db;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 10px;
+      min-height: 400px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .risk-badge {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .risk-low { background: #d4edda; color: #155724; }
+    .risk-moderate { background: #fff3cd; color: #856404; }
+    .risk-high { background: #f8d7da; color: #721c24; }
+
+    .score-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 20px 0;
+    }
+
+    .content-section {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #3498db;
+    }
+
+    .content-section h4 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .email-preview {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .ai-prompt {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 20px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .ai-response {
+      background: #e8f4fd;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #3498db;
+      white-space: pre-wrap;
+    }
+
+    .symptoms-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .symptoms-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .symptoms-list li:last-child {
+      border-bottom: none;
+    }
+
+    .red-flag {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+
+    .supporting-symptom {
+      color: #f39c12;
+    }
+
+    @media (max-width: 768px) {
+      .container { margin: 10px; }
+      .quiz-section, .results-section { padding: 20px; }
+      .tabs { flex-direction: column; }
+      .tab { margin-right: 0; margin-bottom: 5px; }
+    }
+
+    .cta-section {
+      text-align: center;
+      margin: 30px 0;
+      padding: 30px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 15px;
+      border: 2px solid #dee2e6;
+    }
+    
+    .cta-section h4 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+    
+    .cta-section p {
+      color: #6c757d;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 15px 30px;
+      text-decoration: none;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 5px;
+    }
+    
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .cta-button:active {
+      transform: translateY(0);
+    }
+    
+    .content-section h4 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .risk-badge {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    
+    .risk-low { background: #d4edda; color: #155724; }
+    .risk-moderate { background: #fff3cd; color: #856404; }
+    .risk-high { background: #f8d7da; color: #721c24; }
+
+    .form-group input[name="zip_code"] {
+      max-width: 200px;
+    }
+
+    .form-group select[name="state"] {
+      max-width: 200px;
+    }
+
+    .address-section {
+      border: 1px solid #e1e8ed;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      background: #f8f9fa;
+    }
+
+    .form-step {
+      transition: all 0.3s ease;
+    }
+
+    .form-step.active {
+      display: block !important;
+    }
+
+    .form-step:not(.active) {
+      display: none !important;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .step-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e1e8ed;
+      margin: 0 10px;
+      transition: all 0.3s ease;
+    }
+
+    .step-dot.active {
+      background: #3498db;
+      transform: scale(1.2);
+    }
+
+    /* Custom Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 40px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      position: relative;
+    }
+
+    .close-btn {
+      color: #aaa;
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close-btn:hover,
+    .close-btn:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header with Logo -->
+    <div class="header">
+      <div class="logos-container">
+        <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Vizbriz Logo" class="logo">
+        {% if dso and dso.logo_url %}
+        <img src="{{ url_for('static', filename='images/' + dso.logo_url) }}" alt="{{ dso.name }} Logo" class="dso-logo">
+        {% endif %}
+      </div>
+      
+
+      
+      <h1>Sleep Apnea Assessment</h1>
+      <p>Complete this brief questionnaire to assess your sleep apnea risk</p>
+    </div>
+
+    <!-- Quiz Form -->
+    <div class="quiz-section" id="quizSection">
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="step1-dot"></div>
+        <div class="step-dot" id="step2-dot"></div>
+        <div class="step-dot" id="step3-dot"></div>
+      </div>
+
+      <!-- Step 1: Introduction -->
+      <div id="step1" class="form-step active">
+        <div style="text-align: center; padding: 40px 20px;">
+          <h2 style="color: #2c3e50; margin-bottom: 30px; font-size: 2.5em;">🟣 Better Sleep. Better Health.</h2>
+          
+          <div style="background: #f8f9fa; padding: 40px; border-radius: 15px; margin: 30px 0; border-left: 6px solid #3498db;">
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              You might not notice a problem — but your body might.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              Issues like brain fog, headaches, mood changes, snoring, low energy, or even difficulty losing weight might be linked to undetected sleep apnea (OSA). OSA is a common condition where your breathing stops during sleep — lowering oxygen and disturbing rest, often without you knowing.
+            </p>
+            
+            <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 1.8em;">Why this quiz?</h3>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              Your dental clinic partners with VizBriz to offer quick sleep screening tools for patients like you.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 20px;">
+              This short self-check was designed to help spot hidden sleep-related symptoms that may be affecting your daily life.
+            </p>
+            <p style="font-size: 1.2em; line-height: 1.8; color: #555; margin-bottom: 30px;">
+              <strong>It's quick, private, and easy to complete — and could be your first step toward feeling better every day.</strong>
+            </p>
+          </div>
+          
+          <button type="button" class="submit-btn" onclick="nextStep()" style="font-size: 1.3em; padding: 20px 50px;">
+            🚀 Start My Assessment
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Personal Information -->
+      <div id="step2" class="form-step">
+        <h2 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">Step 2: Personal Information</h2>
+        <form id="personalInfoForm" onsubmit="return false;">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" name="full_name" value="{{ default_answers.full_name if default_answers and default_answers.full_name is defined else '' }}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" name="patient_email" value="{{ default_answers.patient_email if default_answers and default_answers.patient_email is defined else '' }}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number *</label>
+            <input type="text" name="phone" value="{{ default_answers.phone if default_answers and default_answers.phone is defined else '' }}" required>
+          </div>
+
+          <!-- Address field removed -->
+
+          <div class="form-group">
+            <label>Date of Birth *</label>
+            <input type="date" name="dob" value="{{ default_answers.dob if default_answers and default_answers.dob is defined else '' }}" required>
+          </div>
+
+          <div class="form-group">
+            <label>Gender *</label>
+            <select name="gender" required>
+              <option value="">Select gender</option>
+              <option value="male" {% if default_answers and default_answers.gender == 'male' %}selected{% endif %}>Male</option>
+              <option value="female" {% if default_answers and default_answers.gender == 'female' %}selected{% endif %}>Female</option>
+              <option value="other" {% if default_answers and default_answers.gender == 'other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Select Your Clinic *</label>
+            <select name="clinic_id" id="clinic_id" required>
+              <option value="" {% if not default_clinic_id %}selected{% endif %}>Select clinic</option>
+              {% for clinic in clinics %}
+              <option value="{{ clinic.id }}" {% if default_clinic_id == clinic.id %}selected{% endif %}>{{ clinic.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Referring doctor field removed -->
+
+          <div style="display: flex; gap: 20px; margin-top: 30px;">
+            <button type="button" class="submit-btn" onclick="prevStep()" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); flex: 1;">Back to Introduction</button>
+            <button type="button" class="submit-btn" onclick="nextStep()" style="flex: 2;">Continue to Assessment</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 3: Clinical Assessment -->
+      <div id="step3" class="form-step">
+        <h2 style="color: #2c3e50; margin-bottom: 30px; text-align: center;">Step 3: Clinical Assessment</h2>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+          <h4 style="color: #2c3e50; margin-bottom: 10px;">Patient Information Summary</h4>
+          <div id="patientSummary" style="color: #6c757d; font-size: 14px;"></div>
+        </div>
+        
+        <form id="clinicalForm" onsubmit="return false;">
+          <div class="form-group">
+            <label>Do you snore loudly at night?</label>
+            <select name="snoring" id="snoring" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.snoring == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.snoring == 'yes' %}selected{% endif %}>Yes</option>
+              <option value="dont_know" {% if default_answers and default_answers.snoring == 'dont_know' %}selected{% endif %}>Don't know</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Do you often wake up feeling tired or unrested?</label>
+            <select name="tiredness" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.tiredness == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.tiredness == 'yes' %}selected{% endif %}>Yes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Has anyone observed you stop breathing while you sleep — or have you ever woken up gasping for air or choking?</label>
+            <select name="observed_apnea" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.observed_apnea == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.observed_apnea == 'yes' %}selected{% endif %}>Yes</option>
+              <option value="not_sure" {% if default_answers and default_answers.observed_apnea == 'not_sure' %}selected{% endif %}>Not sure</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Have you ever unintentionally fallen asleep during the day or in the afternoon?</label>
+            <select name="daytime_sleepiness" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.daytime_sleepiness == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.daytime_sleepiness == 'yes' %}selected{% endif %}>Yes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Do you have trouble staying awake while driving or watching TV or other activities requiring attention?</label>
+            <select name="driving_fatigue" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.driving_fatigue == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.driving_fatigue == 'yes' %}selected{% endif %}>Yes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Do you grind your teeth at night, have signs of worn teeth, or has anyone told you that you suffer from bruxism?</label>
+            <select name="bruxism" id="bruxism" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.bruxism == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.bruxism == 'yes' %}selected{% endif %}>Yes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Do you consider yourself overweight or have you been told your BMI is above normal (BMI ≥ 25)?</label>
+            <select name="weight" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.weight == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.weight == 'yes' %}selected{% endif %}>Yes</option>
+              <option value="not_sure" {% if default_answers and default_answers.weight == 'not_sure' %}selected{% endif %}>Not sure</option>
+            </select>
+          </div>
+
+          <!-- Move diagnosis question and sub-questions to the end -->
+          <div class="form-group">
+            <label>Have you ever been diagnosed with sleep apnea?</label>
+            <select name="diagnosed" id="diagnosed" required>
+              <option value="">Select an option</option>
+              <option value="no" {% if default_answers and default_answers.diagnosed == 'no' %}selected{% endif %}>No</option>
+              <option value="yes" {% if default_answers and default_answers.diagnosed == 'yes' %}selected{% endif %}>Yes</option>
+            </select>
+          </div>
+          <div id="treatment-section" style="display:none">
+            <div class="form-group">
+              <label>Are you currently using treatment for sleep apnea? *</label>
+              <select name="using_treatment" id="using_treatment">
+                <option value="">Select an option</option>
+                <option value="no" {% if default_answers and default_answers.using_treatment == 'no' %}selected{% endif %}>No</option>
+                <option value="yes" {% if default_answers and default_answers.using_treatment == 'yes' %}selected{% endif %}>Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Treatment Details *</label>
+              <textarea name="treatment_details" id="treatment_details">{{ default_answers.treatment_details if default_answers and default_answers.treatment_details is defined else '' }}</textarea>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 20px; margin-top: 30px;">
+            <button type="button" class="submit-btn" onclick="prevStep()" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); flex: 1;">Back to Personal Info</button>
+            <button type="submit" class="submit-btn" style="flex: 2;">Submit Assessment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Loading Section -->
+    <div id="loading" class="loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Analyzing your responses...</p>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="results-section">
+      <!-- Custom Modal -->
+      <div id="customModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn" onclick="closeModal()">&times;</span>
+          <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">Thank You!</h2>
+          <p style="font-size: 18px; text-align: center; line-height: 1.6; color: #6c757d;">
+            Thank you for participating in the survey. One of our Sleep Experts will contact you shortly.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Patient Results (Only Section Visible) -->
+      <div id="patientResults"></div>
+      
+      <!-- Hidden sections - not displayed to users -->
+      <div id="quizAnalysis" style="display: none;"></div>
+      <div id="aiAnalysis" style="display: none;"></div>
+      <div id="patientEmail" style="display: none;"></div>
+      <div id="doctorEmail" style="display: none;"></div>
+    </div>
+  </div>
+
+      <!-- Include engagement tracking -->
+    <script src="{{ url_for('static', filename='js/engagement_tracking.js') }}"></script>
+
+    <script>
+        // Set default clinic ID for tracking (always based on DSO)
+        window.defaultClinicId = {{ default_clinic_id or 'null' }};
+        
+        // Global variable to store personal info
+        let personalInfo = {};
+
+    // Step navigation functions
+    function nextStep() {
+      const currentStep = getCurrentStep();
+      console.log('nextStep called, current step:', currentStep);
+
+      if (currentStep === 1) {
+        console.log('Moving from step 1 to step 2 (personal info)');
+        // Always go to personal info step
+        document.getElementById('step1-dot').classList.remove('active');
+        document.getElementById('step2-dot').classList.add('active');
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        console.log('Step 2 should now be visible');
+        
+        // Track progression to step 2 (always track step progression)
+        trackPageView('stage_a_step_2', { step_number: 2, step_name: 'personal_info' });
+        
+        // Additional debugging to ensure step 2 is visible
+        setTimeout(() => {
+          const step2 = document.getElementById('step2');
+          const step2Dot = document.getElementById('step2-dot');
+          console.log('Step 2 element:', step2);
+          console.log('Step 2 classes:', step2 ? step2.className : 'not found');
+          console.log('Step 2 dot classes:', step2Dot ? step2Dot.className : 'not found');
+          console.log('Step 2 display style:', step2 ? step2.style.display : 'not found');
+        }, 100);
+      } else if (currentStep === 2) {
+        console.log('Moving from step 2 to step 3 (clinical assessment)');
+        // Always validate form before proceeding
+        const personalForm = document.getElementById('personalInfoForm');
+        if (personalForm.checkValidity()) {
+          console.log('Personal info form is valid, proceeding to step 3');
+          // Collect personal info
+          const formData = new FormData(personalForm);
+          personalInfo = {};
+          formData.forEach((value, key) => {
+            personalInfo[key] = value;
+          });
+
+          document.getElementById('step2-dot').classList.remove('active');
+          document.getElementById('step3-dot').classList.add('active');
+          document.getElementById('step2').classList.remove('active');
+          document.getElementById('step3').classList.add('active');
+          updatePatientSummary();
+          
+          // Track progression to step 3
+          trackPageView('stage_a_step_3', { step_number: 3, step_name: 'clinical_assessment' });
+        } else {
+          console.log('Personal info form validation failed');
+          personalForm.reportValidity();
+        }
+      }
+    }
+
+    function prevStep() {
+      const currentStep = getCurrentStep();
+      
+      if (currentStep === 2) {
+        // From Personal Info back to Introduction
+        document.getElementById('step2-dot').classList.remove('active');
+        document.getElementById('step1-dot').classList.add('active');
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+        
+        // Track backward navigation to step 1
+        trackPageView('stage_a_step_1_back', { step_number: 1, step_name: 'introduction', direction: 'backward' });
+      } else if (currentStep === 3) {
+        // From Clinical Assessment back to Personal Info
+        document.getElementById('step3-dot').classList.remove('active');
+        document.getElementById('step2-dot').classList.add('active');
+        document.getElementById('step3').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        
+        // Track backward navigation to step 2
+        trackPageView('stage_a_step_2_back', { step_number: 2, step_name: 'personal_info', direction: 'backward' });
+      }
+    }
+
+    function getCurrentStep() {
+      if (document.getElementById('step1').classList.contains('active')) return 1;
+      if (document.getElementById('step2').classList.contains('active')) return 2;
+      if (document.getElementById('step3').classList.contains('active')) return 3;
+      return 1;
+    }
+
+    function updatePatientSummary() {
+      const summary = document.getElementById('patientSummary');
+      const clinicSelect = document.getElementById('clinic_id');
+      const clinicName = clinicSelect && clinicSelect.value
+        ? clinicSelect.options[clinicSelect.selectedIndex].text
+        : '';
+
+      const details = [
+        `<strong>Name:</strong> ${personalInfo.full_name}`,
+        `<strong>Email:</strong> ${personalInfo.patient_email}`,
+        `<strong>Phone:</strong> ${personalInfo.phone}`,
+        `<strong>Gender:</strong> ${personalInfo.gender}`
+      ];
+
+      if (clinicName) {
+        details.push(`<strong>Clinic:</strong> ${clinicName}`);
+      }
+
+      summary.innerHTML = details.join('<br>');
+    }
+
+    // Form field toggles
+    function toggleConditional(field, targetId) {
+      document.getElementById(field).addEventListener('change', function () {
+        const show = this.value === 'yes';
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.style.display = show ? 'block' : 'none';
+          
+          // Handle required attributes for conditional fields
+          const requiredFields = el.querySelectorAll('[required]');
+          requiredFields.forEach(field => {
+            if (show) {
+              field.setAttribute('required', 'required');
+            } else {
+              field.removeAttribute('required');
+              field.value = ''; // Clear the field when hidden
+            }
+          });
+        }
+      });
+    }
+
+    // Initialize conditional fields on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Remove required from initially hidden fields
+      const treatmentSection = document.getElementById('treatment-section');
+      if (treatmentSection) {
+        const treatmentFields = treatmentSection.querySelectorAll('[required]');
+        treatmentFields.forEach(field => field.removeAttribute('required'));
+      }
+      // Only toggle for existing fields
+      toggleConditional('diagnosed', 'treatment-section');
+      toggleConditional('using_treatment', 'treatment_details');
+    });
+
+    // Add event listener for continue button as backup
+    document.addEventListener('DOMContentLoaded', function() {
+      const continueBtn = document.querySelector('button[onclick="nextStep()"]');
+      if (continueBtn) {
+        continueBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Continue button clicked via event listener');
+          nextStep();
+        });
+      }
+    });
+
+    // Tab functionality
+    function showTab(tabName) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      
+      // Show selected tab content
+      document.getElementById(tabName + '-tab').classList.add('active');
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+    }
+
+    // Form submission for clinical assessment
+    document.getElementById('clinicalForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      console.log('Clinical form submitted');
+      
+      // Track form submission
+      trackCTAClick('submit_stage_a', 'conversion_quiz', personalInfo.patient_email || '');
+      
+      // Show loading
+      document.getElementById('quizSection').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      
+      const clinicalFormData = new FormData(this);
+      const clinicalAnswers = {};
+      clinicalFormData.forEach((value, key) => {
+        clinicalAnswers[key] = value;
+      });
+
+      // Combine personal info with clinical answers
+      const answers = { ...personalInfo, ...clinicalAnswers };
+
+      const payload = {
+        patient_email: personalInfo.patient_email,
+        dso_id: {{ dso_id if dso_id else 'null' }},  // Pass DSO ID from URL
+        clinic_id: clinicalAnswers.clinic_id || null,  // Include clinic_id from form
+        answers: answers
+      };
+
+      console.log('DEBUG: Submitting quiz with payload:', payload);
+
+      try {
+        const res = await fetch('/analyze_quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        console.log('DEBUG: Received response from server:', data);
+        
+        // Hide loading, show results
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Track results page view
+        trackPageView('stage_a_results', { step_number: 4, step_name: 'results_page', quiz_completed: true });
+        
+        if (data.success) {
+          console.log('Quiz success response:', data);
+          try {
+            // Safely get risk level and ensure it exists
+            const riskLevel = data.risk_level || 'Low';
+            const riskMessage = data.templated_risk_message || data.risk_explanation || 'Assessment completed successfully.';
+            
+            // Populate Patient Results Tab
+            document.getElementById('patientResults').innerHTML = `
+              <div class="content-section">
+                <h4>📋 Your Personalized AI Assessment</h4>
+                <div style="background: white; padding: 20px; border-radius: 10px; border-left: 4px solid #3498db;">
+                  <div class="risk-badge risk-${riskLevel.toLowerCase().replace(/[^a-z0-9]/g, '-')}">${riskLevel} Risk</div>
+                  <p style="font-size: 16px; line-height: 1.6; margin: 20px 0;"><strong>What this means:</strong></p>
+                  <div style="font-size: 16px; line-height: 1.6;">${riskMessage.replace(/\n/g, '<br>')}</div>
+                </div>
+                <div style="margin-top: 32px; text-align: center;">${generateCTAButtons(getActionsByRiskLevel(riskLevel).actions, riskLevel)}</div>
+              </div>
+            `;
+          } catch (renderError) {
+            console.error('Error rendering patient results:', renderError);
+            trackPageView('stage_a_results_error', { step_number: 4, step_name: 'results_render_error', quiz_completed: false, error: renderError.message });
+            throw renderError;
+          }
+
+          // Hidden sections are not populated - only patientResults is shown
+
+        } else {
+          // Track error results page
+          trackPageView('stage_a_results_error', { step_number: 4, step_name: 'results_error', quiz_completed: false, error: data.message });
+          
+          document.getElementById('patientResults').innerHTML = `
+            <div class="content-section">
+              <h4>❌ Error</h4>
+              <p>${data.message || 'An error occurred while processing your quiz.'}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        
+        // Track network/submission error
+        trackPageView('stage_a_results_error', { step_number: 4, step_name: 'results_network_error', quiz_completed: false, error: error.message });
+        
+        document.getElementById('patientResults').innerHTML = `
+          <div class="content-section">
+            <h4>❌ Error</h4>
+            <p>An error occurred while submitting your quiz. Please try again.</p>
+          </div>
+        `;
+      }
+    });
+
+    function generateCTAButtons(suggestedActions, riskLevel) {
+      // Always show all three CTA buttons regardless of risk level or suggested actions
+      let buttons = `
+        <button class="cta-button" onclick="scheduleMeeting()" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); padding: 18px 35px; font-size: 18px; border-radius: 30px; box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);">
+          👨‍⚕️ Consult with our dental sleep team
+        </button>
+      `;
+      
+      return buttons;
+    }
+    
+    async function scheduleMeeting() {
+      // Get email from personalInfo or from the form field directly
+      const patientEmail = personalInfo.patient_email || document.querySelector('input[name="patient_email"]')?.value || '';
+      
+      // Validate email is available
+      if (!patientEmail) {
+        alert('❌ ERROR: Patient email not found. Please complete the personal information step first.');
+        return;
+      }
+      
+      console.log('Consultation button clicked for email:', patientEmail);
+      
+      // Track CTA click
+      trackCTAClick('consult_dental_team', 'conversion_quiz', patientEmail);
+      
+      // Auto-register consultation request - backend will lookup patient data
+      try {
+        const consultationData = {
+          email: patientEmail,
+          name: personalInfo.name || personalInfo.patient_name || 'Quiz Participant',
+          comment: 'Auto-registered via basic quiz consultation button. Patient completed sleep assessment and requested consultation with dental sleep team.'
+        };
+        
+        console.log('Sending consultation data:', consultationData);
+        
+        const response = await fetch('/api/consultation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(consultationData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Show immediate alert confirmation
+          alert('✅ Thank You! Your consultation request has been submitted successfully. Our dental sleep team will contact you shortly.');
+          
+          // Also log to console for debugging
+          console.log('✅ Consultation API Success:', result);
+        } else {
+          // Show error alert
+          console.error('❌ Consultation API Error:', result);
+          alert('❌ Sorry, there was an issue submitting your request. Please try again or contact us directly.');
+          throw new Error(result.error || 'Failed to submit consultation request');
+        }
+        
+      } catch (error) {
+        console.error('❌ Consultation API Network Error:', error);
+        // Show simple error alert
+        alert('❌ Sorry, there was an issue submitting your request. Please try again or contact us directly.');
+      }
+    }
+
+    function scheduleSleepTest() {
+      // Get email for tracking
+      const patientEmail = personalInfo.patient_email || document.querySelector('input[name="patient_email"]')?.value || '';
+      
+      // Track CTA click
+      trackCTAClick('schedule_sleep_test', 'conversion_quiz', patientEmail);
+      window.open('https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75', '_blank');
+    }
+    
+    function continueToPhase2() {
+      alert('Thank you for your interest in a detailed assessment! A member of our team will contact you shortly to schedule your comprehensive sleep evaluation.');
+    }
+
+    function getActionsByRiskLevel(riskLevel) {
+      const actionMatrix = {
+        "Low": {
+          primary: "complete_detailed_assessment",
+          actions: ["continue_to_phase2"],
+          message: `
+            Your answers suggest a low risk for obstructive sleep apnea (OSA).
+            That’s good news — but it doesn’t completely rule out the possibility of a sleep-related issue.
+            Sleep problems can develop gradually, and many people don’t recognize the symptoms until they worsen.
+            If you’ve been experiencing fatigue, poor sleep, or snoring, it’s worth taking a closer look.
+            <br>💡 Want a clearer picture? Continue to the full quiz to better understand your sleep profile.<br>
+            <br>📝 [Continue to Full Assessment]<br>
+            <br>🦷 You can schedule a consultation with a sleep dental specialist to discuss your results and explore next steps.<br>
+            <br>📅 [Book a Consultation Appointment]<br>
+          `
+        },
+        "Moderate": {
+          primary: "assessment_and_test",
+          actions: ["continue_to_phase2", "book_test"],
+          message: `
+            Your answers suggest a moderate risk for sleep apnea.
+            Even mild forms of OSA can affect your focus, energy, and long-term health — and symptoms often worsen if left untreated.
+            This condition can often be managed effectively — but early detection is key.
+            <br>💡 Want more clarity? Complete the full assessment to get a clearer picture of your sleep health and your true level of risk.<br>
+            <br>📝 [Continue to Full Assessment]<br>
+            <br>🦷 You can schedule a consultation with a sleep dental specialist to discuss your results and explore next steps.<br>
+            <br>📅 [Book a Consultation Appointment]<br>
+          `
+        },
+        "High": {
+          primary: "immediate_test",
+          actions: ["book_test", "book_consult"],
+          message: `
+            Did you know that loud snoring can increase your risk of stroke?
+            If you or someone close to you has noticed heavy snoring, it may indicate airway obstruction during sleep.
+            And beyond that — the vibrations from snoring themselves can pose a health risk.
+            <br>🦷 You can schedule a consultation with a sleep dental specialist to discuss your results and explore next steps.<br>
+            <br>📅 [Book a Consultation Appointment]<br>
+          `
+        },
+        "Diagnosed – Not Using Treatment": {
+          primary: "all_options",
+          actions: ["continue_to_phase2", "book_test", "book_consult"],
+          message: `
+            You reported that you’ve already been diagnosed with obstructive sleep apnea.
+            However, your answers suggest that symptoms may still be interfering with your sleep, energy, or overall well-being.
+            This may indicate that your current treatment is no longer fully effective — or that your needs have changed over time.
+            OSA management isn’t one-size-fits-all. Fortunately, there are multiple effective options available — including oral appliance therapy, PAP therapy, lifestyle modifications, and, in some cases, surgery.
+            <br>💡 To better understand what’s still affecting your sleep and how to improve it, continue to the full sleep health assessment.<br>
+            <br>📝 [Continue to Full Assessment]<br>
+            <br>🦷 You can schedule a consultation with a sleep dental specialist to reassess the treatment approach that’s right for you.<br>
+            <br>📅 [Book a Consultation Appointment]<br>
+          `
+        },
+        "Diagnosed – Using & No Symptoms": {
+          primary: "maintain",
+          actions: ["book_consult"],
+          message: `
+            You reported that you’ve already been diagnosed with obstructive sleep apnea.
+            However, your answers suggest that symptoms may still be interfering with your sleep, energy, or overall well-being.
+            This may indicate that your current treatment is no longer fully effective — or that your needs have changed over time.
+            OSA management isn’t one-size-fits-all. Fortunately, there are multiple effective options available — including oral appliance therapy, PAP therapy, lifestyle modifications, and, in some cases, surgery.
+            <br>💡 To better understand what’s still affecting your sleep and how to improve it, continue to the full sleep health assessment.<br>
+            <br>📝 [Continue to Full Assessment]<br>
+            <br>🦷 You can schedule a consultation with a sleep dental specialist to reassess the treatment approach that’s right for you.<br>
+            <br>📅 [Book a Consultation Appointment]<br>
+          `
+        },
+        "Diagnosed – Still Symptomatic": {
+          primary: "adjust_treatment",
+          actions: ["book_consult", "book_test"],
+          message: `
+            You reported that you’ve already been diagnosed with obstructive sleep apnea.
+            However, your answers suggest that symptoms may still be interfering with your sleep, energy, or overall well-being.
+            This may indicate that your current treatment is no longer fully effective — or that your needs have changed over time.
+            OSA management isn’t one-size-fits-all. Fortunately, there are multiple effective options available — including oral appliance therapy, PAP therapy, lifestyle modifications, and, in some cases, surgery.
+            <br>💡 To better understand what’s still affecting your sleep and how to improve it, continue to the full sleep health assessment.<br>
+            <br>📝 [Continue to Full Assessment]<br>
+            <br>🦷 You can schedule a consultation with a sleep dental specialist to reassess the treatment approach that’s right for you.<br>
+            <br>📅 [Book a Consultation Appointment]<br>
+          `
+        }
+      };
+
+      return actionMatrix[riskLevel] || actionMatrix["Low"];
+    }
+
+    // Modal functions
+    function openModal() {
+      document.getElementById('customModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('customModal').style.display = 'none';
+    }
+
+    // Initialize the quiz properly without prefilling
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, initializing quiz...');
+      
+      // Track page view for Stage A (Basic Quiz) - Step 1
+      trackPageView('stage_a_step_1', { step_number: 1, step_name: 'introduction' });
+      
+      // Ensure step 1 is active and visible
+      document.getElementById('step1').classList.add('active');
+      document.getElementById('step1-dot').classList.add('active');
+      
+      // Ensure step 2 and 3 are hidden initially
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step2-dot').classList.remove('active');
+      document.getElementById('step3').classList.remove('active');
+      document.getElementById('step3-dot').classList.remove('active');
+      
+      console.log('Quiz initialized - step 1 should be visible');
+    });
+  </script>
+  
+</body>
+</html>

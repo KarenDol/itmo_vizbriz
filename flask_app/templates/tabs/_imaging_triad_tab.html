@@ -1,0 +1,1114 @@
+<style>
+    /* Imaging Loader */
+    #custom-imaging-loader-wrapper {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 10500;
+    }
+
+    .custom-imaging-loader {
+        border: 12px solid #f3f3f3;
+        border-top: 12px solid #6940ff;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: custom-imaging-spin 1.5s linear infinite;
+    }
+
+    @keyframes custom-imaging-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Imaging Progress Bar */
+    #imaging-progress-bar-container {
+        display: block;
+        width: 80%;
+        background-color: #ddd;
+        border-radius: 20px;
+        margin-top: 20px;
+    }
+
+    #imaging-progress-bar {
+        width: 0%;
+        height: 20px;
+        background-color: #4caf50;
+        border-radius: 20px;
+        text-align: center;
+        color: white;
+        transition: width 0.5s ease-in-out;
+    }
+
+    #imaging-progress-text {
+        margin-top: 10px;
+        color: white;
+    }
+
+/* Popup Styles - Dark Mode */
+/* Popup Styles - Large and Wider */
+#ask-lab-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #121212;
+    color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 11000;
+    width: 90%;
+    max-width: 700px;
+}
+
+.popup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.popup-title {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.input-field input,
+.input-field textarea {
+    background: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #444444;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    font-size: 1em;
+}
+
+.input-field textarea {
+    height: 150px; /* Increased height for better readability */
+    resize: vertical;
+}
+
+.input-field input::placeholder,
+.input-field textarea::placeholder {
+    color: #aaaaaa;
+}
+
+.input-field label {
+    color: #aaaaaa;
+    font-size: 0.9em;
+}
+
+.btn.blue {
+    background: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 1em;
+}
+
+.btn.blue:hover {
+    background: #0056b3;
+}
+
+.btn.grey {
+    background: #444444;
+    color: #ffffff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 1em;
+}
+
+.btn.grey:hover {
+    background: #333333;
+}
+
+/* Backdrop for popup */
+#ask-lab-popup-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10999;
+    display: none;
+}
+
+</style>
+
+<!-- Imaging Files Upload Section -->
+<div id="imaging-triad" class="col s12 tab-content">
+    <div class="card dark-card">
+        <div class="card-content">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="card-title">Imaging Files</span>
+                <button class="btn blue ask-lab-btn" id="ask-lab-upload-btn" type="button">Ask Lab to Upload</button>
+            </div>
+            <ul class="collapsible expandable">
+                <!-- Clinical Pictures Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>Clinical Pictures</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="clinical-pictures-file-list">
+                            {% if uploaded_files.clinical_pictures or uploaded_files_one_dcm_file.clinical_pictures %}
+                                {% for file in uploaded_files.clinical_pictures %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No Clinical Pictures uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-clinical-pictures" class="upload-area drop-zone dark-upload-area center">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop Clinical Pictures files or folders here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemClinicalPictures" style="display:none" multiple>
+                            <input type="file" id="folderElemClinicalPictures" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" id="upload-clinical-pictures-files-btn" type="button">Select Files</button>
+                            <button class="btn green" id="upload-clinical-pictures-folders-btn" type="button">Select Folder</button>
+                            <button class="btn red" id="clear-clinical-pictures-files-btn" type="button" style="display: none;">Clear Selection (<span id="clinical-pictures-file-count">0</span>)</button>
+                        </div>
+                        <button class="btn green waves-effect waves-light" id="submit-clinical-pictures-files-btn">Upload Clinical Pictures</button>
+                    </div>
+                </li>
+                <!-- CBCT Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>CBCT</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <!-- Existing CBCT Folders from S3 -->
+                        <div id="existing-cbct-folders" style="margin-bottom: 15px;">
+                            <div id="cbct-folders-loading" style="color: #aaa; font-size: 0.9em;">
+                                <i class="material-icons tiny">hourglass_empty</i> Loading existing CBCT folders...
+                            </div>
+                            <div id="cbct-folders-list" style="display: none;"></div>
+                        </div>
+                        
+                        <ul class="file-list" id="cbct-file-list">
+                            {% if uploaded_files.cbct or uploaded_files_one_dcm_file.cbct %}
+                                {% for file in uploaded_files.cbct %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                                {% for file in uploaded_files_one_dcm_file.cbct %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li id="no-cbct-message">No CBCT files uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-cbct" class="upload-area drop-zone dark-upload-area center">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop CBCT files or folders here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemCBCT" style="display:none" multiple>
+                            <input type="file" id="folderElemCBCT" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" id="upload-cbct-files-btn" type="button">Select Files</button>
+                            <button class="btn green" id="upload-cbct-folders-btn" type="button">Select Folder</button>
+                            <button class="btn red" id="clear-cbct-files-btn" type="button" style="display: none;">Clear Selection (<span id="cbct-file-count">0</span>)</button>
+                        </div>
+                        <button class="btn green waves-effect waves-light" id="submit-cbct-files-btn">Upload CBCT</button>
+                    </div>
+                </li>
+                <!-- IntraOral Scan Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>IntraOral Scan</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="intraoral-scan-file-list">
+                            {% if uploaded_files.intraoral_scan or uploaded_files_one_dcm_file.intraoral_scan %}
+                                {% for file in (uploaded_files.intraoral_scan or []) + (uploaded_files_one_dcm_file.intraoral_scan or []) %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No IntraOral Scan files uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-intraoral-scan" class="upload-area drop-zone dark-upload-area center">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop IntraOral Scan files or folders here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemIntraOralScan" style="display:none" multiple>
+                            <input type="file" id="folderElemIntraOralScan" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" id="upload-intraoral-scan-files-btn" type="button">Select Files</button>
+                            <button class="btn green" id="upload-intraoral-scan-folders-btn" type="button">Select Folder</button>
+                            <button class="btn red" id="clear-intraoral-scan-files-btn" type="button" style="display: none;">Clear Selection (<span id="intraoral-scan-file-count">0</span>)</button>
+                        </div>
+                        <button class="btn green waves-effect waves-light" id="submit-intraoral-scan-files-btn">Upload IntraOral Scan</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<!-- Popup for Sending Mail -->
+<div id="ask-lab-popup" style="display: none;">
+    <div class="popup-content">
+        <span class="popup-title">Request Lab to Upload</span>
+        <form id="ask-lab-form">
+            <div class="input-field">
+                <input type="email" id="lab-email" required placeholder="Enter lab email">
+                <label for="lab-email">Lab Email</label>
+            </div>
+            <div class="input-field">
+                <input type="text" id="email-subject" placeholder="Subject" value="Upload File for {{ patient.name }}">
+                <label for="email-subject">Subject</label>
+            </div>
+            <div class="input-field">
+                <textarea id="email-body" class="materialize-textarea" placeholder="Body">A file upload has been requested for {{ patient.name }}. Please use the following link: {{ base_url }}/partner_upload/{{ patient.upload_token }}</textarea>
+                <label for="email-body">Body</label>
+            </div>
+            <button type="submit" class="btn blue">Send Request</button>
+            <button type="button" class="btn grey" id="ask-lab-cancel-btn">Cancel</button>
+        </form>
+    </div>
+</div>
+
+
+
+
+<!-- Loader Overlay with Circular Progress -->
+<div id="custom-imaging-loader-wrapper" class="overlay">
+    <div class="preloader-wrapper big active">
+        <div class="spinner-layer spinner-green-only">
+            <div class="circle-clipper left">
+                <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+                <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Progress Bar -->
+    <div id="imaging-progress-bar-container">
+        <div id="imaging-progress-bar"></div>
+    </div>
+    <div id="imaging-progress-text"></div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sections = [
+            { id: 'clinical-pictures', subcategory: 'clinical-pictures', fileElemId: 'fileElemClinicalPictures', folderElemId: 'folderElemClinicalPictures', dropzoneId: 'dropzone-clinical-pictures', fileListId: 'clinical-pictures-file-list' },
+            { id: 'cbct', subcategory: 'cbct', fileElemId: 'fileElemCBCT', folderElemId: 'folderElemCBCT', dropzoneId: 'dropzone-cbct', fileListId: 'cbct-file-list' },
+            { id: 'intraoral-scan', subcategory: 'intraoral-scan', fileElemId: 'fileElemIntraOralScan', folderElemId: 'folderElemIntraOralScan', dropzoneId: 'dropzone-intraoral-scan', fileListId: 'intraoral-scan-file-list' }
+        ];
+
+        const imagingLoader = document.getElementById('custom-imaging-loader-wrapper');
+        const imagingProgressBar = document.getElementById('imaging-progress-bar');
+        const imagingProgressText = document.getElementById('imaging-progress-text');
+        let filesToUpload = {};
+        let totalUploadCount = 0;
+        
+        // Load existing CBCT folders from S3
+        async function loadExistingCbctFolders() {
+            const patientId = '{{ patient.id }}';
+            const loadingEl = document.getElementById('cbct-folders-loading');
+            const listEl = document.getElementById('cbct-folders-list');
+            const noFilesMsg = document.getElementById('no-cbct-message');
+            
+            try {
+                const response = await fetch(`/api/patient/${patientId}/cbct_folders_s3`);
+                const data = await response.json();
+                
+                loadingEl.style.display = 'none';
+                
+                if (data.success && data.folders && data.folders.length > 0) {
+                    // Hide "no files" message if showing S3 folders
+                    if (noFilesMsg) noFilesMsg.style.display = 'none';
+                    
+                    let html = '<div style="background: #1a1a2e; border-radius: 8px; padding: 10px; margin-bottom: 10px;">';
+                    html += '<div style="color: #4caf50; font-weight: bold; margin-bottom: 8px;"><i class="material-icons tiny" style="vertical-align: middle;">folder</i> Existing CBCT Folders:</div>';
+                    html += '<ul style="margin: 0; padding-left: 20px;">';
+                    
+                    for (const folder of data.folders) {
+                        const sizeInMB = folder.total_size ? (folder.total_size / 1024 / 1024).toFixed(1) : '?';
+                        const fileCount = folder.file_count || '?';
+                        const hasPrezip = folder.has_prezip ? '<span style="color: #4caf50; font-size: 0.8em;" title="Pre-zip ready for fast download">✓ Ready</span>' : '';
+                        
+                        html += `<li style="color: #ddd; padding: 5px 0; border-bottom: 1px solid #333;">
+                            <span style="color: #64b5f6;">${folder.name}</span>
+                            <span style="color: #888; font-size: 0.85em;"> (${fileCount} files, ${sizeInMB} MB)</span>
+                            ${hasPrezip}
+                        </li>`;
+                    }
+                    
+                    html += '</ul></div>';
+                    listEl.innerHTML = html;
+                    listEl.style.display = 'block';
+                } else {
+                    // No folders found - keep "no files" message visible
+                    listEl.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading CBCT folders:', error);
+                loadingEl.innerHTML = '<span style="color: #ff6b6b;"><i class="material-icons tiny">error</i> Could not load existing folders</span>';
+            }
+        }
+        
+        // Load CBCT folders on page load
+        loadExistingCbctFolders();
+
+        function showLoader(message = 'Processing...') {
+            imagingLoader.style.display = 'flex';
+            imagingProgressBar.style.width = '0%';
+            imagingProgressText.textContent = message;
+        }
+
+        function hideLoader() {
+            imagingLoader.style.display = 'none';
+            imagingProgressBar.style.width = '0%';
+            imagingProgressText.textContent = '';
+        }
+
+        function updateProgressBar(percentage) {
+            imagingProgressBar.style.width = `${percentage}%`;
+            imagingProgressText.textContent = `Uploading: ${percentage.toFixed(2)}%`;
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function sanitizePathPart(part) {
+            if (!part) {
+                return 'untitled';
+            }
+
+            const noControls = part.replace(/[\u0000-\u001F\u007F]/g, '').trim();
+            const normalized = noControls.replace(/\\/g, '/');
+            const sanitized = normalized.replace(/[<>:"|?*]/g, '_');
+            return sanitized || 'untitled';
+        }
+
+        function sanitizeRelativePath(path) {
+            if (!path) {
+                return 'untitled';
+            }
+
+            const normalized = path.replace(/\\/g, '/');
+            const parts = normalized.split('/');
+            const safeParts = parts.map(sanitizePathPart);
+            return safeParts.join('/');
+        }
+
+        function previewFile(file, fileList, isNewFile = true, sectionId = null) {
+            const li = document.createElement('li');
+            li.textContent = file.relativePath || file.webkitRelativePath || file.name;
+            if (isNewFile) {
+                li.setAttribute('data-new-file', 'true');
+                li.style.color = '#4CAF50'; // Green color to indicate new files
+            }
+            fileList.appendChild(li);
+            
+            // Update file count and show clear button if we have a sectionId
+            if (sectionId) {
+                updateClearButton(sectionId);
+            }
+        }
+        
+        function updateClearButton(sectionId) {
+            const clearBtn = document.getElementById(`clear-${sectionId}-files-btn`);
+            const countSpan = document.getElementById(`${sectionId}-file-count`);
+            
+            if (clearBtn && countSpan && filesToUpload[sectionId]) {
+                const count = filesToUpload[sectionId].length;
+                countSpan.textContent = count;
+                clearBtn.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+        
+        function clearSelectedFiles(sectionId, fileList) {
+            // Clear the files array
+            filesToUpload[sectionId] = [];
+            
+            // Remove only the new file preview items
+            const newFiles = fileList.querySelectorAll('li[data-new-file="true"]');
+            newFiles.forEach(li => li.remove());
+            
+            // Hide the clear button
+            const clearBtn = document.getElementById(`clear-${sectionId}-files-btn`);
+            if (clearBtn) {
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        // Validate STL file for intraoral scans
+        async function validateStlFile(file) {
+            // Check file extension
+            const fileName = file.name.toLowerCase();
+            if (!fileName.endsWith('.stl')) {
+                return { valid: false, error: `File "${file.name}" is not an STL file. Only .stl files are allowed for intraoral scans.` };
+            }
+
+            // Check file header to ensure it's actually an STL file
+            try {
+                const header = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(new Uint8Array(e.target.result));
+                    reader.onerror = reject;
+                    // Read first 80 bytes (STL header size)
+                    reader.readAsArrayBuffer(file.slice(0, 80));
+                });
+
+                // Check for ASCII STL (starts with "solid ")
+                const headerText = new TextDecoder('utf-8', { fatal: false }).decode(header);
+                if (headerText.trim().toLowerCase().startsWith('solid ')) {
+                    return { valid: true };
+                }
+
+                // Check for binary STL (first 80 bytes are header, then 4-byte triangle count)
+                // Binary STL files have a specific structure, but we can't fully validate without reading more
+                // For now, if it has .stl extension and doesn't start with "solid ", assume it might be binary
+                // We'll do a basic check: ensure it's not obviously wrong
+                if (file.size > 84) { // Binary STL must be at least 84 bytes (80 header + 4 byte count)
+                    return { valid: true };
+                }
+
+                return { valid: false, error: `File "${file.name}" does not appear to be a valid STL file.` };
+            } catch (error) {
+                console.error('Error validating STL file:', error);
+                // If we can't read the header, still allow it if extension is correct
+                return { valid: true };
+            }
+        }
+
+        async function handleZipFile(zipFile, sectionId, fileList) {
+            showLoader('Unzipping large file...');
+            try {
+                const zip = await JSZip.loadAsync(zipFile);
+                const zipBaseName = zipFile.name.replace(/\.zip$/, '');
+                const zipEntries = Object.keys(zip.files);
+
+                if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+                let processedEntries = 0;
+
+                for (const entry of zipEntries) {
+                    const zipEntry = zip.files[entry];
+                    if (!zipEntry.dir) {
+                        processedEntries++;
+                        const progress = (processedEntries / zipEntries.length) * 100;
+                        updateProgressBar(progress);
+                        imagingProgressText.textContent = `Unzipping: ${processedEntries}/${zipEntries.length} files`;
+
+                        const blob = await zipEntry.async('blob');
+                        const safeZipBaseName = sanitizePathPart(zipBaseName);
+                        const safeEntryPath = sanitizeRelativePath(entry);
+                        const relativePath = `${safeZipBaseName}/${safeEntryPath}`;
+                        const uploadFileName = safeEntryPath.split('/').pop() || 'untitled';
+                        const file = new File([blob], uploadFileName, { type: blob.type });
+
+                        // Validate STL files for intraoral scans
+                        if (sectionId === 'intraoral-scan') {
+                            const validation = await validateStlFile(file);
+                            if (!validation.valid) {
+                                console.warn(`Skipping invalid file: ${entry} - ${validation.error}`);
+                                continue; // Skip this file
+                            }
+                        }
+
+                        filesToUpload[sectionId].push({
+                            file,
+                            relativePath
+                        });
+                        
+                        // Preview each extracted file
+                        previewFile({ name: relativePath }, fileList, true, sectionId);
+                    }
+                }
+            } catch (error) {
+                console.error('Error during unzipping:', error);
+                alert(`Failed to unzip file: ${error.message}`);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function handleRarFile(rarFile, sectionId, fileList) {
+            // Show detailed progress for RAR extraction and upload
+            const progressStages = [
+                { text: 'Uploading RAR file to server...', percent: 0 },
+                { text: 'Verifying RAR archive...', percent: 10 },
+                { text: 'Extracting files from RAR...', percent: 20 },
+                { text: 'Uploading files to cloud storage...', percent: 40 },
+                { text: 'Creating database records...', percent: 85 },
+                { text: 'Finalizing (fast-download zip will be generated in the background)...', percent: 95 }
+            ];
+            let currentStage = 0;
+            
+            // Update progress UI
+            function updateProgress(text, percent) {
+                showLoader(text);
+                if (typeof updateProgressBar === 'function') {
+                    updateProgressBar(percent);
+                }
+                if (imagingProgressText) {
+                    imagingProgressText.textContent = text;
+                }
+            }
+            
+            updateProgress(progressStages[0].text, 0);
+            
+            let xhr = null;
+
+            try {
+                // Get patient ID from the page context
+                const patientIdMatch = window.location.pathname.match(/\/patient\/(\d+)/);
+                const patientId = patientIdMatch ? patientIdMatch[1] : null;
+                
+                if (!patientId) {
+                    throw new Error('Could not determine patient ID');
+                }
+
+                // Send RAR to backend for extraction and direct upload
+                const formData = new FormData();
+                formData.append('rar_file', rarFile);
+                formData.append('patient_id', patientId);
+                // Extract folder name from RAR filename
+                const folderName = rarFile.name.replace(/\.rar$/i, '');
+                formData.append('folder_name', folderName);
+
+                // Create XMLHttpRequest for upload progress tracking
+                xhr = new XMLHttpRequest();
+                
+                const uploadPromise = new Promise((resolve, reject) => {
+                    const clearProgressInterval = () => {
+                        if (xhr && xhr._progressInterval) {
+                            clearInterval(xhr._progressInterval);
+                            xhr._progressInterval = null;
+                        }
+                    };
+
+                    xhr.upload.onprogress = (event) => {
+                        if (event.lengthComputable) {
+                            const uploadPercent = Math.round((event.loaded / event.total) * 10);
+                            updateProgress(`Uploading RAR file... ${Math.round(event.loaded / 1024 / 1024)}MB / ${Math.round(event.total / 1024 / 1024)}MB`, uploadPercent);
+                        }
+                    };
+                    
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try {
+                                resolve(JSON.parse(xhr.responseText));
+                            } catch (e) {
+                                reject(new Error('Invalid response from server'));
+                            }
+                        } else {
+                            try {
+                                const errorData = JSON.parse(xhr.responseText);
+                                reject(new Error(errorData.message || `Server error: ${xhr.status}`));
+                            } catch (e) {
+                                reject(new Error(`Server error: ${xhr.status}`));
+                            }
+                        }
+                    };
+                    
+                    xhr.onerror = () => {
+                        clearProgressInterval();
+                        reject(new Error('Network error'));
+                    };
+                    xhr.ontimeout = () => {
+                        clearProgressInterval();
+                        reject(new Error('Request timed out (server is still processing the archive). Please refresh and check the CBCT folder list in a few minutes.'));
+                    };
+                    
+                    xhr.open('POST', '/extract_rar_files');
+                    // Avoid infinite "stuck at 95%" if something goes wrong server-side.
+                    // 2 hours should cover very large CBCT RARs while still allowing recovery.
+                    xhr.timeout = 2 * 60 * 60 * 1000;
+                    xhr.send(formData);
+                    
+                    // Simulate progress stages after upload completes (since we can't track server-side progress)
+                    xhr.upload.onloadend = () => {
+                        updateProgress('Processing on server... This may take several minutes for large files.', 15);
+                        
+                        // Show estimated progress while waiting - phases for large files
+                        let estimatedPercent = 15;
+                        let phase = 'extracting';
+                        const progressInterval = setInterval(() => {
+                            if (estimatedPercent < 95) {
+                                estimatedPercent += 0.5; // Slower increment for long operations
+                                
+                                // Update phase message based on progress
+                                if (estimatedPercent < 40) {
+                                    phase = 'Extracting files from RAR archive';
+                                } else if (estimatedPercent < 70) {
+                                    phase = 'Uploading files to cloud storage';
+                                } else if (estimatedPercent < 85) {
+                                    phase = 'Creating database records';
+                                } else {
+                                    phase = 'Finalizing (server is still processing - large archives can take time)';
+                                }
+                                
+                                updateProgress(`${phase}... ${Math.round(estimatedPercent)}%`, estimatedPercent);
+                            }
+                        }, 1500); // Update every 1.5 seconds
+                        
+                        // Store interval ID to clear it later
+                        xhr._progressInterval = progressInterval;
+                    };
+                });
+                
+                const result = await uploadPromise;
+                
+                // Clear progress interval if still running
+                if (xhr._progressInterval) {
+                    clearInterval(xhr._progressInterval);
+                }
+                
+                if (result.success) {
+                    updateProgress('Upload complete!', 100);
+                    let message = `Successfully uploaded ${result.uploaded_count} files from RAR archive.`;
+                    if (result.prezip_created) {
+                        message += '\n\nPre-zip ready for fast downloads!';
+                    } else if (result.prezip_scheduled) {
+                        message += '\n\nFast-download ZIP is being generated in the background. You can refresh in a few minutes.';
+                    }
+                    alert(message);
+                    // Reload the page to show the new files
+                    window.location.reload();
+                } else {
+                    throw new Error(result.message || 'Failed to extract RAR file');
+                }
+            } catch (error) {
+                console.error('Error extracting RAR file:', error);
+                alert(`Failed to extract RAR file: ${error.message}`);
+            } finally {
+                if (xhr && xhr._progressInterval) {
+                    clearInterval(xhr._progressInterval);
+                    xhr._progressInterval = null;
+                }
+                hideLoader();
+            }
+        }
+
+        async function handleDrop(e, fileList, sectionId) {
+            const dt = e.dataTransfer;
+            const items = dt.items;
+
+            if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+            for (const item of Array.from(items)) {
+                const entry = item.webkitGetAsEntry();
+                if (entry) {
+                    const fileName = entry.name ? entry.name.toLowerCase() : '';
+                    // Check if the dropped item is a ZIP or RAR file
+                    if (entry.isFile && fileName.endsWith('.zip')) {
+                        await new Promise((resolve) => {
+                            entry.file(async file => {
+                                await handleZipFile(file, sectionId, fileList);
+                                resolve();
+                            });
+                        });
+                    } else if (entry.isFile && fileName.endsWith('.rar')) {
+                        await new Promise((resolve) => {
+                            entry.file(async file => {
+                                await handleRarFile(file, sectionId, fileList);
+                                resolve();
+                            });
+                        });
+                    } else {
+                        await traverseFileTree(entry, '', fileList, sectionId);
+                    }
+                }
+            }
+        }
+
+        async function traverseFileTree(item, path = '', fileList, sectionId) {
+            if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+            if (item.isFile) {
+                // If the item is a file, read its content
+                item.file(async file => {
+                    file.relativePath = sanitizeRelativePath(path + file.name); // Add relative path for preview
+                    
+                    // Validate STL files for intraoral scans
+                    if (sectionId === 'intraoral-scan') {
+                        const validation = await validateStlFile(file);
+                        if (!validation.valid) {
+                            alert(validation.error);
+                            return; // Skip this file
+                        }
+                    }
+                    
+                    filesToUpload[sectionId].push({
+                        file,
+                        relativePath: file.relativePath
+                    });
+                    previewFile(file, fileList, true, sectionId); // Add file to the preview list
+                });
+            } else if (item.isDirectory) {
+                // If the item is a directory, traverse its entries
+                const dirReader = item.createReader();
+                dirReader.readEntries(entries => {
+                    entries.forEach(entry => {
+                        traverseFileTree(entry, path + item.name + '/', fileList, sectionId);
+                    });
+                });
+            }
+        }
+
+        async function handleFiles(files, fileList, sectionId) {
+            if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+            
+            // Files accumulate - don't clear previous selections so users can add files from multiple directories
+
+            for (const file of Array.from(files)) {
+                const fileName = file.name.toLowerCase();
+                if (fileName.endsWith('.zip')) {
+                    await handleZipFile(file, sectionId, fileList);
+                } else if (fileName.endsWith('.rar')) {
+                    await handleRarFile(file, sectionId, fileList);
+                } else {
+                    // Validate STL files for intraoral scans
+                    if (sectionId === 'intraoral-scan') {
+                        const validation = await validateStlFile(file);
+                        if (!validation.valid) {
+                            alert(validation.error);
+                            continue; // Skip this file
+                        }
+                    }
+                    
+                    const rawPath = file.webkitRelativePath || file.name;
+                    const relativePath = sanitizeRelativePath(rawPath);
+                    filesToUpload[sectionId].push({
+                        file,
+                        relativePath
+                    });
+                    previewFile({ name: relativePath }, fileList, true, sectionId);
+                }
+            }
+        }
+
+        async function processUploads(section, fileList) {
+            if (!filesToUpload[section.id] || filesToUpload[section.id].length === 0) {
+                alert('No files to upload!');
+                return;
+            }
+
+            const files = filesToUpload[section.id];
+            const totalBytes = files.reduce((acc, { file }) => acc + file.size, 0);
+            let bytesUploaded = 0;
+
+            if (totalBytes === 0) {
+                console.error('Total size of files is 0. Exiting.');
+                return;
+            }
+
+            updateProgressBar(0);
+
+            try {
+                for (const { file, relativePath } of files) {
+                    try {
+                        const presignedResponse = await fetch('{{ url_for("filemgmt.generate_client_presigned_url") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                filename: relativePath,
+                                section: section.id,
+                                patient_id: '{{ patient.id }}',
+                                category: 'imaging'
+                            })
+                        });
+
+                        const presignedData = await presignedResponse.json();
+                        if (!presignedResponse.ok || !presignedData.success) {
+                            throw new Error(presignedData.message || 'Failed to get presigned URL');
+                        }
+
+                        await new Promise((resolve, reject) => {
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', presignedData.url);
+
+                            xhr.upload.addEventListener('progress', (e) => {
+                                if (e.lengthComputable) {
+                                    const overallProgress = (bytesUploaded + e.loaded) / totalBytes * 100;
+                                    updateProgressBar(overallProgress);
+                                }
+                            });
+
+                            xhr.addEventListener('load', () => {
+                                if (xhr.status >= 200 && xhr.status < 300) {
+                                    // Update bytesUploaded after the file is successfully uploaded
+                                    bytesUploaded += file.size;
+                                    resolve();
+                                } else {
+                                    reject(new Error(`Upload failed for ${relativePath}`));
+                                }
+                            });
+
+                            xhr.addEventListener('error', () => reject(new Error(`Error uploading file: ${relativePath}`)));
+
+                            const formData = new FormData();
+                            Object.keys(presignedData.fields).forEach(key => formData.append(key, presignedData.fields[key]));
+                            formData.append('file', file);
+
+                            xhr.send(formData);
+                        });
+
+                        // Store metadata after successful S3 upload
+                        const metadataPayload = {
+                            patient_id: '{{ patient.id }}',
+                            s3_key: presignedData.s3_key,
+                            file_size: file.size,
+                            file_type: file.type || 'application/octet-stream',
+                            category: 'imaging',
+                            subcategory: section.subcategory
+                        };
+
+                        const metadataResponse = await fetch('{{ url_for("main.store_file_metadata") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(metadataPayload)
+                        });
+
+                        const metadataResult = await metadataResponse.json();
+                        if (!metadataResponse.ok || !metadataResult.success) {
+                            throw new Error(metadataResult.message || 'Failed to store metadata');
+                        }
+
+                    } catch (error) {
+                        console.error(`Error uploading ${relativePath}:`, error.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error in upload process:', error);
+                throw error;
+            }
+
+            requestAnimationFrame(() => {
+                updateProgressBar(100);
+            });
+
+            filesToUpload[section.id] = [];
+            // Remove only the newly uploaded files (marked with data-new-file), preserve existing uploaded files
+            const newFiles = fileList.querySelectorAll('li[data-new-file="true"]');
+            newFiles.forEach(li => li.remove());
+            
+            // Hide the clear button after successful upload
+            updateClearButton(section.id);
+        }
+
+        sections.forEach(section => {
+            const dropzone = document.getElementById(section.dropzoneId);
+            const fileElem = document.getElementById(section.fileElemId);
+            const folderElem = document.getElementById(section.folderElemId);
+            const fileList = document.getElementById(section.fileListId);
+            const submitBtn = document.getElementById(`submit-${section.id}-files-btn`);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            dropzone.addEventListener('dragenter', () => dropzone.classList.add('highlight'));
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('highlight'));
+            dropzone.addEventListener('drop', async e => {
+                await handleDrop(e, fileList, section.id);
+            });
+
+            
+            fileElem.addEventListener('change', async () => await handleFiles(fileElem.files, fileList, section.id));
+            folderElem.addEventListener('change', async () => await handleFiles(folderElem.files, fileList, section.id));
+            document.getElementById(`upload-${section.id}-files-btn`).addEventListener('click', () => fileElem.click());
+            document.getElementById(`upload-${section.id}-folders-btn`).addEventListener('click', () => folderElem.click());
+            
+            // Add clear button event listener if it exists
+            const clearBtn = document.getElementById(`clear-${section.id}-files-btn`);
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => clearSelectedFiles(section.id, fileList));
+            }
+
+            submitBtn.addEventListener('click', async function () {
+                if (!filesToUpload[section.id] || filesToUpload[section.id].length === 0) {
+                    alert('No files to upload!');
+                    return; // No refresh if no files to upload
+                }
+
+                showLoader('Uploading files...');
+                try {
+                    await processUploads(section, fileList);
+                    
+                    // Trigger pre-zipping for CBCT folders after upload completes
+                    // This runs in the background - wait for the trigger to be sent before reloading
+                    if (section.id === 'cbct') {
+                        try {
+                            const patientId = '{{ patient.id }}';
+                            console.log('Triggering CBCT pre-zip for patient:', patientId);
+                            // Wait for trigger request to complete before reloading
+                            const triggerResponse = await fetch(`/api/patient/${patientId}/trigger_cbct_prezip`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: '{}',
+                                credentials: 'include'
+                            });
+                            if (triggerResponse.ok) {
+                                console.log('CBCT pre-zip triggered successfully');
+                            } else {
+                                console.warn('Failed to trigger CBCT pre-zip:', triggerResponse.status);
+                            }
+                        } catch (prezipError) {
+                            console.warn('Error triggering CBCT pre-zip:', prezipError);
+                            // Don't fail the upload just because pre-zip trigger failed
+                        }
+                    }
+                    
+                    alert('File Upload and metadata storage completed successfully!');
+                    window.location.reload();
+                } catch (error) {
+                    alert(`Error during upload: ${error.message}`);
+                } finally {
+                    hideLoader();
+                }
+            });
+        });
+
+            
+        const askLabPopup = document.getElementById('ask-lab-popup');
+        const askLabForm = document.getElementById('ask-lab-form');
+        const labEmailInput = document.getElementById('lab-email');
+
+        // Show popup
+        function showAskLabPopup(patientUUID, patientName) {
+            askLabPopup.style.display = 'block';
+            askLabPopup.dataset.patientUuid = patientUUID; // Store patient UUID for later use
+            askLabPopup.dataset.patientName = patientName; // Store patient name for later use
+        }
+
+        // Hide popup
+        function hideAskLabPopup() {
+            askLabPopup.style.display = 'none';
+            labEmailInput.value = ''; // Clear the email input field
+        }
+
+        // Add event listener to the cancel button
+        const cancelButton = document.getElementById('ask-lab-cancel-btn');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function (e) {
+                e.preventDefault(); // Prevent any default action
+                hideAskLabPopup(); // Call the function to hide the popup
+            });
+        }
+
+        // Add event listener to the "Ask Lab to Upload" button
+        document.getElementById('ask-lab-upload-btn').addEventListener('click', function (e) {
+            e.stopPropagation(); // Prevent collapsible behavior
+            const patientUUID = '{{ patient.uuid }}'; // Replace dynamically
+            const patientName = '{{ patient.name }}'; // Replace dynamically
+            showAskLabPopup(patientUUID, patientName);
+        });
+
+        // Form submission for asking the lab to upload
+        askLabForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            console.log('Submit button clicked'); // Debugging log to ensure listener works
+
+            const patientUUID = askLabPopup.dataset.patientUuid;
+            const patientName = askLabPopup.dataset.patientName;
+            const labEmail = labEmailInput.value;
+
+            console.log('Patient UUID:', patientUUID); // Debug
+            console.log('Patient Name:', patientName); // Debug
+            console.log('Lab Email:', labEmail); // Debug
+
+            const uploadLink = '{{ base_url }}' + '/partner_upload/' + '{{ patient.upload_token }}';
+            const emailBody = `A file upload has been requested for ${patientName}. Please use the following link to patient information: ${uploadLink}`;
+            const emailSubject = `Vizbriz - Request file Upload for ${patientName}`;
+
+            try {
+                // Send the email via the backend route
+                const response = await fetch('/send_partner_email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        to: labEmail,
+                        subject: emailSubject,
+                        message: emailBody,
+                    }),
+                });
+
+                console.log('Response received:', response); // Debug
+
+                const result = await response.json();
+                if (response.ok) {
+                    console.log('Email sent successfully:', result); // Debug
+                    alert(`Email sent successfully to ${labEmail}`);
+                    hideAskLabPopup(); // Close the popup after confirmation
+                } else {
+                    console.error('Email sending failed:', result.error); // Debug
+                    alert(`Failed to send email: ${result.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error sending email:', error); // Debug
+                alert('An unexpected error occurred while sending the email.');
+            }
+        });
+
+        // Close the popup if clicked outside
+        document.addEventListener('click', function (event) {
+            if (event.target === askLabPopup) {
+                hideAskLabPopup();
+            }
+        });
+
+
+
+    });
+    </script>
+
+
+
+
+

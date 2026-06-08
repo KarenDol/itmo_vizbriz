@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Test</title>
+</head>
+<body>
+    <button onclick="testFunction()">Test Button</button>
+
+<script>
+// Global variables
+const PATIENT_ID = 10318;
+
+function testFunction() {
+    alert('Button clicked!');
+}
+
+function executeActionDirectly(actionKey, parameters) {
+    // Simple test - just show an alert
+    alert('Button clicked: ' + actionKey);
+    
+    // For now, just execute directly without modal
+    executeActionDirectlyFallback(actionKey, parameters);
+}
+
+function executeActionDirectlyFallback(actionKey, parameters) {
+    // Add patient_id to parameters if not present
+    if (!parameters.patient_id) {
+        parameters.patient_id = PATIENT_ID;
+    }
+    
+    alert('Executing action: ' + actionKey);
+}
+</script>
+</body>
+</html> 

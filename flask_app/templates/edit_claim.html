@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Claim - Vzibriz OSA Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .file-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px;
+        background-color: #2c2c2c;
+        color: #ffffff;
+        margin-top: 5px;
+        border-radius: 4px;
+    }
+    .file-item i {
+        cursor: pointer;
+        color: #ff5252;
+    }
+    .file-size {
+        font-size: 0.9rem;
+        color: #b0b0b0;
+        margin-left: 10px;
+    }
+    .dark-select .select-wrapper input.select-dropdown,
+    .input-field input[type="text"],
+    .input-field input[type="number"],
+    .input-field input[type="date"],
+    .materialize-textarea {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+    }
+    .dark-select .dropdown-content {
+        background-color: #424242 !important;
+        color: #ffffff !important;
+    }
+    .collection-item {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+    }
+    /* Read-only field style */
+    .readonly-container {
+        background-color: #3a3a3a;
+        color: #b0b0b0;
+        padding: 8px 10px;
+        border-radius: 4px;
+        border: 1px solid #757575;
+        margin-top: 15px;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+    }
+    .readonly-label {
+        color: #b0b0b0;
+        font-size: 0.9rem;
+        margin-bottom: -10px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col s12 m10 offset-m1">
+        <div class="card dark-card">
+            <div class="card-content">
+                <span class="card-title">Edit Claim - ID: {{ claim.id }}</span>
+                <form id="edit-claim-form" method="POST" action="{{ url_for('dashboard.edit_claim', claim_id=claim.id) }}" enctype="multipart/form-data">
+                    <!-- Read-Only Fields -->
+                    <div class="row">
+                        <div class="col s12 m6">
+                            <span class="readonly-label">Patient Name</span>
+                            <div class="readonly-container">{{ claim.patient.name or 'N/A' }}</div>
+                        </div>
+                        <div class="col s12 m6">
+                            <span class="readonly-label">Dentist Name</span>
+                            <div class="readonly-container">{{ claim.dentist.name or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s12 m6">
+                            <span class="readonly-label">Insurer</span>
+                            <div class="readonly-container">{{ claim.insurer or 'N/A' }}</div>
+                        </div>
+                        <div class="col s12 m6">
+                            <span class="readonly-label">Policy ID</span>
+                            <div class="readonly-container">{{ claim.policy_id or 'N/A' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Editable Fields -->
+                    <div class="row dark-select">
+                        <div class="input-field col s12">
+                            <select id="diagnosis" name="diagnosis" required>
+                                <option value="" disabled>Choose a Diagnosis</option>
+                                <option value="Obstructive Sleep Apnea" {% if claim.diagnosis == 'Obstructive Sleep Apnea' %}selected{% endif %}>Obstructive Sleep Apnea</option>
+                                <option value="Central Sleep Apnea" {% if claim.diagnosis == 'Central Sleep Apnea' %}selected{% endif %}>Central Sleep Apnea</option>
+                                <option value="Complex Sleep Apnea Syndrome" {% if claim.diagnosis == 'Complex Sleep Apnea Syndrome' %}selected{% endif %}>Complex Sleep Apnea Syndrome</option>
+                                <option value="Sleep-Related Hypoventilation" {% if claim.diagnosis == 'Sleep-Related Hypoventilation' %}selected{% endif %}>Sleep-Related Hypoventilation</option>
+                                <option value="Sleep-Related Hypoxemia Disorder" {% if claim.diagnosis == 'Sleep-Related Hypoxemia Disorder' %}selected{% endif %}>Sleep-Related Hypoxemia Disorder</option>
+                            </select>
+                            <label for="diagnosis">Diagnosis</label>
+                        </div>
+                    </div>
+
+                    <div class="row dark-select">
+                        <div class="input-field col s12">
+                            <select id="treatment_recommendations" name="treatment_recommendations" required>
+                                <option value="" disabled>Choose a Procedure</option>
+                                <option value="Oral Appliance" {% if claim.treatment_recommendations == 'Oral Appliance' %}selected{% endif %}>Oral Appliance</option>
+                                <option value="MAD" {% if claim.treatment_recommendations == 'MAD' %}selected{% endif %}>MAD</option>
+                                <option value="TRD" {% if claim.treatment_recommendations == 'TRD' %}selected{% endif %}>TRD</option>
+                                <option value="Hybrid Device" {% if claim.treatment_recommendations == 'Hybrid Device' %}selected{% endif %}>Hybrid Device</option>
+                                <option value="Oral Shield" {% if claim.treatment_recommendations == 'Oral Shield' %}selected{% endif %}>Oral Shield</option>
+                                <option value="SomnoDent" {% if claim.treatment_recommendations == 'SomnoDent' %}selected{% endif %}>SomnoDent</option>
+                                <option value="Other" {% if claim.treatment_recommendations == 'Other' %}selected{% endif %}>Other (Specify below)</option>
+                            </select>
+                            <label for="treatment_recommendations">Procedure</label>
+                        </div>
+                        <div class="input-field col s12" id="other_treatment_field" style="display: {% if claim.treatment_recommendations == 'Other' %}block{% else %}none{% endif %};">
+                            <input type="text" id="other_treatment" name="other_treatment" value="{{ claim.other_treatment }}">
+                            <label for="other_treatment">Specify Other Treatment</label>
+                        </div>
+                    </div>
+
+                    <!-- Status Dropdown -->
+                    <div class="row dark-select">
+                        <div class="input-field col s12">
+                            <select id="status" name="status" required>
+                                <option value="" disabled>Choose Claim Status</option>
+                                <option value="Pending" {% if claim.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="Received" {% if claim.status == 'Received' %}selected{% endif %}>Received</option>
+                                <option value="In Process" {% if claim.status == 'In Process' %}selected{% endif %}>In Process</option>
+                                <option value="Approved" {% if claim.status == 'Approved' %}selected{% endif %}>Approved</option>
+                                <option value="Denied" {% if claim.status == 'Denied' %}selected{% endif %}>Denied</option>
+                                <option value="Paid" {% if claim.status == 'Paid' %}selected{% endif %}>Paid</option>
+                                <option value="Rejected" {% if claim.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                <option value="Suspended" {% if claim.status == 'Suspended' %}selected{% endif %}>Suspended</option>
+                                <option value="Finalized" {% if claim.status == 'Finalized' %}selected{% endif %}>Finalized</option>
+                                <option value="Adjusted" {% if claim.status == 'Adjusted' %}selected{% endif %}>Adjusted</option>
+                            </select>
+                            <label for="status">Claim Status</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-field col s12 m6">
+                            <input type="number" step="0.01" id="claim_amount" name="claim_amount" value="{{ claim.claim_amount if claim.claim_amount is not none else 10 }}" required>
+                            <label for="claim_amount">Claim Amount</label>
+                        </div>
+                        <div class="input-field col s12 m6">
+                            <input type="number" step="0.01" id="deductible" name="deductible" value="{{ claim.deductible if claim.deductible is not none else 0 }}">
+                            <label for="deductible">Deductible</label>
+                        </div>
+                    </div>
+
+                    <!-- Comments History and New Comment -->
+                    <div class="row">
+                        <div class="col s12">
+                            <label>Comments History</label>
+                            <ul class="collection">
+                                {% for comment in claim.comments %}
+                                    <li class="collection-item">
+                                        <span>{{ comment.created_date.strftime('%Y-%m-%d') }}: {{ comment.content }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="input-field col s12">
+                            <textarea id="new_comment" name="new_comment" class="materialize-textarea"></textarea>
+                            <label for="new_comment">Add New Comment</label>
+                        </div>
+                    </div>
+
+                    <!-- File Upload and Display Section -->
+                    <div class="row">
+                        <div class="col s12">
+                            <label>Uploaded Files</label>
+                            <div id="file-list-claim">
+                                {% for file in existing_files %}
+                                    <div class="file-item" data-file-id="{{ file.id }}">
+                                        <span>{{ file.name }} <span class="file-size">({{ file.size | filesizeformat }})</span></span>
+                                        <i class="material-icons" onclick="removeFile({{ file.id }})">close</i>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="file-field input-field col s12">
+                            <div class="btn">
+                                <span>Add Files</span>
+                                <input type="file" id="fileElemClaim" name="claim_files[]" multiple>
+                            </div>
+                            <div class="file-path-wrapper">
+                                <input class="file-path validate" type="text" placeholder="Upload one or more files">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Created Date and Last Update -->
+                    <div class="row">
+                        <div class="col s12 m6">
+                            <span class="readonly-label">Created Date</span>
+                            <div class="readonly-container">{{ claim.created_date.strftime('%Y-%m-%d') or 'N/A' }}</div>
+                        </div>
+                        <div class="col s12 m6">
+                            <span class="readonly-label">Last Update</span>
+                            <div class="readonly-container">{{ claim.last_update.strftime('%Y-%m-%d') or 'N/A' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="row">
+                        <div class="col s12 center-align">
+                            <button type="submit" class="btn waves-effect waves-light">Update Claim</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Download Button -->
+                <div class="row">
+                    <div class="col s12 center-align">
+                        <a href="{{ url_for('dashboard.download_all_claim_files', claim_id=claim.id) }}" class="btn blue waves-effect waves-light" style="margin-top: 10px;">Download All Files</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        M.AutoInit();
+
+        // Show/hide other treatment field based on selection
+        document.getElementById('treatment_recommendations').addEventListener('change', function() {
+            const otherField = document.getElementById('other_treatment_field');
+            otherField.style.display = this.value === 'Other' ? 'block' : 'none';
+        });
+
+        // Log received files
+        {% if existing_files is defined %}
+        console.log("Received files from the server:", {{ existing_files | tojson }});
+        {% else %}
+        console.log("No files received from the server.");
+        {% endif %}
+
+        // Handle file uploads and display selected files
+        const fileElemClaim = document.getElementById('fileElemClaim');
+        const fileListClaim = document.getElementById('file-list-claim');
+
+        fileElemClaim.addEventListener('change', function() {
+            Array.from(this.files).forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <i class="material-icons" onclick="this.parentElement.remove()">close</i>
+                `;
+                fileListClaim.appendChild(fileItem);
+            });
+        });
+    });
+
+    // Function to remove file and delete from server
+    function removeFile(fileId) {
+        fetch(`{{ url_for('filemgmt.remove_file', file_id=0).replace('0', '') }}${fileId}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector(`.file-item[data-file-id="${fileId}"]`).remove();
+                    console.log(`File ${fileId} removed successfully.`);
+                } else {
+                    console.error("Error removing file:", data.message);
+                    alert("Error: Unable to remove the file.");
+                }
+            })
+            .catch(error => {
+                console.error("Request failed:", error);
+                alert("Error: An error occurred while attempting to remove the file.");
+            });
+    }
+</script>
+{% endblock %}

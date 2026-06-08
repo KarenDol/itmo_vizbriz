@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICOM Anonymizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        #upload-status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h1>DICOM Anonymizer</h1>
+    
+    <div class="container">
+        <p>Upload a ZIP file containing DICOM images to anonymize them. The anonymized files will be returned as a new ZIP file.</p>
+        
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Select ZIP file containing DICOM images:</label>
+                <input type="file" id="file" name="file" accept=".zip" required>
+            </div>
+            
+            <button type="submit" class="btn">Anonymize DICOM Files</button>
+        </form>
+        
+        <div id="upload-status">
+            <p id="status-message">Processing...</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a ZIP file');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const statusDiv = document.getElementById('upload-status');
+            const statusMessage = document.getElementById('status-message');
+            const progressBar = document.getElementById('progress-bar');
+            
+            statusDiv.style.display = 'block';
+            statusMessage.textContent = 'Uploading and processing DICOM files...';
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                }
+            });
+            
+            xhr.addEventListener('load', function() {
+                if (xhr.status === 200) {
+                    statusMessage.textContent = 'Anonymization complete!';
+                    
+                    // Create a download link for the returned file
+                    const blob = xhr.response;
+                    const downloadUrl = URL.createObjectURL(blob);
+                    
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = downloadUrl;
+                    downloadLink.download = 'anonymized_dicom.zip';
+                    downloadLink.textContent = 'Download Anonymized DICOM Files';
+                    downloadLink.className = 'btn';
+                    downloadLink.style.display = 'inline-block';
+                    downloadLink.style.marginTop = '10px';
+                    
+                    statusDiv.appendChild(document.createElement('br'));
+                    statusDiv.appendChild(downloadLink);
+                } else {
+                    statusMessage.textContent = 'Error: ' + xhr.statusText;
+                    statusDiv.style.backgroundColor = '#ffdddd';
+                }
+            });
+            
+            xhr.addEventListener('error', function() {
+                statusMessage.textContent = 'Upload failed. Please try again.';
+                statusDiv.style.backgroundColor = '#ffdddd';
+            });
+            
+            xhr.open('POST', '/anonymize', true);
+            xhr.responseType = 'blob';
+            xhr.send(formData);
+        });
+    </script>
+</body>
+</html>

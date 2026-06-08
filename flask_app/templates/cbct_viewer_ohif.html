@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OHIF Viewer - {{ folder_name }} - {{ patient_name }}</title>
+    
+    <!-- OHIF Viewer - Using iframe approach for easier integration -->
+    <!-- Alternative: Use OHIF's hosted viewer or embed via iframe -->
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #header {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            position: relative;
+        }
+        
+        #header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        #header .patient-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        #ohif-container {
+            width: 100%;
+            height: calc(100vh - 60px);
+            position: relative;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+        }
+        
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #error-message {
+            background: #dc2626;
+            color: white;
+            padding: 16px;
+            margin: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div>
+            <h1>🧊 OHIF CBCT Viewer</h1>
+            <div class="patient-info">{{ patient_name }} - {{ folder_name }}</div>
+        </div>
+        <button onclick="window.close()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
+    </div>
+    
+    <div id="error-message"></div>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading OHIF Viewer...</div>
+    </div>
+    
+    <div id="ohif-container" style="width: 100%; height: 100%;">
+        <!-- OHIF Viewer will be embedded here -->
+        <!-- Using OHIF's viewer mode with direct DICOM file URLs -->
+        <div id="ohif-root" style="width: 100%; height: 100%;"></div>
+    </div>
+    
+    <script type="module">
+        const patientId = {{ patient_id }};
+        const folderName = "{{ folder_name }}";
+        
+        async function loadOHIFViewer() {
+            try {
+                // Get DICOM files
+                const response = await fetch(`/api/patient/${patientId}/cbct/${encodeURIComponent(folderName)}/dicom_files`);
+                const data = await response.json();
+                
+                if (!data.success || !data.files || data.files.length === 0) {
+                    throw new Error('No DICOM files found');
+                }
+                
+                // OHIF Viewer requires DICOMweb endpoints, but we can use a simpler approach:
+                // Use OHIF's viewer via iframe pointing to their hosted viewer with our DICOMweb proxy
+                // OR use a simpler DICOM viewer library
+                
+                // For now, let's use OHIF's viewer with direct file URLs via a DICOMweb proxy
+                // This requires setting up DICOMweb endpoints (WADO-RS)
+                
+                // Alternative: Use OHIF's standalone viewer mode
+                // Load OHIF Viewer from CDN
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@ohif/viewer@3.7.0/dist/index.umd.js';
+                script.onload = () => {
+                    try {
+                        // OHIF configuration
+                        const config = {
+                            routerBasename: '/',
+                            extensions: [],
+                            modes: [],
+                            showStudyList: false,
+                            defaultDataSourceName: 'dicomweb',
+                            dataSources: {
+                                dicomweb: {
+                                    friendlyName: 'DICOM Web',
+                                    namespace: '@ohif/extension-default.dataSourcesModule.dicomweb',
+                                    sourceName: 'dicomweb',
+                                    configuration: {
+                                        name: 'dicomweb',
+                                        wadoUriRoot: `/api/dicomweb/${patientId}/${encodeURIComponent(folderName)}`,
+                                        qidoRoot: `/api/dicomweb/${patientId}/${encodeURIComponent(folderName)}`,
+                                        wadoRoot: `/api/dicomweb/${patientId}/${encodeURIComponent(folderName)}`,
+                                        qidoSupportsIncludeField: false,
+                                        supportsReject: false,
+                                        imageRendering: 'wadors',
+                                        thumbnailRendering: 'wadors',
+                                    },
+                                },
+                            },
+                        };
+                        
+                        // Initialize OHIF
+                        if (window.OHIF && window.OHIF.initViewer) {
+                            window.OHIF.initViewer('#ohif-root', config);
+                            document.getElementById('loading').style.display = 'none';
+                        } else {
+                            throw new Error('OHIF Viewer not available');
+                        }
+                    } catch (error) {
+                        console.error('Error initializing OHIF:', error);
+                        showError('Failed to initialize OHIF Viewer. Please use the DICOM viewer instead.');
+                    }
+                };
+                script.onerror = () => {
+                    showError('Failed to load OHIF Viewer. Please use the DICOM viewer instead.');
+                };
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                console.error('Error loading OHIF Viewer:', error);
+                showError(`Error: ${error.message}. Please use the DICOM viewer instead.`);
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const container = document.getElementById('ohif-container');
+            container.innerHTML = `
+                <div style="padding: 40px; text-align: center;">
+                    <h2 style="margin-bottom: 20px; color: #dc2626;">OHIF Viewer Setup Required</h2>
+                    <p style="margin-bottom: 30px; color: #999;">${message}</p>
+                    <button 
+                        onclick="window.location.href='/viewer/cbct_dicom/${patientId}/${encodeURIComponent(folderName)}'"
+                        style="background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                        Use DICOM Viewer Instead
+                    </button>
+                    <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                        Note: Full OHIF integration requires DICOMweb (WADO-RS) endpoints.<br>
+                        The DICOM viewer handles orientation correctly and works immediately.
+                    </p>
+                </div>
+            `;
+        }
+        
+        // Start loading
+        loadOHIFViewer();
+    </script>
+</body>
+</html>
+

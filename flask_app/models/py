@@ -1,0 +1,32 @@
+# flask_app/models.py
+
+from flask_app import db
+from datetime import datetime
+
+class Dentist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    DSO = db.Column(db.String(100))
+    status = db.Column(db.String(20))
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    role = db.Column(db.String(20))
+    comment = db.Column(db.Text)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"Dentist('{self.name}', '{self.email}', '{self.role}')"
+
+class Patient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    status = db.Column(db.String(20))
+    create_date = db.Column(db.DateTime, default=datetime.utcnow)
+    last_update = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    insurer = db.Column(db.String(100))
+    claim = db.Column(db.Float)
+
+    def __repr__(self):
+        return f"Patient('{self.name}', '{self.email}', '{self.status}')"

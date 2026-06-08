@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Support - Vzibriz{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .section-title {
+        color: #bb86fc;
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        background-color: #1e1e1e;
+    }
+
+    .card-content p {
+        color: #e0e0e0;
+    }
+
+    .contact-info {
+        margin-top: 40px;
+        text-align: center;
+        color: #e0e0e0;
+    }
+
+    .contact-info a {
+        color: #bb86fc;
+        text-decoration: none;
+    }
+
+    .faq-item {
+        margin-bottom: 20px;
+    }
+
+    .faq-question {
+        font-weight: bold;
+        color: #bb86fc;
+    }
+
+    .faq-answer {
+        margin-top: 5px;
+        padding-left: 20px;
+        color: #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3 class="center-align" style="color: #bb86fc;">Support</h3>
+
+    <!-- Tutorial Videos Section -->
+    <section id="tutorial-videos">
+        <h5 class="section-title">Tutorial Videos</h5>
+        <div class="row">
+            <div class="col s12 m6 l4">
+                <div class="card">
+                    <div class="card-image">
+                        <img src="video_thumbnail_1.jpg" alt="Tutorial 1">
+                        <a class="btn-floating halfway-fab waves-effect waves-light red" href="tutorial_video_1.mp4" target="_blank">
+                            <i class="material-icons">play_arrow</i>
+                        </a>
+                    </div>
+                    <div class="card-content">
+                        <p>Learn how to get started with Vizbriz.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col s12 m6 l4">
+                <div class="card">
+                    <div class="card-image">
+                        <img src="video_thumbnail_2.jpg" alt="Tutorial 2">
+                        <a class="btn-floating halfway-fab waves-effect waves-light red" href="tutorial_video_2.mp4" target="_blank">
+                            <i class="material-icons">play_arrow</i>
+                        </a>
+                    </div>
+                    <div class="card-content">
+                        <p>Step-by-step guide to uploading imaging protocols.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Add more tutorial videos as needed -->
+        </div>
+    </section>
+
+    <!-- Imaging Protocols Section -->
+    <section id="imaging-protocols">
+        <h5 class="section-title">Imaging Protocols</h5>
+        <ul class="collection">
+            <li class="collection-item">
+                <a href="protocol1.pdf" target="_blank">MRI Protocol</a>
+            </li>
+            <li class="collection-item">
+                <a href="protocol2.pdf" target="_blank">CT Protocol</a>
+            </li>
+            <li class="collection-item">
+                <a href="protocol3.pdf" target="_blank">X-Ray Protocol</a>
+            </li>
+            <!-- Add more protocols as needed -->
+        </ul>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq">
+        <h5 class="section-title">Frequently Asked Questions</h5>
+        <div class="faq-item">
+            <p class="faq-question">Q: How do I upload a file?</p>
+            <p class="faq-answer">A: Go to the dashboard, click "Upload File," and select the file you want to upload.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Q: Can I share files with others?</p>
+            <p class="faq-answer">A: Yes, select the files you want to share, and use the "Share Selected Files" button.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Q: What formats are supported for imaging protocols?</p>
+            <p class="faq-answer">A: Supported formats include PDF, DICOM, and JPEG.</p>
+        </div>
+    </section>
+
+    <!-- Contact Information -->
+    <div class="contact-info">
+        <p>Need more help? Contact us at <a href="mailto:info@vizbriz.com">info@vizbriz.com</a></p>
+        <p>Call us at <a href="tel:+16478678346">+1 (647) 867-8346</a></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltips = document.querySelectorAll('.tooltipped');
+        M.Tooltip.init(tooltips);
+    });
+</script>
+{% endblock %}

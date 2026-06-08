@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "clinical",
+    "operational",
+    "meta"
+  ],
+  "properties": {
+    "clinical": {
+      "type": "object",
+      "required": [
+        "diagnosis",
+        "rules_fired",
+        "next_clinical_action",
+        "risks_and_monitoring"
+      ],
+      "properties": {
+        "diagnosis": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 300
+        },
+        "rules_fired": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "string"
+          }
+        },
+        "next_clinical_action": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 300
+        },
+        "risks_and_monitoring": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "operational": {
+      "type": "object",
+      "required": [
+        "stage",
+        "completion_pct",
+        "next_actions",
+        "alerts"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string"
+        },
+        "completion_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "next_actions": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "action",
+              "due",
+              "blocking"
+            ],
+            "properties": {
+              "action": {
+                "type": "string"
+              },
+              "due": {
+                "type": "string"
+              },
+              "blocking": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "alerts": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "policy_version",
+        "schema_version",
+        "packet_hash"
+      ],
+      "properties": {
+        "policy_version": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "integer",
+          "const": 2
+        },
+        "packet_hash": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

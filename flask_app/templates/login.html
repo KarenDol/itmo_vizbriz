@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vzibriz Sleep Apnea Solutions - Login</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <style>
+        /* Dark theme styling */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .login-container {
+            max-width: 400px;
+            width: 90%;
+            margin: 20px auto;
+            padding: 10px;
+        }
+
+        /* Logo styling */
+        .logo {
+            display: block;
+            max-width: 150px;
+            margin: 0 auto 20px;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .input-field input {
+            color: #e0e0e0;
+        }
+
+        .input-field input:focus {
+            border-bottom: 2px solid #03dac6;
+            box-shadow: 0 1px 0 0 #03dac6;
+        }
+
+        .input-field label {
+            color: #aaa;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            color: #bb86fc;
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: #03dac6 !important;
+            color: #121212 !important;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background-color: #00c4a7 !important;
+        }
+
+        .flash-message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .card-title {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container">
+        <!-- Logo at the top -->
+        <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Logo" class="logo">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Login Card -->
+        <div class="card">
+            <div class="card-content white-text">
+                <span class="card-title">Login</span>
+                <form method="POST" action="{{ url_for('main.login', next=request.args.get('next')) }}">
+                    <div class="input-field">
+                        <input id="email" name="email" type="email" class="validate" required>
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="input-field">
+                        <input id="password" name="password" type="password" class="validate" required>
+                        <label for="password">Password</label>
+                        <i class="material-icons toggle-password" id="toggle-password">visibility_off</i>
+                    </div>
+                    <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+                    <button class="btn waves-effect waves-light" type="submit">Login
+                        <i class="material-icons right">send</i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        // Password toggle functionality
+        document.getElementById('toggle-password').addEventListener('click', function () {
+            const passwordField = document.getElementById('password');
+            const passwordFieldType = passwordField.getAttribute('type');
+            const icon = this;
+
+            if (passwordFieldType === 'password') {
+                passwordField.setAttribute('type', 'text');
+                icon.textContent = 'visibility';
+            } else {
+                passwordField.setAttribute('type', 'password');
+                icon.textContent = 'visibility_off';
+            }
+        });
+    </script>
+</body>
+</html>
+

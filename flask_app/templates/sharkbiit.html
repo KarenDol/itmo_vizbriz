@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SharkBiit - Dental Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ... (keep existing styles) ... */
+        .menu-link {
+            display: block;
+            padding: 10px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .menu-link:hover {
+            background-color: #f0f4ff;
+        }
+        .menu-link.active {
+            background-color: #e6f9ff;
+            font-weight: bold;
+        }
+        .upload-form {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .upload-form input, .upload-form button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+        }
+        .upload-form button {
+            background-color: #00bcd4;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="path_to_sharkbiit_logo.png" alt="SharkBiit Logo" style="width: 100%; margin-bottom: 20px;">
+            <nav>
+                <a href="#" class="menu-link active">🏠 Home</a>
+                <a href="#" class="menu-link">👥 Patients</a>
+                <a href="#" class="menu-link">💰 Billing</a>
+                <a href="#" class="menu-link">📊 Reporting</a>
+                <a href="#" class="menu-link">🔔 Notifications</a>
+                <a href="#" class="menu-link" onclick="showUploadForm()">📤 Add Patient Data</a>
+            </nav>
+        </div>
+        <div class="main-content">
+            <!-- ... (keep existing main content) ... -->
+
+            <!-- Add this new section for the upload form -->
+            <div id="uploadForm" class="upload-form">
+                <h2>Add Patient Data</h2>
+                <form onsubmit="handleUpload(event)">
+                    <input type="text" placeholder="Patient Name" required>
+                    <input type="file" accept="image/*" required>
+                    <button type="submit">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showUploadForm() {
+            document.getElementById('uploadForm').style.display = 'block';
+            // Optionally, hide other content
+            // document.querySelector('.overview-cards').style.display = 'none';
+            // document.querySelector('.patient-list').style.display = 'none';
+        }
+
+        function handleUpload(event) {
+            event.preventDefault();
+            // Here you would typically send the data to your server
+            // For demonstration, we'll just log to console
+            console.log('Upload initiated');
+            alert('Patient data uploaded successfully!');
+            // Reset form
+            event.target.reset();
+        }
+    </script>
+</body>
+</html>

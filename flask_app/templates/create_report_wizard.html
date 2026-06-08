@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Report Wizard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f9f9f9; }
+    .wizard-step {
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .logo { max-width: 200px; margin: 20px auto; display: block; }
+    .btn-next { float: right; }
+    .data-source-entry {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      position: relative;
+    }
+    .observation-suggestions { position: absolute; z-index: 1000; width: 100%; }
+    #loader { display: none; }
+    /* Conditions tags */
+    .condition-tag {
+      display: inline-block;
+      background: #e0e0e0;
+      border-radius: 3px;
+      padding: 5px 8px;
+      margin: 2px;
+      font-size: 14px;
+    }
+    .condition-tag .remove-tag {
+      margin-left: 5px;
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Data source file tag */
+    .datasource-tag {
+      display: inline-block;
+      background: #e0e0e0;
+      border-radius: 3px;
+      padding: 5px 8px;
+      margin: 2px;
+      font-size: 14px;
+    }
+    .datasource-tag .remove-tag {
+      margin-left: 5px;
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Observation tags */
+    .obs-tag {
+      display: inline-block;
+      background: #d0e9ff;
+      border-radius: 3px;
+      padding: 5px 8px;
+      margin: 2px;
+      font-size: 14px;
+    }
+    .obs-tag .remove-tag {
+      margin-left: 5px;
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Review list items */
+    #reviewConditions li, .review-ds-item {
+      padding: 5px;
+      margin-bottom: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+    }
+    .review-ds-item .remove-btn {
+      float: right;
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    /* Suggestions */
+    #conditions-suggestions {
+      position: absolute;
+      z-index: 1000;
+      width: 100%;
+      display: none;
+    }
+    /* ChatGPT response area */
+    #reportResult pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: visible;
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .modal-dialog-centered {
+      display: flex;
+      align-items: center;
+      min-height: calc(100% - 1rem);
+    }
+    #loadingModal .modal-content {
+      background-color: rgba(255, 255, 255, 0.95);
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
+    /* Modal sizing and scrolling */
+    .modal-xl {
+      max-width: 90%;
+      margin: 1.75rem auto;
+    }
+    .modal-dialog {
+      max-height: 95vh; /* Use most of the viewport height */
+      margin: 1rem auto;
+    }
+    .modal-content {
+      max-height: 90vh; /* Slightly less than dialog to account for margins */
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-body {
+      flex: 1; /* Allow body to take remaining space */
+      overflow-y: auto; /* Enable vertical scrolling */
+      padding: 1.5rem;
+    }
+    /* Content containers */
+    .card-body {
+      max-height: none; /* Remove height restriction */
+      overflow-y: visible; /* Allow content to flow */
+    }
+    /* Pre elements and code blocks */
+    .modal-body pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
+      margin-bottom: 1rem;
+      max-height: none; /* Remove height restriction */
+      overflow-y: visible; /* Allow content to flow */
+    }
+    .text-wrap {
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+    }
+    .bg-light {
+      background-color: #f8f9fa;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    /* Accordion styling */
+    .accordion .card {
+      overflow: visible; /* Allow content to flow */
+    }
+    .accordion .collapse {
+      overflow: visible; /* Allow content to flow */
+    }
+    /* Responsive handling */
+    @media (min-width: 1200px) {
+      .modal-xl {
+        max-width: 1140px;
+      }
+    }
+    /* Additional spacing for better readability */
+    .card {
+      margin-bottom: 1rem;
+    }
+    .card-header {
+      background-color: #f8f9fa;
+      padding: 1rem;
+    }
+    /* Make sure modal header and footer stay in place */
+    .modal-header, .modal-footer {
+      flex-shrink: 0; /* Prevent header/footer from shrinking */
+    }
+    .recommendation-section h5 {
+      color: #2c3e50;
+      margin-top: 1.5rem;
+    }
+    .recommendation-section .bg-light {
+      background-color: #f8f9fa;
+      border-left: 4px solid #007bff;
+    }
+    .list-group-item {
+        transition: background-color 0.2s;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .list-group-item button {
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+
+    .list-group-item:hover button {
+        opacity: 1;
+    }
+
+    #selectedObservationsList {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .observation-item .form-check {
+        margin-right: 1rem;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .btn-add-observations {
+        min-width: 200px;
+    }
+
+    /* Additional styles for better visual hierarchy */
+    .selected-observations-section {
+        margin-top: 2rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+    }
+
+    .selected-observations-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .selected-observations-content {
+        padding: 1rem;
+    }
+
+    .observation-category {
+        margin-bottom: 1.5rem;
+    }
+
+    .observation-category h6 {
+        color: #495057;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .observation-value {
+        color: #0d6efd;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .observation-id {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .remove-button {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .no-observations-message {
+        color: #6c757d;
+        text-align: center;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+    }
+
+    /* Add new styles for two-column layout */
+    .observation-category {
+        background-color: #fff;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        height: 100%;
+    }
+
+    .observation-category h6 {
+        color: #495057;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .list-group {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .no-observations-message {
+        padding: 1rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .observation-category {
+            margin-bottom: 1rem;
+        }
+    }
+
+    .badge {
+        font-size: 0.9em;
+        padding: 0.4em 0.6em;
+        margin-right: 0.5em;
+        margin-bottom: 0.5em;
+    }
+
+    .badge-close {
+        margin-left: 0.5em;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    .badge-close:hover {
+        opacity: 1;
+    }
+
+    input[placeholder="Start typing..."] {
+        border: none;
+        outline: none;
+        padding: 0.4em;
+        margin: 0.2em;
+        flex-grow: 1;
+    }
+
+    .observations-container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 0.5em;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        min-height: 38px;
+    }
+
+    .observations-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .observation-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .observation-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        min-height: 38px;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5em 0.7em;
+        font-size: 0.875rem;
+    }
+
+    .btn-close-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem;
+    }
+
+    .bg-success-light { background-color: rgba(40, 167, 69, 0.1); }
+    .bg-danger-light { background-color: rgba(220, 53, 69, 0.1); }
+    .bg-warning-light { background-color: rgba(255, 193, 7, 0.1); }
+    
+    .validation-result {
+        transition: background-color 0.3s;
+    }
+    
+    .validation-result:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .observation-card {
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 1rem;
+    }
+    .observation-value {
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    .observation-evidence {
+        font-style: italic;
+        color: #6c757d;
+    }
+    .confidence-high {
+        color: #198754;
+    }
+    .confidence-medium {
+        color: #ffc107;
+    }
+    .confidence-low {
+        color: #dc3545;
+    }
+    .confidence-high { background-color: #d4edda; }
+    .confidence-medium { background-color: #fff3cd; }
+    .confidence-low { background-color: #f8d7da; }
+    .observation-card {
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .evidence-text {
+        font-style: italic;
+        color: #666;
+        font-size: 0.9em;
+    }
+    #analysisSpinner {
+        display: none;
+    }
+    .value-unit {
+        font-weight: bold;
+        color: #0d6efd;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sharkbiit Logo -->
+  <img src="{{ url_for('static', filename='images/sharkbiit_logo.png') }}" alt="Sharkbiit Logo" class="logo">
+  
+  <div class="container">
+    <h1 class="text-center my-4">Patient Data Wizard</h1>
+    
+    <!-- Step 1: Define Patient -->
+    <div class="wizard-step" id="step-1">
+      <h3>Step 1: Define Patient</h3>
+      <form id="patient-form">
+        <div class="form-group">
+          <label for="patientName">Patient Name</label>
+          <input type="text" class="form-control" id="patientName" name="patientName" value="{{ patient.name }}">
+        </div>
+        <div class="form-group">
+          <label for="patientDOB">Date of Birth</label>
+          <input type="date" class="form-control" id="patientDOB" name="patientDOB" value="{{ patient.dob }}">
+        </div>
+        <div class="form-group">
+          <label for="patientGender">Gender</label>
+          <select class="form-control" id="patientGender" name="patientGender">
+            <option value="Male" {% if patient.gender=='Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if patient.gender=='Female' %}selected{% endif %}>Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group position-relative">
+          <label for="previousConditions">Previous Medical Conditions (autocomplete)</label>
+          <input type="text" class="form-control" id="previousConditions" placeholder="Start typing...">
+          <ul class="list-group" id="conditions-suggestions"></ul>
+        </div>
+        <div class="form-group">
+          <label>Selected Conditions:</label>
+          <div id="conditions-tags"></div>
+        </div>
+      </form>
+      <button class="btn btn-primary btn-next" onclick="goToStep(2)">Next</button>
+    </div>
+    
+    <!-- Step 2: Data Sources, Observations & File Analysis -->
+    <div class="wizard-step d-none" id="step-2">
+      <h3>Step 2: Define Data Sources & Add Observations</h3>
+      <div id="data-sources-container">
+        <!-- Data Source Entry Template -->
+        <div class="data-source-entry">
+          <!-- Data Source Type Selection -->
+          <div class="form-group">
+            <label>Data Source Type</label>
+            <select class="form-control data-source-select">
+              {% for ds in data_sources %}
+                <option value="{{ ds.id }}">{{ ds.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <!-- File Upload for Analysis -->
+          <div class="form-group">
+            <label>Data Source File (for analysis)</label>
+            <input type="file" class="form-control-file datasource-file">
+            <!-- Display file name after selection -->
+            <div class="datasource-tag" style="display:none;"></div>
+            <!-- Analyze File Button -->
+            <button type="button" class="btn btn-sm btn-info analyze-file-btn" style="margin-top:5px;">Analyze File</button>
+          </div>
+          <!-- Observations Input (manual) -->
+          <div class="form-group">
+            <label>Observations (select from auto-complete)</label>
+            <div class="observation-tags-container">
+                <!-- Existing tags will be inserted here -->
+                <input type="text" class="form-control border-0" placeholder="Start typing..." style="flex-grow: 1; min-width: 100px;">
+            </div>
+          </div>
+          <button type="button" class="btn btn-danger btn-sm remove-data-source" style="position:absolute; top:10px; right:10px;">Remove Data Source</button>
+        </div>
+      </div>
+      <button type="button" id="add-data-source" class="btn btn-primary">Add Data Source Section</button>
+      <div class="mt-3">
+        <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+        <button class="btn btn-primary btn-next" onclick="goToStep(3)">Next</button>
+      </div>
+    </div>
+    
+    <!-- Step 3: Review and Select Observations and Conditions -->
+    <div class="wizard-step d-none" id="step-3">
+      <h3>Step 3: Review Observations & Selected Conditions</h3>
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Selected Medical Conditions</h5>
+          <ul class="list-group" id="reviewConditions"></ul>
+        </div>
+        <div class="col-md-6">
+          <h5>Data Sources and Observations</h5>
+          <ul class="list-group" id="reviewDataSources"></ul>
+        </div>
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+        <button class="btn btn-success btn-next" onclick="goToStep(4)">Generate Prompt</button>
+      </div>
+    </div>
+    
+    <!-- Step 4: Fine-tune Prompt and Create Report -->
+    <div class="wizard-step d-none" id="step-4">
+      <h3>Step 4: Fine-tune Prompt & Create Report</h3>
+      <p>The generated prompt is shown below. You can adjust it as needed before creating the final report.</p>
+      <textarea id="promptText" class="form-control" rows="12"></textarea>
+      <div class="mt-3">
+        <button class="btn btn-secondary" onclick="goToStep(3)">Back</button>
+        <button class="btn btn-primary" id="createReport">Create Report</button>
+      </div>
+      <!-- Loader -->
+      <div id="loader" class="mt-3 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Analyzing...</span>
+        </div>
+        <p>Analyzing... please wait.</p>
+      </div>
+      <!-- ChatGPT Response -->
+      <div id="reportResult" class="mt-3"></div>
+    </div>
+  </div>
+  
+  <!-- Analysis Results Modal -->
+  <div class="modal fade" id="analysisModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Analysis Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Document Text Section -->
+                <div class="card mb-3">
+                    <div class="card-header" id="headingDocText">
+                        <h6 class="mb-0">
+                            <button class="btn btn-link w-100 text-start d-flex justify-content-between align-items-center" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseDocText" 
+                                    aria-expanded="false" 
+                                    aria-controls="collapseDocText">
+                                Extracted Document Text
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </h6>
+                    </div>
+                    <div id="collapseDocText" class="collapse show">
+                        <div class="card-body">
+                            <pre class="text-wrap" id="documentText" style="max-height: 300px; overflow-y: auto;"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datasource-specific Observations -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Datasource-specific Observations</h6>
+                            <button class="btn btn-primary btn-sm" onclick="addSelectedObservations('datasource')">
+                                Add Selected Observations
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="datasourceObservationsList"></div>
+                    </div>
+                </div>
+
+                <!-- General Observations -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">General Medical Observations</h6>
+                            <button class="btn btn-primary btn-sm" onclick="addSelectedObservations('general')">
+                                Add Selected Observations
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="generalObservationsList"></div>
+                    </div>
+                </div>
+
+                <!-- Error Display -->
+                <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+  </div>
+  
+  <!-- Loading Spinner Modal -->
+  <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Analyzing...</span>
+          </div>
+          <h5 class="mt-3">Analyzing document...</h5>
+          <p class="text-muted">This may take a few moments</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- JavaScript: Wizard Navigation, Auto-complete, File Handling, Tagging, and Report Generation -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Add this at the top of your JavaScript section
+    let selectedObservations = [];
+
+    // Add this at the start of your JavaScript
+    $(document).ready(function() {
+        console.log('Document ready');
+        
+        // Log all AJAX requests
+        $(document).ajaxStart(function() {
+            console.log('AJAX request started');
+        });
+        
+        $(document).ajaxComplete(function() {
+            console.log('AJAX request completed');
+        });
+        
+        $(document).ajaxError(function(event, jqXHR, settings, error) {
+            console.error('AJAX error:', error);
+            console.error('Response:', jqXHR.responseText);
+        });
+    });
+
+    // ----------------------------
+    // STEP 1: Conditions Tagging
+    // ----------------------------
+    const conditionsList = [
+      {% for cond in conditions_list %}
+        "{{ cond }}",
+      {% endfor %}
+    ];
+    const conditionsInput = document.getElementById('previousConditions');
+    const conditionsSuggestions = document.getElementById('conditions-suggestions');
+    const conditionsTagsContainer = document.getElementById('conditions-tags');
+
+    conditionsInput.addEventListener('input', function() {
+      let query = this.value.toLowerCase();
+      conditionsSuggestions.innerHTML = "";
+      if (query.length > 1) {
+        let matches = conditionsList.filter(c => c.toLowerCase().includes(query));
+        if (matches.length) {
+          conditionsSuggestions.style.display = 'block';
+          matches.forEach(match => {
+            let li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = match;
+            li.addEventListener('click', function() {
+              addConditionTag(match);
+              conditionsInput.value = "";
+              conditionsSuggestions.innerHTML = "";
+              conditionsSuggestions.style.display = 'none';
+            });
+            conditionsSuggestions.appendChild(li);
+          });
+        } else {
+          conditionsSuggestions.style.display = 'none';
+        }
+      } else {
+        conditionsSuggestions.style.display = 'none';
+      }
+    });
+
+    function addConditionTag(condition) {
+      let tag = document.createElement('span');
+      tag.className = 'condition-tag';
+      tag.textContent = condition;
+      let removeBtn = document.createElement('span');
+      removeBtn.className = 'remove-tag';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        tag.remove();
+      });
+      tag.appendChild(removeBtn);
+      conditionsTagsContainer.appendChild(tag);
+    }
+    
+    // ----------------------------
+    // STEP 2: Data Source File Upload, Type Selection & Observations Tagging
+    // ----------------------------
+    function initDataSourceEntry(entry) {
+      let dsSelect = entry.querySelector('.data-source-select');
+      let fileInput = entry.querySelector('.datasource-file');
+      let fileTag = entry.querySelector('.datasource-tag');
+      let obsInput = entry.querySelector('.obs-input');
+      let obsTagsContainer = entry.querySelector('.obs-tags');
+      let analyzeBtn = entry.querySelector('.analyze-file-btn');
+      
+      // Handle file selection (optional)
+      fileInput.addEventListener('change', function() {
+        console.log('File selected:', this.files[0]);
+        if (this.files.length > 0) {
+          fileTag.style.display = 'inline-block';
+          fileTag.textContent = this.files[0].name;
+          
+          // Enable the analyze button
+          analyzeBtn.disabled = false;
+        }
+      });
+      
+      // Handle "Analyze File" button click for the chosen file
+      analyzeBtn.addEventListener('click', function() {
+        if (fileInput.files.length === 0) {
+          alert("Please choose a file first.");
+          return;
+        }
+        
+        // Show loading spinner
+        showLoadingSpinner();
+        
+        // Create FormData
+        let formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        
+        // First upload the file
+        fetch('/upload_testing_file', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('File upload failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success || !data.url) {
+                throw new Error(data.message || 'Upload failed');
+            }
+            
+            // Now analyze the file
+            return fetch('/analyze_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    file_url: data.url,
+                    datasource_id: dsSelect.value
+                })
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Analysis failed');
+            }
+            return response.json();
+        })
+        .then(result => {
+            hideLoadingSpinner();
+            if (result.success) {
+                displayAnalysisResults(result);
+                $('#analysisModal').modal('show');
+            } else {
+                alert("Analysis failed: " + (result.error || "Unknown error"));
+            }
+        })
+        .catch(error => {
+            hideLoadingSpinner();
+            console.error('Error:', error);
+            alert("Error: " + error.message);
+        });
+      });
+      
+      // Handle observation input auto-complete on Enter key
+      obsInput.addEventListener('keydown', function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          let value = obsInput.value.trim();
+          if (value !== "") {
+            addObsTag(value, obsTagsContainer);
+            obsInput.value = "";
+          }
+        }
+      });
+    }
+    
+    // Initialize existing data source entries
+    document.querySelectorAll('.data-source-entry').forEach(initDataSourceEntry);
+    
+    function addObsTag(text, container) {
+      let tag = document.createElement('span');
+      tag.className = 'obs-tag';
+      tag.textContent = text;
+      let removeBtn = document.createElement('span');
+      removeBtn.className = 'remove-tag';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        tag.remove();
+      });
+      tag.appendChild(removeBtn);
+      container.appendChild(tag);
+    }
+    
+    // ----------------------------
+    // WIZARD NAVIGATION: Steps 3 & 4
+    // ----------------------------
+    function goToStep(stepNumber) {
+      document.querySelectorAll('.wizard-step').forEach(function(step) {
+        step.classList.add('d-none');
+      });
+      document.getElementById('step-' + stepNumber).classList.remove('d-none');
+      
+      if (stepNumber === 3) {
+        // Build reviewConditions list from conditionsTagsContainer
+        let reviewConditions = document.getElementById('reviewConditions');
+        reviewConditions.innerHTML = "";
+        conditionsTagsContainer.querySelectorAll('.condition-tag').forEach(function(tag) {
+          let li = document.createElement('li');
+          li.className = 'list-group-item';
+          li.textContent = tag.firstChild.nodeValue.trim();
+          let removeBtn = document.createElement('span');
+          removeBtn.className = 'remove-btn';
+          removeBtn.innerHTML = '&times;';
+          removeBtn.style.color = 'red';
+          removeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            li.remove();
+          });
+          li.appendChild(removeBtn);
+          reviewConditions.appendChild(li);
+        });
+        
+        // Build reviewDataSources list from each data-source-entry
+        let reviewDataSources = document.getElementById('reviewDataSources');
+        reviewDataSources.innerHTML = "";
+        document.querySelectorAll('.data-source-entry').forEach(function(entry) {
+          let dsSelect = entry.querySelector('.data-source-select');
+          let dsName = dsSelect.options[dsSelect.selectedIndex].text;
+          let obsTags = Array.from(entry.querySelectorAll('.obs-tag')).map(tag => tag.firstChild.nodeValue.trim());
+          let li = document.createElement('li');
+          li.className = 'review-ds-item';
+          li.innerHTML = `<strong>${dsName}</strong>`;
+          if (obsTags.length > 0) {
+            li.innerHTML += "<br>";
+            obsTags.forEach(function(obs) {
+              li.innerHTML += "- " + obs + "<br>";
+            });
+          }
+          let removeBtn = document.createElement('span');
+          removeBtn.className = 'remove-btn';
+          removeBtn.innerHTML = '&times;';
+          removeBtn.style.color = 'red';
+          removeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            li.remove();
+          });
+          li.appendChild(removeBtn);
+          reviewDataSources.appendChild(li);
+        });
+      }
+      
+      if (stepNumber === 4) {
+        let dob = document.getElementById('patientDOB').value;
+        let age = calculateAge(dob);
+        let gender = document.getElementById('patientGender').value;
+        let conditionItems = Array.from(document.getElementById('reviewConditions').querySelectorAll('li'))
+                                 .map(li => li.textContent.replace('×','').trim());
+        let dsObsItems = [];
+        document.querySelectorAll('#reviewDataSources li').forEach(function(li) {
+          let lines = li.innerText.split('\n').filter(line => line.trim() !== "");
+          lines = lines.map(line => line.replace('×','').trim());
+          if (lines.length > 1) {
+            let dsLabel = lines[0];
+            let obsList = lines.slice(1).join(', ');
+            dsObsItems.push(`${dsLabel}: ${obsList}`);
+          } else {
+            dsObsItems.push(lines[0]);
+          }
+        });
+        let prompt = `A ${age}-year-old ${gender.toLowerCase()} presents with previous medical conditions:\n`;
+        conditionItems.forEach(item => { prompt += "- " + item + "\n"; });
+        prompt += "\nand the following observations from selected data sources:\n";
+        dsObsItems.forEach(item => { prompt += "- " + item + "\n"; });
+        prompt += "\nBased on his clinical profile, which oral appliance therapy is recommended as a suitable treatment option.";
+        document.getElementById('promptText').value = prompt;
+      }
+    }
+    
+    function calculateAge(dob) {
+      let birthDate = new Date(dob);
+      let diff_ms = Date.now() - birthDate.getTime();
+      let age_dt = new Date(diff_ms);
+      return Math.abs(age_dt.getUTCFullYear() - 1970);
+    }
+    
+    // ----------------------------
+    // Add new data source entry
+    // ----------------------------
+    document.getElementById('add-data-source').addEventListener('click', function() {
+      let container = document.getElementById('data-sources-container');
+      let template = document.querySelector('.data-source-entry');
+      let newEntry = template.cloneNode(true);
+      newEntry.querySelector('.datasource-file').value = "";
+      newEntry.querySelector('.datasource-tag').style.display = "none";
+      newEntry.querySelector('.datasource-tag').innerHTML = "";
+      newEntry.querySelector('.obs-input').value = "";
+      newEntry.querySelector('.obs-tags').innerHTML = "";
+      initDataSourceEntry(newEntry);
+      container.appendChild(newEntry);
+    });
+    
+    // Remove a data source entry
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('remove-data-source')) {
+        let entry = e.target.closest('.data-source-entry');
+        if (document.querySelectorAll('.data-source-entry').length > 1) {
+          entry.remove();
+        }
+      }
+    });
+    
+    // Simulated auto-complete for observation inputs
+    const availableObservations = [
+      {% for obs in observations %}
+        { id: {{ obs.id }}, text: "{{ obs.text }}", data_source: "{{ obs.data_source }}" },
+      {% endfor %}
+    ];
+    
+    document.addEventListener('input', function(e) {
+      if (e.target && e.target.classList.contains('obs-input')) {
+        let input = e.target;
+        let query = input.value.toLowerCase();
+        let suggestionBox = input.nextElementSibling;
+        suggestionBox.innerHTML = "";
+        if (query.length > 1) {
+          let matches = availableObservations.filter(obs => obs.text.toLowerCase().includes(query));
+          if (matches.length) {
+            suggestionBox.classList.remove('d-none');
+            matches.forEach(match => {
+              let li = document.createElement('li');
+              li.className = 'list-group-item';
+              li.textContent = match.text;
+              li.addEventListener('click', function() {
+                addObsTag(match.text, input.parentElement.querySelector('.obs-tags'));
+                input.value = "";
+                suggestionBox.innerHTML = "";
+                suggestionBox.classList.add('d-none');
+              });
+              suggestionBox.appendChild(li);
+            });
+          } else {
+            suggestionBox.classList.add('d-none');
+          }
+        } else {
+          suggestionBox.classList.add('d-none');
+        }
+      }
+    });
+    
+    function analyzeFile(fileUrl, datasourceId) {
+      fetch('/analyze_file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          file_url: fileUrl,
+          datasource_id: datasourceId
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => { throw new Error(text) });
+        }
+        return response.json();
+      })
+      .then(result => {
+        hideLoadingSpinner();
+        displayAnalysisResults(result);
+        $('#analysisModal').modal('show');
+      })
+      .catch(err => {
+        hideLoadingSpinner();
+        alert("Error analyzing file: " + err.message);
+      });
+    }
+
+    function displayAnalysisResults(result) {
+      console.log('Displaying analysis results:', result);
+      
+      if (!result.success) {
+        showErrorMessage(result.error || 'Unknown error occurred');
+        return;
+      }
+
+      const data = result.data;
+      
+      // Display document text
+      const docTextElement = document.getElementById('documentText');
+      if (docTextElement && data.document_text) {
+          docTextElement.textContent = data.document_text;
+          // Show the collapse
+          const collapseDocText = document.getElementById('collapseDocText');
+          if (collapseDocText) {
+              new bootstrap.Collapse(collapseDocText, { show: true });
+          }
+      }
+      
+      // Display datasource-specific observations
+      const datasourceList = document.getElementById('datasourceObservationsList');
+      if (data.datasource_observations && data.datasource_observations.length > 0) {
+          datasourceList.innerHTML = data.datasource_observations.map(obs => createObservationCard(obs, true)).join('');
+      } else {
+          datasourceList.innerHTML = '<p class="text-muted">No observations found for this data source.</p>';
+      }
+
+      // Display general observations
+      const generalList = document.getElementById('generalObservationsList');
+      if (data.general_observations && data.general_observations.length > 0) {
+          generalList.innerHTML = data.general_observations.map(obs => createObservationCard(obs, true)).join('');
+      } else {
+          generalList.innerHTML = '<p class="text-muted">No general observations found.</p>';
+      }
+
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById('analysisModal'));
+      modal.show();
+    }
+
+    function createObservationCard(observation, selectable = false) {
+        const confidenceClass = getConfidenceClass(observation.confidence);
+        const valueDisplay = observation.value !== null && observation.value !== undefined ? 
+            `<span class="value-unit">${observation.value}${observation.unit ? ' ' + observation.unit : ''}</span>` : '';
+        
+        const checkbox = selectable ? `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="${observation.id || ''}" 
+                       data-observation='${JSON.stringify(observation)}'>
+            </div>
+        ` : '';
+
+        return `
+            <div class="observation-card ${confidenceClass} mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        ${checkbox}
+                        <div class="flex-grow-1">
+                            <h6 class="card-title">${observation.observation} ${valueDisplay}</h6>
+                            <p class="evidence-text">Evidence: ${observation.evidence}</p>
+                            <p class="mb-0"><small>Confidence: ${observation.confidence}%</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function getConfidenceClass(confidence) {
+      if (confidence >= 80) return 'confidence-high';
+      if (confidence >= 60) return 'confidence-medium';
+      return 'confidence-low';
+    }
+
+    function showErrorMessage(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+
+    function showLoadingSpinner() {
+      $('#loadingModal').modal('show');
+    }
+
+    function hideLoadingSpinner() {
+      $('#loadingModal').modal('hide');
+    }
+
+    function addSelectedObservations(type) {
+        const container = type === 'datasource' ? 
+            document.getElementById('datasourceObservationsList') : 
+            document.getElementById('generalObservationsList');
+        
+        const selectedCheckboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+        
+        if (selectedCheckboxes.length === 0) {
+            alert('Please select at least one observation to add.');
+            return;
+        }
+
+        selectedCheckboxes.forEach(checkbox => {
+            const observation = JSON.parse(checkbox.dataset.observation);
+            addObservationToList(observation);
+            checkbox.checked = false;
+        });
+    }
+
+    function addObservationToList(observation) {
+        const currentDataSourceEntry = document.querySelector('.data-source-entry:last-child');
+        const observationsContainer = currentDataSourceEntry.querySelector('.observation-tags-container');
+        
+        // Create the observation tag
+        const tag = document.createElement('span');
+        tag.className = 'obs-tag';
+        tag.textContent = observation.observation;
+        
+        // Add remove button
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'remove-tag';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tag.remove();
+        });
+        
+        tag.appendChild(removeBtn);
+        observationsContainer.appendChild(tag);
+    }
+
+    // ----------------------------
+    // Handle Create Report button: send prompt to ChatGPT and show loader
+    // ----------------------------
+    document.getElementById('createReport').addEventListener('click', function() {
+      let prompt = document.getElementById('promptText').value;
+      let loader = document.getElementById('loader');
+      let reportResult = document.getElementById('reportResult');
+      reportResult.innerHTML = "";
+      loader.style.display = 'block';
+      
+      fetch('/generate_report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => { throw new Error(text) });
+        }
+        return response.json();
+      })
+      .then(data => {
+        loader.style.display = 'none';
+        if (data.error) {
+          reportResult.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        } else {
+          reportResult.innerHTML = `<div class="card">
+            <div class="card-header">ChatGPT Report</div>
+            <div class="card-body"><pre>${data.report}</pre></div>
+          </div>`;
+        }
+      })
+      .catch(error => {
+        loader.style.display = 'none';
+        reportResult.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+      });
+    });
+
+    // Add event listener for data source changes
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('data-source-select')) {
+            // Clear existing observations in the container
+            const observationsContainer = e.target.closest('.data-source-entry')
+                .querySelector('.observation-tags-container');
+            const existingTags = observationsContainer.querySelectorAll('.obs-tag');
+            existingTags.forEach(tag => tag.remove());
+        }
+    });
+  </script>
+</body>
+</html>
+

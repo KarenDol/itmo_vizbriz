@@ -1,0 +1,1233 @@
+{% extends "base.html" %}
+
+{% block title %}Consultation Requests{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .consultation-header {
+        color: white;
+        padding: 30px 0;
+        text-align: left;
+    }
+
+    .consultation-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .consultation-title i {
+        font-size: 2.2rem;
+    }
+
+    .consultation-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .consultation-stats {
+        font-size: 0.95rem;
+        opacity: 0.8;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 30px;
+        right: 0;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+        text-decoration: none;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+    }
+
+    .filters-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .filters-row {
+        display: flex;
+        align-items: end;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select {
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        font-size: 0.95rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .filter-group select:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Make sure filter-select class has the same styling - Override Materialize CSS */
+    .filter-select, 
+    .filter-group select,
+    select.filter-select,
+    select[name="status"],
+    select[name="date_range"] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        width: 100% !important;
+        min-width: 150px !important;
+        padding: 12px 16px !important;
+        border: 2px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        background: white !important;
+        background-color: white !important;
+        font-size: 0.95rem !important;
+        transition: border-color 0.3s ease !important;
+        cursor: pointer !important;
+        position: relative !important;
+        z-index: 1 !important;
+        margin: 0 !important;
+        font-family: inherit !important;
+        color: #333 !important;
+        box-sizing: border-box !important;
+        appearance: auto !important;
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+    }
+
+    .filter-select:focus,
+    .filter-group select:focus,
+    select.filter-select:focus,
+    select[name="status"]:focus,
+    select[name="date_range"]:focus {
+        border-color: #667eea !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    }
+
+    .apply-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .apply-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .clear-btn {
+        background: transparent;
+        color: #666;
+        border: 2px solid #e0e0e0;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .clear-btn:hover {
+        background: #f5f5f5;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .export-group {
+        display: flex;
+        gap: 12px;
+        margin-left: auto;
+    }
+
+    .export-btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .export-btn.csv {
+        background: #28a745;
+        color: white;
+    }
+
+    .export-btn.pdf {
+        background: #dc3545;
+        color: white;
+    }
+
+    .export-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+        color: white;
+    }
+
+    .requests-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .requests-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .request-card {
+        border: 2px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        background: #fafafa;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .request-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+    }
+
+    .request-content {
+        flex: 1;
+    }
+
+    .request-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .request-id {
+        background: #667eea;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .request-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .patient-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+    }
+
+    .patient-contact {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .patient-contact:hover {
+        color: #764ba2;
+        text-decoration: none;
+    }
+
+    .comment-section {
+        margin: 20px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+    }
+
+    .comment-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .comment-text {
+        color: #555;
+        line-height: 1.5;
+    }
+
+    .show-more-btn {
+        color: #667eea;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 8px;
+        font-size: 0.9rem;
+    }
+
+    .show-more-btn:hover {
+        color: #764ba2;
+    }
+
+    .request-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-end;
+        min-width: 200px;
+    }
+
+    .status-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: capitalize;
+    }
+
+    .status-badge.pending {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .status-badge.contacted {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .status-badge.completed {
+        background: #28a745;
+        color: white;
+    }
+
+    .status-select,
+    select.status-select {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        width: auto !important;
+        min-width: 120px !important;
+        padding: 8px 12px !important;
+        border: 2px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        background: white !important;
+        background-color: white !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: border-color 0.3s ease !important;
+        position: relative !important;
+        z-index: 1 !important;
+        margin: 0 !important;
+        font-family: inherit !important;
+        color: #333 !important;
+        box-sizing: border-box !important;
+        appearance: auto !important;
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+    }
+
+    .status-select:focus,
+    select.status-select:focus {
+        border-color: #667eea !important;
+        outline: none !important;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1) !important;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-direction: column;
+    }
+
+    .action-btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.2s ease;
+        font-size: 0.9rem;
+        min-width: 140px;
+        height: 44px;
+        box-sizing: border-box;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .action-btn.view,
+    .action-btn.call {
+        background: #007bff;
+        color: white;
+    }
+
+    .action-btn.view:hover,
+    .action-btn.call:hover {
+        background: #0056b3;
+        color: white;
+    }
+
+    .action-btn.disabled {
+        background: #6c757d;
+        color: white;
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .action-btn.disabled:hover {
+        transform: none;
+        background: #6c757d;
+    }
+
+    .action-btn.narrative {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+
+    .action-btn.narrative:hover {
+        background: linear-gradient(135deg, #218838, #1ba085);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: white;
+        margin: 3% auto;
+        padding: 0;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+
+    .modal-header {
+        padding: 25px 30px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .modal-title {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .close-btn {
+        float: right;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+        margin-top: -30px;
+    }
+
+    .close-btn:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .modal-body textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        line-height: 1.5;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+    }
+
+    .modal-body textarea:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .modal-actions {
+        padding: 20px 30px 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #eee;
+        background: #f8f9fa;
+        border-radius: 0 0 16px 16px;
+        position: sticky;
+        bottom: 0;
+    }
+
+    .modal-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .modal-btn.primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .modal-btn.secondary {
+        background: #f8f9fa;
+        color: #666;
+        border: 2px solid #e0e0e0;
+    }
+
+    .modal-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .consultation-title {
+            font-size: 2rem;
+        }
+
+        .back-btn {
+            position: static;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .export-group {
+            margin-left: 0;
+        }
+
+        .request-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-buttons {
+            justify-content: center;
+        }
+
+        .request-card {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .request-actions {
+            align-items: stretch;
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="consultation-header">
+        <h1 class="consultation-title">
+            <i class="fas fa-comments"></i>
+            Consultation Requests
+        </h1>
+        <p class="consultation-subtitle">Manage and respond to patient consultation requests from your network</p>
+        <div class="consultation-stats">
+            <i class="fas fa-chart-bar"></i>
+            Showing {{ consultation_requests|length }} request(s) | 
+            {% set pending_count = consultation_requests|selectattr('request.status', 'equalto', 'pending')|list|length %}
+            {% set contacted_count = consultation_requests|selectattr('request.status', 'equalto', 'contacted')|list|length %}
+            {% set completed_count = consultation_requests|selectattr('request.status', 'equalto', 'completed')|list|length %}
+            {{ pending_count }} pending, {{ contacted_count }} contacted, {{ completed_count }} completed
+        </div>
+        <a href="{{ url_for('forms_mgmt.dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-card">
+        <form method="GET" action="{{ url_for('forms_mgmt.consultation_requests') }}" class="filters-row" id="filterForm">
+            <div class="filter-group">
+                <label for="status">Filter by Status</label>
+                <select name="status" id="status" class="filter-select">
+                    <option value="all" {{ 'selected' if status_filter == 'all' or not status_filter }}>All Statuses</option>
+                    <option value="pending" {{ 'selected' if status_filter == 'pending' }}>Pending</option>
+                    <option value="contacted" {{ 'selected' if status_filter == 'contacted' }}>Contacted</option>
+                    <option value="completed" {{ 'selected' if status_filter == 'completed' }}>Completed</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="date_range">Filter by Date</label>
+                <select name="date_range" id="date_range" class="filter-select">
+                    <option value="" {{ 'selected' if not date_filter }}>All Time</option>
+                    <option value="today" {{ 'selected' if date_filter == 'today' }}>Today</option>
+                    <option value="week" {{ 'selected' if date_filter == 'week' }}>This Week</option>
+                    <option value="month" {{ 'selected' if date_filter == 'month' }}>This Month</option>
+                </select>
+            </div>
+            <button type="submit" class="apply-btn">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            <a href="{{ url_for('forms_mgmt.consultation_requests') }}" class="clear-btn">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            <div class="export-group">
+                <a href="{{ url_for('forms_mgmt.export_consultation_requests', format='csv') }}{% if status_filter or date_filter %}?{% if status_filter %}status={{ status_filter }}{% endif %}{% if status_filter and date_filter %}&{% endif %}{% if date_filter %}date_range={{ date_filter }}{% endif %}{% endif %}" class="export-btn csv">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Requests -->
+    <div class="requests-section">
+        <h2 class="requests-title">
+            <i class="fas fa-list"></i>
+            Consultation Requests
+        </h2>
+
+        {% if consultation_requests %}
+            {% for req_data in consultation_requests %}
+            {% set request = req_data.request %}
+            <div class="request-card">
+                <div class="request-content">
+                    <div class="request-header">
+                        <span class="request-id">ID: {{ request.id }}</span>
+                        <span class="request-date">
+                            <i class="fas fa-calendar"></i> 
+                            {{ request.submitted_at.strftime('%Y-%m-%d at %H:%M') }}
+                        </span>
+                    </div>
+
+                    <div class="patient-name">{{ request.name or 'Unknown Patient' }}</div>
+                    
+                    {% if request.email %}
+                    <a href="mailto:{{ request.email }}" class="patient-contact">
+                        <i class="fas fa-envelope"></i> {{ request.email }}
+                    </a>
+                    {% endif %}
+                    
+                    {% if request.phone %}
+                    <a href="tel:{{ request.phone }}" class="patient-contact">
+                        <i class="fas fa-phone"></i> {{ request.phone }}
+                    </a>
+                    {% endif %}
+
+                    {% if req_data.enhanced_comment %}
+                    <div class="comment-section">
+                        <div class="comment-label">Comment:</div>
+                        <div class="comment-text" id="comment-{{ request.id }}">
+                            {% if req_data.enhanced_comment|length > 200 %}
+                                <div class="comment-preview">{{ req_data.enhanced_comment[:200] }}...</div>
+                                <div class="comment-full" style="display: none;">{{ req_data.enhanced_comment }}</div>
+                                <div class="show-more-btn" onclick="toggleComment({{ request.id }})">Show more</div>
+                            {% else %}
+                                {{ req_data.enhanced_comment }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="request-actions">
+                    <div class="status-section">
+                        <span class="status-badge {{ request.status }}">{{ request.status.title() }}</span>
+                        <select class="status-select" onchange="updateStatus({{ request.id }}, this.value, this)">
+                            <option value="pending" {{ 'selected' if request.status == 'pending' }}>Pending</option>
+                            <option value="contacted" {{ 'selected' if request.status == 'contacted' }}>Contacted</option>
+                            <option value="completed" {{ 'selected' if request.status == 'completed' }}>Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons">
+                        {% if request.patient_id %}
+                            <a href="{{ url_for('main.patient_workflow_manifest', patient_id=request.patient_id) }}" class="action-btn view">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        {% else %}
+                            <span class="action-btn disabled">
+                                <i class="fas fa-eye-slash"></i> View Details
+                            </span>
+                        {% endif %}
+                        
+                        <button class="action-btn call" onclick="openCommentModal({{ request.id }}, '{{ request.name }}')">
+                            <i class="fas fa-comment"></i> Add Comment
+                        </button>
+                        
+                        <button class="action-btn narrative" onclick="generatePatientNarrative({{ request.id }}, '{{ request.name }}')">
+                            <i class="fas fa-robot"></i> Generate Narrative
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No Consultation Requests Found</h3>
+                <p>
+                    {% if status_filter or date_filter %}
+                        Try adjusting your filters to see more results.
+                    {% else %}
+                        No consultation requests have been submitted yet for your network.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Comment Modal -->
+<div id="commentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close-btn" onclick="closeCommentModal()">&times;</span>
+            <h3 class="modal-title">Add Admin Comment</h3>
+        </div>
+        
+        <div class="modal-body">
+            <p id="modal-patient-info" style="color: #666; margin-bottom: 15px;"></p>
+            <label for="commentText" style="display: block; margin-bottom: 8px; font-weight: 600;">Comment:</label>
+            <textarea id="commentText" placeholder="Add your admin comment here..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button class="modal-btn secondary" onclick="closeCommentModal()">Cancel</button>
+            <button class="modal-btn primary" onclick="saveComment()">Save Comment</button>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Narrative Modal -->
+<div id="narrativeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close-btn" onclick="closeNarrativeModal()">&times;</span>
+            <h3 class="modal-title">Patient Communication Narrative</h3>
+        </div>
+        
+        <div class="modal-body" style="max-height: 60vh; overflow-y: auto; padding: 30px;">
+            <div id="narrative-patient-info" style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+                <div id="patient-name-display" style="font-weight: 600; color: #333; margin-bottom: 5px;"></div>
+                <div id="patient-phone-display" style="color: #666; font-size: 0.95rem;"></div>
+                <div id="patient-email-display" style="color: #666; font-size: 0.9rem;"></div>
+            </div>
+            
+            <div id="narrative-loading" style="display: none; text-align: center; padding: 30px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2.5rem; color: #667eea;"></i>
+                <p style="margin-top: 15px; color: #666; font-size: 1.1rem;">Generating personalized narrative...</p>
+            </div>
+            
+            <div id="narrative-content" style="display: none;">
+                <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #333; font-size: 1.1rem;">📞 Script for Admin to Read to Patient:</label>
+                <div id="narrative-text" style="background: #f8f9fa; padding: 25px; border-radius: 12px; border-left: 5px solid #28a745; font-size: 1.2rem; line-height: 1.7; color: #333; font-family: 'Georgia', serif; font-style: italic;"></div>
+                
+                <div id="narrative-details" style="margin-top: 25px; padding: 20px; background: #e3f2fd; border-radius: 12px; font-size: 1rem;">
+                    <strong style="color: #1976d2; font-size: 1.1rem;">📊 Assessment Details:</strong>
+                    <div id="risk-level-info" style="margin-top: 8px; padding: 8px; background: white; border-radius: 6px;"></div>
+                    <div id="quiz-type-info" style="margin-top: 8px; padding: 8px; background: white; border-radius: 6px;"></div>
+                    <div id="symptoms-info" style="margin-top: 8px; padding: 12px; background: white; border-radius: 6px;"></div>
+                    <div id="risk-explanation-info" style="margin-top: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #17a2b8;"></div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <strong style="color: #856404;">💡 Usage Tips:</strong>
+                    <ul style="margin-top: 8px; padding-left: 20px; color: #856404;">
+                        <li>Read this script naturally - don't sound robotic</li>
+                        <li>Personalize with patient's name and your office name</li>
+                        <li>Be warm and encouraging</li>
+                        <li>Have scheduling links ready to share</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id="narrative-error" style="display: none; padding: 25px; background: #ffe6e6; border-radius: 12px; color: #d63031; text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <div id="narrative-error-text" style="font-size: 1.1rem; font-weight: 600;"></div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #eee; background: linear-gradient(to right, #f8f9fa, #ffffff); border-radius: 0 0 16px 16px;">
+            <div style="color: #666; font-size: 0.9rem; flex: 1;">
+                <i class="fas fa-info-circle"></i> Use this script when calling the patient
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; justify-content: flex-end;">
+                <button class="modal-btn secondary" onclick="closeNarrativeModal()" style="padding: 12px 20px; border: 2px solid #dee2e6; background: white; color: #6c757d; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <button class="modal-btn primary" id="copy-narrative-btn" onclick="copyNarrative()" style="display: none; padding: 12px 20px; background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                    <i class="fas fa-copy" style="margin-right: 8px;"></i>Copy Script
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+var currentRequestId = null;
+
+// Function to toggle comment display
+function toggleComment(requestId) {
+    var commentDiv = document.getElementById('comment-' + requestId);
+    var preview = commentDiv.querySelector('.comment-preview');
+    var full = commentDiv.querySelector('.comment-full');
+    var button = commentDiv.querySelector('.show-more-btn');
+    
+    if (full.style.display === 'none' || !full.style.display) {
+        preview.style.display = 'none';
+        full.style.display = 'block';
+        button.textContent = 'Show less';
+    } else {
+        preview.style.display = 'block';
+        full.style.display = 'none';
+        button.textContent = 'Show more';
+    }
+}
+
+// Function to update status
+function updateStatus(requestId, newStatus, selectElement) {
+    fetch('/forms/update-consultation-status/' + requestId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(result) {
+        if (result.success) {
+            // Update the status badge - find it relative to the select element
+            var card = selectElement.closest('.request-card');
+            var badge = card.querySelector('.status-badge');
+            badge.className = 'status-badge ' + newStatus;
+            badge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+            
+            // Show success message
+            showNotification('Status updated successfully!', 'success');
+        } else {
+            showNotification('Error updating status: ' + result.message, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error updating status:', error);
+        showNotification('Error updating status. Please try again.', 'error');
+    });
+}
+
+// Modal functions
+function openCommentModal(requestId, patientName) {
+    currentRequestId = requestId;
+    document.getElementById('modal-patient-info').textContent = 'Request #' + requestId + ' - ' + patientName;
+    document.getElementById('commentModal').style.display = 'block';
+}
+
+function closeCommentModal() {
+    document.getElementById('commentModal').style.display = 'none';
+    document.getElementById('commentText').value = '';
+    currentRequestId = null;
+}
+
+function saveComment() {
+    var commentText = document.getElementById('commentText').value.trim();
+    
+    if (!commentText) {
+        showNotification('Please enter a comment.', 'error');
+        return;
+    }
+
+    fetch('/forms/api/consultation-requests/' + currentRequestId + '/comments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: commentText })
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(result) {
+        if (result.success) {
+            showNotification('Comment saved successfully!', 'success');
+            closeCommentModal();
+            setTimeout(function() {
+                location.reload();
+            }, 1000);
+        } else {
+            showNotification('Error saving comment: ' + result.message, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error saving comment:', error);
+        showNotification('Error saving comment. Please try again.', 'error');
+    });
+}
+
+// Notification function
+function showNotification(message, type) {
+    var notification = document.createElement('div');
+    notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; z-index: 9999; animation: slideIn 0.3s ease;';
+    
+    if (type === 'success') {
+        notification.style.background = '#28a745';
+    } else {
+        notification.style.background = '#dc3545';
+    }
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(function() {
+        notification.remove();
+    }, 3000);
+}
+
+// Patient Narrative Functions
+function generatePatientNarrative(requestId, patientName) {
+    // Find patient details from the request card
+    var requestCard = document.querySelector('[data-request-id="' + requestId + '"]') || 
+                     document.querySelector('.request-card:has([onclick*="' + requestId + '"])') ||
+                     Array.from(document.querySelectorAll('.request-card')).find(card => 
+                         card.innerHTML.includes('Request #' + requestId));
+    
+    var patientPhone = 'Phone not available';
+    var patientEmail = 'Email not available';
+    
+    if (requestCard) {
+        // Try to extract phone and email from the card
+        var phoneElement = requestCard.querySelector('.request-phone') || 
+                          requestCard.querySelector('[href^="tel:"]');
+        var emailElement = requestCard.querySelector('.request-email') || 
+                          requestCard.querySelector('[href^="mailto:"]');
+        
+        if (phoneElement) {
+            patientPhone = phoneElement.textContent.trim() || phoneElement.getAttribute('href').replace('tel:', '');
+        }
+        if (emailElement) {
+            patientEmail = emailElement.textContent.trim() || emailElement.getAttribute('href').replace('mailto:', '');
+        }
+    }
+    
+    // Update patient info display
+    document.getElementById('patient-name-display').textContent = 'Patient: ' + patientName;
+    document.getElementById('patient-phone-display').innerHTML = '<i class="fas fa-phone"></i> ' + patientPhone;
+    document.getElementById('patient-email-display').innerHTML = '<i class="fas fa-envelope"></i> ' + patientEmail;
+    
+    // Open modal and show loading state
+    document.getElementById('narrativeModal').style.display = 'block';
+    document.getElementById('narrative-loading').style.display = 'block';
+    document.getElementById('narrative-content').style.display = 'none';
+    document.getElementById('narrative-error').style.display = 'none';
+    document.getElementById('copy-narrative-btn').style.display = 'none';
+
+    // Call API to generate narrative
+    fetch('/forms/api/generate-patient-narrative/' + requestId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(result) {
+        document.getElementById('narrative-loading').style.display = 'none';
+        
+        console.log('API Response:', result); // Debug log
+        
+        if (result.success) {
+            // Show narrative content with debugging
+            var narrativeElement = document.getElementById('narrative-text');
+            var narrativeText = result.narrative || 'No narrative generated';
+            
+            console.log('Setting narrative text:', narrativeText); // Debug log
+            
+            // Set the text content and ensure it's visible
+            narrativeElement.textContent = narrativeText;
+            narrativeElement.style.color = '#333';
+            narrativeElement.style.fontSize = '1.1rem';
+            narrativeElement.style.lineHeight = '1.6';
+            
+            // Set assessment details with better formatting
+            var riskLevel = (result.risk_level || 'Unknown').toString().toUpperCase();
+            var riskColor = riskLevel === 'HIGH' ? '#dc3545' : riskLevel === 'MODERATE' ? '#ffc107' : '#28a745';
+            var riskIcon = riskLevel === 'HIGH' ? '🔴' : riskLevel === 'MODERATE' ? '🟡' : '🟢';
+            
+            document.getElementById('risk-level-info').innerHTML = 
+                '<div style="color: #333; font-size: 1rem; font-weight: 600; margin-bottom: 8px;">Sleep Apnea Risk Level:</div>' + 
+                '<span style="color: ' + riskColor + '; font-weight: bold; font-size: 1.2rem; display: inline-block;">' + 
+                riskIcon + ' ' + riskLevel + '</span>';
+            
+            document.getElementById('quiz-type-info').innerHTML = 
+                '<div style="color: #333; font-size: 1rem; font-weight: 600; margin-bottom: 8px;">Assessment Type:</div>' + 
+                '<span style="color: #007bff; font-weight: 600; font-size: 1.1rem;">' + 
+                (result.quiz_type === 'basic_quiz' ? '📋 Basic Sleep Assessment' : '📊 Advanced Sleep Assessment') + 
+                '</span>';
+            
+            // Display specific patient symptoms
+            var symptoms = result.specific_symptoms || [];
+            var symptomsHtml = '<div style="color: #333; font-size: 1rem; font-weight: 600; margin-bottom: 12px;">Specific Symptoms Reported:</div>';
+            
+            if (symptoms.length > 0) {
+                symptomsHtml += '<ul style="margin: 8px 0; padding-left: 20px; color: #333; font-size: 0.95rem;">';
+                symptoms.forEach(function(symptom) {
+                    symptomsHtml += '<li style="margin: 6px 0; line-height: 1.5; color: #555;">' + symptom + '</li>';
+                });
+                symptomsHtml += '</ul>';
+                symptomsHtml += '<div style="margin-top: 12px; padding: 8px 12px; background: #e7f3ff; border-radius: 6px; font-size: 0.9rem; color: #0066cc; font-weight: 600;">Total Symptoms: ' + symptoms.length + '</div>';
+            } else {
+                symptomsHtml += '<div style="margin: 8px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; color: #666; font-style: italic; font-size: 0.95rem;">No specific symptoms reported in this assessment</div>';
+            }
+            
+            document.getElementById('symptoms-info').innerHTML = symptomsHtml;
+            
+            // Display risk explanation
+            var riskExplanation = result.risk_explanation || 'No detailed explanation available';
+            document.getElementById('risk-explanation-info').innerHTML = 
+                '<div style="color: #333; font-size: 1rem; font-weight: 600; margin-bottom: 10px;">Clinical Assessment:</div>' +
+                '<div style="line-height: 1.6; color: #444; font-size: 0.95rem; padding: 4px 0;">' + riskExplanation + '</div>';
+            
+            // Show content
+            document.getElementById('narrative-content').style.display = 'block';
+            var copyBtn = document.getElementById('copy-narrative-btn');
+            copyBtn.style.display = 'flex';
+            copyBtn.style.alignItems = 'center';
+            copyBtn.style.justifyContent = 'center';
+            
+            console.log('Narrative display updated successfully'); // Debug log
+        } else {
+            // Show error
+            console.log('API Error:', result.message); // Debug log
+            document.getElementById('narrative-error-text').textContent = result.message;
+            document.getElementById('narrative-error').style.display = 'block';
+        }
+    })
+    .catch(function(error) {
+        document.getElementById('narrative-loading').style.display = 'none';
+        document.getElementById('narrative-error-text').textContent = 'Network error. Please try again.';
+        document.getElementById('narrative-error').style.display = 'block';
+        console.error('Error generating narrative:', error);
+    });
+}
+
+function closeNarrativeModal() {
+    document.getElementById('narrativeModal').style.display = 'none';
+}
+
+function copyNarrative() {
+    var narrativeText = document.getElementById('narrative-text').textContent;
+    
+    // Try to copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(narrativeText).then(function() {
+            showNotification('Narrative copied to clipboard!', 'success');
+        }).catch(function() {
+            fallbackCopyTextToClipboard(narrativeText);
+        });
+    } else {
+        fallbackCopyTextToClipboard(narrativeText);
+    }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showNotification('Narrative copied to clipboard!', 'success');
+        } else {
+            showNotification('Failed to copy narrative', 'error');
+        }
+    } catch (err) {
+        showNotification('Failed to copy narrative', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    var commentModal = document.getElementById('commentModal');
+    var narrativeModal = document.getElementById('narrativeModal');
+    
+    if (event.target === commentModal) {
+        closeCommentModal();
+    }
+    if (event.target === narrativeModal) {
+        closeNarrativeModal();
+    }
+}
+
+// Handle filter changes - FIXED VERSION
+function initializeFilters() {
+    var statusSelect = document.getElementById('status');
+    var dateSelect = document.getElementById('date_range');
+    var filterForm = document.getElementById('filterForm');
+    
+    console.log('Initializing filters...'); // Debug log
+    
+    if (statusSelect && filterForm) {
+        console.log('Status filter found, adding event listener');
+        statusSelect.onchange = function() {
+            console.log('Status changed to:', this.value);
+            filterForm.submit();
+        };
+    }
+    
+    if (dateSelect && filterForm) {
+        console.log('Date filter found, adding event listener');
+        dateSelect.onchange = function() {
+            console.log('Date changed to:', this.value);
+            filterForm.submit();
+        };
+    }
+}
+
+// Initialize when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeFilters);
+} else {
+    initializeFilters();
+}
+</script>
+
+<style>
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %} 

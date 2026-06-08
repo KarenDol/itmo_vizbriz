@@ -1,0 +1,2307 @@
+[
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.index",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.admin_clinic_cases",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/admin-clinic-cases"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "admin.patient_search",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/admin/api/patient-search"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.admin_dentist_treatment_quizzes",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/admin/dentist-treatment-quizzes"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "ingest.import_case_reports",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/admin/import_case_reports"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "admin.patient_management_dashboard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/admin/patient-management"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.show_advanced_quiz",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/advanced_quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.analyze_quiz_route",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/agent/analyze_quiz"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.chat_with_agent",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/agent/chat/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.agent_initial_analysis",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/agent/initial_analysis/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.agent_chat",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/agent_chat"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.agent_interface",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/agent_interface/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.analyze_file",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/analyze_file"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.analyze_quiz",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/analyze_quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.analyze_quiz_part_b",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/analyze_quiz_part_b"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.anonymize_dicom_zip",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/anonymize"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.anonymize_page",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/anonymize_page"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.get_all_actions",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/actions/all"
+  },
+  {
+    "arguments": [
+      "stage_key"
+    ],
+    "defaults": {},
+    "endpoint": "action.get_available_actions",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/actions/available/<stage_key>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.get_action_manifest",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/actions/manifest"
+  },
+  {
+    "arguments": [
+      "dso_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.get_admin_clinics_by_dso",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/admin/clinics/<int:dso_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_admin_dsos",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/admin/dsos"
+  },
+  {
+    "arguments": [
+      "clinic_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.get_admin_patients_by_clinic",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/admin/patients/<int:clinic_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_admin_all_patients",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/admin/patients/all"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_approve_osa_report",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/approve_osa_report"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.api_backfill_canonical",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/backfill-canonical"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.generate_workflow_content",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/bedrock/generate_workflow_content/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_bedrock_logs",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/bedrock/logs"
+  },
+  {
+    "arguments": [
+      "session_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.get_session_performance",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/bedrock/logs/<session_id>/performance"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.bedrock_chat",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/bedrock_chat"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_complete_appliance_delivery",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/complete_appliance_delivery"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_complete_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/complete_consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_complete_dental_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/complete_dental_consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_complete_sleep_doctor_followup",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/complete_sleep_doctor_followup"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.api_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.api_consultation_test",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/api/consultation-test"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.download_definition_manifest",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/definition_manifest"
+  },
+  {
+    "arguments": [
+      "quiz_id"
+    ],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.get_dentist_treatment_quiz_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/dentist-treatment-quiz/<int:quiz_id>/files"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_dentist_clinics",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/dentist/clinics"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.api_ingest_delta",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/ingest-delta"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.analyze_and_suggest_actions",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/llm/analyze_and_suggest_actions"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.execute_action",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/llm/execute_action"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "action.llm_select_actions",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/llm/select_actions/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_order_oral_appliance",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/order_oral_appliance"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.api_patient_lookup",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/patient-lookup"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.patient_search",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/patient-search"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.api_list_cbct_folders",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/patient/<int:patient_id>/cbct_folders"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "action.api_get_patient_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/patient/<int:patient_id>/files"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "action.api_get_patient_history",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/patient/<int:patient_id>/history"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.api_get_patient_observations",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/patient/<int:patient_id>/observations"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_patient_field",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/patient/<int:patient_id>/update_field"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_patient_status_api",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/patient/<int:patient_id>/update_status"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.validate_patient_manifest_api",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/patient/<int:patient_id>/validate_manifest"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_comments",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/api/patients/<int:patient_id>/comments"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_remind_consultation_scheduling",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/remind_consultation_scheduling"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_remind_document_upload",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/remind_document_upload"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_remind_quiz_completion",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/remind_quiz_completion"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_remind_sleep_study",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/remind_sleep_study"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_request_followup_sleep_test",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/request_followup_sleep_test"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_request_osa_report",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/request_osa_report"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_schedule_appliance_delivery",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/schedule_appliance_delivery"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_schedule_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/schedule_consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_schedule_dental_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/schedule_dental_consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_schedule_sleep_study",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/schedule_sleep_study"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_schedule_sleep_test_review",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/schedule_sleep_test_review"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_send_cbct_request_email",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/send_cbct_request_email"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_send_hipaa_consent_email",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/send_hipaa_consent_email"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "cursor.send_hipaa_consent_email",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/send_hipaa_consent_email"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_send_osa_report_request_email",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/send_osa_report_request_email"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_send_quiz",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/send_quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_send_reminder",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/send_reminder"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_share_patient_files",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/share_patient_files"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.api_share_patient_items",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/share_patient_items"
+  },
+  {
+    "arguments": [
+      "patient_id",
+      "stage_key"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.get_stage_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/stage_files/<int:patient_id>/<stage_key>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.get_conversion_funnel",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/tracking/conversion-funnel"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.get_engagement_stats",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/tracking/engagement-stats"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.test_tracking",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/tracking/test"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.track_cta_click",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/tracking/track-cta-click"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.track_email_click",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/api/tracking/track-email-click"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.track_email_delivery",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/tracking/track-email-delivery"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "tracking.track_page_view",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/tracking/track-page-view"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "action.api_update_device_delivery",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/api/update_device_delivery"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.archive_patient",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/archive_patient/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.get_patient_status_bedrock",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/bedrock/patient_status/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.simple_bedrock_query",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/bedrock/simple_query"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.test_bedrock_advanced",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/bedrock/test_advanced/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.test_bedrock_browser",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/bedrock/test_browser/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.test_bedrock_connection",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/bedrock/test_connection"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.upload_manifest_file",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/bedrock/upload_manifest"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.upload_patient_file",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/bedrock/upload_patient_file/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.upload_patient_policy",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/bedrock/upload_policy/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.billing",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/billing"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.get_cbct_progress",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/cbct_progress/<patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.change_password",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/change_password"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.confirm_upload",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/confirm_upload"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.consultation_form",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/consultation_form"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.convert_glb_to_stl",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/convert_glb_to_stl"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.convert_rar_to_zip",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/convert_rar_to_zip"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.create_claim",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/create_claim"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.create_report_wizard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/create_report_wizard"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "cursor.complete_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/cursor_api/actions/complete_consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "cursor.request_cbct_files",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/cursor_api/actions/request_cbct_files"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "cursor.schedule_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/cursor_api/actions/schedule_consultation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "cursor.send_quiz_link",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/cursor_api/actions/send_quiz_link"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "cursor.cursor_test",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/cursor_test"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.delete_admin_file",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/delete_admin_file/<int:file_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "partnerMgmt.dental_course_qr",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dental_course_qr"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "partnerMgmt.dental_course_qr_image",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dental_course_qr_image"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "partnerMgmt.dental_course_registration",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/dental_course_registration"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.dentist_treatment_quiz_home",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dentist-treatment-quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.show_dentist_treatment_quiz",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dentist-treatment-quiz"
+  },
+  {
+    "arguments": [
+      "quiz_id"
+    ],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.get_dentist_treatment_quiz_html_report",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dentist-treatment-quiz/<int:quiz_id>/html-report"
+  },
+  {
+    "arguments": [
+      "quiz_id"
+    ],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.get_dentist_treatment_quiz_pdf",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dentist-treatment-quiz/<int:quiz_id>/pdf"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.dentist_treatment_quiz_analytics",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dentist-treatment-quiz/analytics"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.dentist_treatment_quiz_history",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/dentist-treatment-quiz/history/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.submit_dentist_treatment_quiz",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/dentist-treatment-quiz/submit"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.direct_file_upload",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/direct_file_upload"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "docValid.doc_valid",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/doc_valid"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.download_admin_file",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/download_admin_file/<int:file_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.download_billing_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/download_billing_files/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.download_file",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/download_file/<int:file_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.download_files",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/download_files"
+  },
+  {
+    "arguments": [
+      "submission_id"
+    ],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.download_quiz_answers",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/download_quiz_answers/<int:submission_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "cursor.get_execution_manifest",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/execution_manifest/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.export_csv",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/export_csv"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.delete_file",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/file/<int:file_id>/delete"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_file_comment",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/file/<int:file_id>/update_comment"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_file_mapping",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/file/<int:file_id>/update_mapping"
+  },
+  {
+    "arguments": [
+      "token"
+    ],
+    "defaults": {},
+    "endpoint": "action.resolve_file_share",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/file/share/<token>"
+  },
+  {
+    "arguments": [
+      "filename"
+    ],
+    "defaults": null,
+    "endpoint": "static",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/flask_static/<path:filename>"
+  },
+  {
+    "arguments": [
+      "viewer_type",
+      "selected_folder"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.folder_selection",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/folder_selection/<viewer_type>/<path:selected_folder>"
+  },
+  {
+    "arguments": [
+      "request_id"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.add_consultation_request_comment",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/forms/api/consultation-requests/<int:request_id>/comments"
+  },
+  {
+    "arguments": [
+      "request_id"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.generate_patient_narrative",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/forms/api/generate-patient-narrative/<int:request_id>"
+  },
+  {
+    "arguments": [
+      "request_id"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.consultation_request_detail",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/consultation-request/<int:request_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "forms_mgmt.consultation_requests",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/consultation-requests"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "forms_mgmt.dashboard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/dashboard"
+  },
+  {
+    "arguments": [
+      "format"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.export_consultation_requests",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/export/consultation-requests/<format>"
+  },
+  {
+    "arguments": [
+      "format"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.export_quiz_submissions",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/export/quiz-submissions/<format>"
+  },
+  {
+    "arguments": [
+      "submission_id"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.quiz_submission_detail",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/quiz-submission/<int:submission_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "forms_mgmt.quiz_submissions",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/forms/quiz-submissions"
+  },
+  {
+    "arguments": [
+      "request_id"
+    ],
+    "defaults": {},
+    "endpoint": "forms_mgmt.update_consultation_status",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/forms/update-consultation-status/<int:request_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.full_package_qr_code",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/full_package_qr_code"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.funnel_analytics",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/funnel-analytics"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.generate_client_presigned_url",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/generate_client_presigned_url"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.generate_presigned_links",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/generate_presigned_links"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.generate_report",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/generate_report"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_patients_for_autocomplete",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/get_patients_for_autocomplete"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_patients_for_autocomplete_forms",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/get_patients_for_autocomplete_forms"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.get_patients_for_select",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/get_patients_for_select"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.get_s3_tree",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/get_s3_tree"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.get_status_types",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/get_status_types"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.glb_to_stl",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/glb_to_stl"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.health_check",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/health"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.index",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/home"
+  },
+  {
+    "arguments": [
+      "folder"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.load_dicom",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/load_dicom/<path:folder>"
+  },
+  {
+    "arguments": [
+      "folder"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.load_images",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/load_images/<path:folder>"
+  },
+  {
+    "arguments": [
+      "folder"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.load_stl",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/load_stl/<path:folder>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.load_tree_strcture",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/load_tree_strcture"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.login",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/login"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.logout",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/logout"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.medicare_qr_code",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/medicare_qr_code"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.notifications",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/notifications"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.osa_guidelines",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/osa_guidelines"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.osa_guidelines_qr_code",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/osa_guidelines_qr_code"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.partner_generate_presigned_url",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/partner_generate_presigned_url"
+  },
+  {
+    "arguments": [
+      "token"
+    ],
+    "defaults": {},
+    "endpoint": "partnerMgmt.partner_upload",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/partner_upload/<token>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.partner_upload_confirm",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/partner_upload_confirm"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.partner_upload_presigned_url",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/partner_upload_presigned_url"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.patient_list",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient-list"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_details",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/patient/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.download_all_patient_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient/<int:patient_id>/download_all"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_patient_status",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient/<int:patient_id>/status/update"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.upload_patient_report",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient/<int:patient_id>/upload_report"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.patient_management_dashboard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_management_dashboard"
+  },
+  {
+    "arguments": [
+      "quiz_id",
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_quiz_details",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_quiz_details/<int:patient_id>/<int:quiz_id>"
+  },
+  {
+    "arguments": [
+      "quiz_id",
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_quiz_pdf",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_quiz_pdf/<int:patient_id>/<int:quiz_id>"
+  },
+  {
+    "arguments": [
+      "patient_id",
+      "stage_key"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_stage_detail",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/<stage_key>"
+  },
+  {
+    "arguments": [
+      "patient_id",
+      "stage_key"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.handle_stage_action",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/<stage_key>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.schedule_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/consultation_schedule"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.validate_consultation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/consultation_validate"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.order_oral_appliance",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/order_appliance"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.schedule_appliance_delivery",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/schedule_appliance_delivery"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_device_status",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/patient_stage/<int:patient_id>/update_device_status"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.patient_status_list",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_status_list"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_workflow_bedrock",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_workflow_bedrock/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_workflow_bootstrap",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_workflow_bootstrap/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_workflow_manifest",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_workflow_manifest/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.patient_workflow_test",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/patient_workflow_test/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.process_cbct_for_orthanc",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/process_cbct_for_orthanc"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.process_cbct_for_orthanc_stream",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/process_cbct_for_orthanc_stream"
+  },
+  {
+    "arguments": [
+      "code"
+    ],
+    "defaults": {},
+    "endpoint": "partnerMgmt.qr_redirect",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/qr/<code>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.show_quiz",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.quiz_dashboard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/quiz-dashboard"
+  },
+  {
+    "arguments": [
+      "file_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.remove_file",
+    "methods": [
+      "DELETE"
+    ],
+    "rule": "/remove_file/<int:file_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.s3_bucket_tree",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/s3_bucket_tree"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "partnerMgmt.send_email",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/send_partner_email"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.split_multiframe_dicom",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/split_multiframe_dicom"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.stop_cbct_process",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/stop_cbct_process/<patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.store_admin_file_metadata",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/store_admin_file_metadata"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.store_file_metadata",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/store_file_metadata"
+  },
+  {
+    "arguments": [
+      "submission_id"
+    ],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.submission_details",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/submission/<int:submission_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.support",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/support"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.test_route",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.test_consultation_button",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test-consultation-button"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.test_consultation_direct",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test-consultation-direct"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "osaagent.test_dashboard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test-dashboard"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.test_dentist_quiz_route",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test-dentist-quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.test_tracking_debug",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test-tracking-debug"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.test_bedrock_simple",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test_bedrock_simple/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.test_metadata_store",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test_metadata_store"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.test_patient_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test_patient_files/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "osaagent.test_patient_journey_data",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test_patient_journey_data/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "conversion_quiz_agent.test_quiz",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/test_quiz"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.trigger_cbct_page",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/trigger_cbct_page"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "main.update_patient",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/update_patient/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.upload",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/upload"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "docValid.upload_document_for_validation",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/upload_document_for_validation"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "filemgmt.upload_files_to_orthanc",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/upload_files_to_orthanc"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "main.upload_new",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/upload_new"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "filemgmt.upload_patient_billing",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/upload_patient_billing/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "viewer.upload_testing_file",
+    "methods": [
+      "POST"
+    ],
+    "rule": "/upload_testing_file"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.viewer_page",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/viewer/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.fetch_viewer_files",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/viewer/files/<int:patient_id>"
+  },
+  {
+    "arguments": [
+      "patient_id"
+    ],
+    "defaults": {},
+    "endpoint": "viewer.viewer_imaging",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/viewer_imaging/<int:patient_id>"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.end_wizard",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/wizard/end_wizard"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.generate_qr",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/wizard/generate_qr"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.get_barcode",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/wizard/get_barcode"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.wizard_options",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/options"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.quiz_qr_code",
+    "methods": [
+      "GET"
+    ],
+    "rule": "/wizard/quiz_qr_code"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.stage1_personal_info",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/stage1_personal_info"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.stage2_epworth_survey",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/stage2_epworth_survey"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.stage3_sleep_info",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/stage3_sleep_info"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.stage4_cpap_intolerance",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/stage4_cpap_intolerance"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.stage5_informed_consent",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/stage5_informed_consent"
+  },
+  {
+    "arguments": [],
+    "defaults": {},
+    "endpoint": "wizard.stage6_hipaa_authorization",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "rule": "/wizard/stage6_hipaa_authorization"
+  }
+]

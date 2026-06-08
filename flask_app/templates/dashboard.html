@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard - Oral Appliances Usage
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid dashboard-page">
+    <!-- Overview Section with Aligned and Slightly Enlarged Cards -->
+    <div class="row overview-cards">
+        <div class="col s12 m6 l3">
+            <div class="card uniform-card">
+                <div class="card-content">
+                    <h5 class="card-title">Turnover</h5>
+                    <p class="large-number">${{ "{:,.2f}".format(turnover_last_30) }}</p>
+                    {% if turnover_change_percentage is not none %}
+                        <p class="status-change {% if turnover_change_percentage >= 0 %}green-text{% else %}red-text{% endif %}">
+                            <i class="material-icons {% if turnover_change_percentage >= 0 %}green-text{% else %}red-text{% endif %}">
+                                {% if turnover_change_percentage >= 0 %}arrow_upward{% else %}arrow_downward{% endif %}
+                            </i> {{ turnover_change_percentage }}% from previous 30 days
+                        </p>
+                    {% else %}
+                        <p class="status-change">No previous data</p>
+                    {% endif %}
+                    <span class="card-icon material-icons">shopping_cart</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claims Waiting Card -->
+        <div class="col s12 m6 l3">
+            <div class="card uniform-card">
+                <div class="card-content">
+                    <h5 class="card-title">Claims Waiting</h5>
+                    <p class="large-number">${{ "{:,.2f}".format(claims_waiting_last_30) }}</p>
+                    {% if claims_waiting_change_percentage is not none %}
+                        <p class="status-change {% if claims_waiting_change_percentage >= 0 %}green-text{% else %}red-text{% endif %}">
+                            <i class="material-icons {% if claims_waiting_change_percentage >= 0 %}green-text{% else %}red-text{% endif %}">
+                                {% if claims_waiting_change_percentage >= 0 %}arrow_upward{% else %}arrow_downward{% endif %}
+                            </i> {{ claims_waiting_change_percentage }}% from previous 30 days
+                        </p>
+                    {% else %}
+                        <p class="status-change">No previous data</p>
+                    {% endif %}
+                    <span class="card-icon material-icons">attach_money</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Patients Card -->
+        <div class="col s12 m6 l3">
+            <div class="card uniform-card">
+                <div class="card-content">
+                    <h5 class="card-title">New Patients</h5>
+                    <p class="large-number">{{ new_patients_last_30 }}</p>
+                    <span class="card-icon material-icons">person_add</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treatments Card with Full Pie Chart -->
+        <div class="col s12 m6 l3">
+            <div class="card uniform-card">
+                <div class="card-content">
+                    <h5 class="card-title">Treatments</h5>
+                    <div class="chart-container">
+                        <canvas id="oralApplianceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Claim Button and Search Bar -->
+<div class="row">
+    <div class="col s12 m6">
+        <input type="text" id="searchClaims" class="search-bar" placeholder="Search claims...">
+    </div>
+    <div class="col s12 m6 right-align">
+        <a href="{{ url_for('dashboard.create_claim') }}" class="btn waves-effect waves-light blue">
+            <i class="material-icons left">add</i> New Claim
+        </a>
+    </div>
+</div>
+
+<!-- Claims List Section with Fixed Header and Full-Width Table -->
+<div class="card claims-card">
+    <div class="card-content">
+        <h5 class="card-title">Claims List</h5>
+        <div class="table-container">
+            <table class="striped responsive-table full-width-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient Name</th>
+                        <th>Dentist Name</th>
+                        <th>Diagnosis</th>
+                        <th>Last Updated</th>
+                        <th>Amount</th>
+                        <th>Insurer</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="claimsTableBody">
+                    {% for claim in claims %}
+                    <tr onclick="window.location.href='{{ url_for('dashboard.edit_claim', claim_id=claim.id) }}'" style="cursor: pointer;">
+                        <td>{{ claim.id }}</td>
+                        <td>{{ claim.patient.name }}</td>
+                        <td>{{ claim.dentist.name }}</td>
+                        <td>{{ claim.diagnosis }}</td>
+                        <td>{{ claim.last_update.strftime('%d/%m/%Y') }}</td>
+                        <td>${{ "{:,.2f}".format(claim.claim_amount) }}</td>
+                        <td>{{ claim.insurer }}</td>
+                        <td><span class="{{ claim.status | lower | replace(' ', '-') }}-status">{{ claim.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8">No claims available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the chart
+    const navLinks = document.querySelectorAll('.sidenav li > a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function (event) {
+            // Update the active class
+            document.querySelectorAll('.sidenav li').forEach(li => li.classList.remove('active'));
+            event.currentTarget.parentElement.classList.add('active');
+
+            // Do NOT call event.preventDefault(); it blocks navigation
+        });
+    });
+
+    const oralApplianceData = {
+        labels: {{ treatment_labels|tojson }},
+        datasets: [{
+            label: 'Oral Appliances Usage',
+            data: {{ treatment_counts|tojson }},
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#FF5722', '#9C27B0'],
+            hoverOffset: 4
+        }]
+    };
+
+    const config = {
+        type: 'pie',
+        data: oralApplianceData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            maintainAspectRatio: false
+        }
+    };
+
+    const ctx = document.getElementById('oralApplianceChart').getContext('2d');
+    new Chart(ctx, config);
+
+    // Search filter for claims table
+    document.getElementById('searchClaims').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#claimsTableBody tr');
+        rows.forEach(row => {
+            const cells = Array.from(row.children);
+            const text = cells.map(cell => cell.textContent.toLowerCase()).join(' ');
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-page { margin-top: 10px; }
+    .card, .uniform-card {
+        background-color: #1e1e1e !important;
+        color: #e0e0e0 !important;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        height: 180px; /* Slightly increased height to fit the full chart */
+    }
+    .uniform-card { display: flex; flex-direction: column; justify-content: center; position: relative; height: 180px; }
+    .card-content { display: flex; flex-direction: column; align-items: center; padding: 10px; }
+    .large-number { font-size: 1.6rem !important; font-weight: bold; color: #bb86fc; }
+    .card-title { font-size: 1.2rem; font-weight: bold; color: #e0e0e0; }
+    .status-change { font-size: 1rem; display: flex; align-items: center; }
+    .status-change i { font-size: 1.2rem; margin-right: 3px; }
+    .card-icon { position: absolute; top: 5px; right: 5px; font-size: 2rem; color: #757575; }
+    .chart-container { height: 120px; width: 120px; }
+    #oralApplianceChart { max-height: 100%; max-width: 100%; }
+
+    .claims-card { overflow: visible; width: 100%; height: auto; }
+    .table-container { max-height: none; overflow: visible; } /* No internal scrolling */
+    .full-width-table { width: 100%; table-layout: fixed; font-size: 0.9rem; } /* Adjusted font size */
+    /* Force the dark grey color for odd rows */
+    .striped tbody tr:nth-child(odd) {
+        background-color: #2a2a2a !important; /* Darker grey for odd rows */  }
+    .striped tbody tr:nth-child(even) {background-color: rgba(45, 45, 45, 0.6) !important; /* Slightly lighter grey for even rows */ }
+    .striped tbody tr:hover {background-color: rgba(255, 255, 255, 0.2) !important; /* Hover effect */}
+    .responsive-table th, .responsive-table td { color: #e0e0e0; padding: 5px; }
+    .responsive-table th { color: #bb86fc; position: sticky; top: 0; background-color: #1e1e1e; z-index: 1; }
+    .material-icons { color: #bb86fc !important; }
+    .search-bar { margin-bottom: 10px; width: 100%; padding: 6px; color: #e0e0e0; background-color: #2c2c2c; border: 1px solid #555; font-size: 0.9rem; }
+</style>
+{% endblock %}
+{% endblock %}

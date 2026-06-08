@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}Level 4 Reports: Observations & Device Recommendations - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .report-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .report-info h3 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+    }
+    
+    .report-info p {
+        margin: 5px 0;
+        opacity: 0.9;
+    }
+    
+    .section {
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .section:last-child {
+        border-bottom: none;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: #667eea;
+        margin-right: 10px;
+        border-radius: 2px;
+    }
+    
+    .clinical-context {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .device-design-card {
+        background: #e8f5e9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #4caf50;
+    }
+    
+    .device-design-header {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 10px;
+    }
+    
+    .design-param {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #c8e6c9;
+    }
+    
+    .design-param:last-child {
+        border-bottom: none;
+    }
+    
+    .param-label {
+        font-weight: 500;
+        color: #555;
+    }
+    
+    .param-value {
+        color: #333;
+    }
+    
+    .device-option {
+        background: #fff3e0;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #ff9800;
+    }
+    
+    .device-option-name {
+        font-weight: 600;
+        color: #e65100;
+        margin-bottom: 5px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+    
+    .search-filter {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .search-filter input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+    
+    .info-box {
+        background: #f5f5f5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        border-left: 3px solid #667eea;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1 style="margin-bottom: 10px; color: #333;">Level 4 Reports: Observations & Device Recommendations</h1>
+    <p style="color: #666; margin-bottom: 30px;">
+        View Level 4 report data: Clinical findings, device design recommendations, and device options.
+        This matches the case card structure used for Knowledge Base uploads.
+    </p>
+    
+    <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <button onclick="showTableView()" id="tableBtn" class="view-btn active">Table View (Causality)</button>
+        <button onclick="showCardView()" id="cardBtn" class="view-btn">Card View (Details)</button>
+    </div>
+    
+    <div class="search-filter">
+        <input type="text" id="reportSearch" placeholder="Search by report name, patient name, dentist name, or observation..." onkeyup="filterData()">
+    </div>
+    
+    <!-- Causality Table View -->
+    <div id="tableView" style="display: block;">
+        <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <h2 style="margin-top: 0; color: #333;">Causality Table: Observations → Device Design Parameters</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                See how clinical observations from Level 4 reports relate to device design recommendations.
+                This helps identify patterns and understand causality.
+            </p>
+            
+            {% if not causality_data or causality_data|length == 0 %}
+            <div class="empty-state">
+                <p>No Level 4 data available. Process reports to see causality patterns.</p>
+                <p style="font-size: 14px; color: #999; margin-top: 10px;">
+                    Run: python scripts/process_l4_reports.py --input "/path/to/reports/"
+                </p>
+            </div>
+            {% else %}
+            
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #667eea; color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd; position: sticky; left: 0; background: #667eea; z-index: 10;">Report</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd; position: sticky; left: 200px; background: #667eea; z-index: 10;">Patient ID</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Context</th>
+                            
+                            <!-- OBSERVATIONS SECTION (Blue background) -->
+                            <th colspan="9" style="padding: 10px; text-align: center; border: 1px solid #ddd; background: #1976d2;">OBSERVATIONS (from Level 4 Report)</th>
+                            
+                            <!-- DEVICE DESIGN SECTION (Green background) -->
+                            <th colspan="8" style="padding: 10px; text-align: center; border: 1px solid #ddd; background: #2e7d32;">DEVICE DESIGN (Recommended)</th>
+                            
+                            <!-- DEVICE OPTIONS SECTION (Orange background) -->
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd; background: #e65100;">DEVICE OPTIONS</th>
+                        </tr>
+                        <tr style="background: #667eea; color: white;">
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 0; background: #667eea; z-index: 10;"></th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 200px; background: #667eea; z-index: 10;"></th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 400px; background: #667eea; z-index: 10;"></th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 500px; background: #667eea; z-index: 10;"></th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;"></th>
+                            <!-- Observation columns -->
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">AHI</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">O2 Nadir</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Snoring</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Obstruction Sites</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Tongue Position</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Bite Structure</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Soft Palate/Uvula</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Clinical Background</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e3f2fd;">Complaints</th>
+                            <!-- Device Design columns -->
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Mandibular Adv.</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Preset (mm)</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Vertical Opening</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Anterior Window</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Material</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Retention</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Coverage</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #e8f5e9;">Clinical Notes</th>
+                            <!-- Device Options -->
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #fff3e0;">Devices</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in causality_data %}
+                        <tr style="border-bottom: 1px solid #e0e0e0;" 
+                            data-report="{{ row.report_id|lower }}"
+                            data-patient="{{ row.patient_name|lower if row.patient_name else '' }} {{ row.patient_id|lower if row.patient_id else '' }}"
+                            data-dentist="{{ row.dentist_name|lower if row.dentist_name else '' }}"
+                            data-observation="{{ (row.obstruction_sites or '')|lower }} {{ (row.tongue_position or '')|lower }}">
+                            <!-- Report Info (sticky) -->
+                            <td style="padding: 8px; border: 1px solid #ddd; position: sticky; left: 0; background: white; font-weight: 500;">{{ row.report_id }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; position: sticky; left: 200px; background: white; font-weight: 500;">{{ row.patient_name if row.patient_name else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; position: sticky; left: 400px; background: white;">{{ row.patient_id if row.patient_id else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; position: sticky; left: 500px; background: white;">{{ row.dentist_name if row.dentist_name else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">{{ row.design_context|replace('_', ' ')|title }}</td>
+                            
+                            <!-- OBSERVATIONS -->
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">{{ row.ahi if row.ahi else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">{{ row.o2_nadir if row.o2_nadir else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">{{ row.snoring_level if row.snoring_level else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5; max-width: 150px;">{{ row.obstruction_sites[:80] if row.obstruction_sites else '' }}{% if row.obstruction_sites and row.obstruction_sites|length > 80 %}...{% endif %}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">{{ row.tongue_position if row.tongue_position else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">{{ row.bite_structure if row.bite_structure else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5;">{{ row.soft_palate_uvula if row.soft_palate_uvula else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5; max-width: 150px;">{{ row.clinical_background[:80] if row.clinical_background else '' }}{% if row.clinical_background and row.clinical_background|length > 80 %}...{% endif %}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f5f5f5; max-width: 150px;">{{ row.patient_complaints[:80] if row.patient_complaints else '' }}{% if row.patient_complaints and row.patient_complaints|length > 80 %}...{% endif %}</td>
+                            
+                            <!-- DEVICE DESIGN -->
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9;">{{ row.mandibular_advancement if row.mandibular_advancement else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9;">{{ row.preset_mm if row.preset_mm else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9;">{{ row.vertical_opening if row.vertical_opening else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9;">{{ row.anterior_window if row.anterior_window else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9;">{{ row.material if row.material else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9; max-width: 120px;">{{ row.retention_features[:60] if row.retention_features else '' }}{% if row.retention_features and row.retention_features|length > 60 %}...{% endif %}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9;">{{ row.coverage_notes if row.coverage_notes else '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #f1f8e9; max-width: 150px;">{{ row.clinical_notes[:80] if row.clinical_notes else '' }}{% if row.clinical_notes and row.clinical_notes|length > 80 %}...{% endif %}</td>
+                            
+                            <!-- DEVICE OPTIONS -->
+                            <td style="padding: 8px; border: 1px solid #ddd; background: #fff8e1;">{{ row.device_options if row.device_options else '' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                <strong>Understanding Causality:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li><strong style="color: #1976d2;">Blue columns (Observations):</strong> Clinical findings from Level 4 reports</li>
+                    <li><strong style="color: #2e7d32;">Green columns (Device Design):</strong> Parameters recommended based on observations</li>
+                    <li><strong style="color: #e65100;">Yellow column (Device Options):</strong> Specific devices recommended</li>
+                </ul>
+                <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 6px; border-left: 4px solid #667eea;">
+                    <strong>Table Structure:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>One row per report/device context</strong> (if report has both nighttime MAD and daytime TMJ, there will be 2 rows)</li>
+                        <li><strong>Blue columns:</strong> Observations from Level 4 report (what we see)</li>
+                        <li><strong>Green columns:</strong> Device design parameters (what we recommend based on observations)</li>
+                        <li><strong>Orange column:</strong> Specific device options recommended</li>
+                    </ul>
+                    <p style="margin-top: 10px; font-size: 14px; color: #666;">
+                        <strong>Next Phase:</strong> Use this table to build a decision tree that maps observations → device design recommendations
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Card View (Detailed) -->
+    <div id="cardView" style="display: none;">
+    {% if not report_data_list or report_data_list|length == 0 %}
+    <div class="empty-state">
+        <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
+        <h3>No Level 4 Reports Processed</h3>
+        <p>Process Level 4 reports to see observations and device recommendations.</p>
+        <p style="font-size: 14px; color: #999; margin-top: 10px;">
+            Run: python scripts/process_l4_reports.py --input "/path/to/reports/"
+        </p>
+    </div>
+    {% else %}
+    
+    {% for report_data in report_data_list %}
+    <div class="report-card" data-report-id="{{ report_data.source_report_id|lower }}" 
+         data-patient-id="{{ report_data.patient_id|lower if report_data.patient_id else '' }}">
+        
+        <!-- Report Header -->
+        <div class="report-header">
+            <div class="report-info">
+                <h3>{{ report_data.source_report_id }}</h3>
+                {% if report_data.patient_id %}
+                <p>Patient ID: {{ report_data.patient_id }}</p>
+                {% endif %}
+                <p>Processed: {{ report_data.created_at.strftime('%Y-%m-%d %H:%M') if report_data.created_at else 'N/A' }}</p>
+            </div>
+            <div style="text-align: right;">
+                <div style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; margin-bottom: 5px;">
+                    {{ report_data.device_designs|length }} Device Design(s)
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px;">
+                    {{ report_data.device_options|length }} Device Option(s)
+                </div>
+            </div>
+        </div>
+        
+        {% for design in report_data.device_designs %}
+        <!-- Device Design Section -->
+        <div class="section">
+            <div class="section-title">
+                {{ design.design_context|replace('_', ' ')|title }} Device Design
+            </div>
+            
+            <!-- Clinical Diagnosis (from Level 4 report) -->
+            {% if design.ahi or design.rdi or design.odi or design.o2_nadir or design.snoring_level %}
+            <div class="clinical-context">
+                <strong style="color: #1976d2; margin-bottom: 10px; display: block;">Clinical Diagnosis (from Level 4 Report):</strong>
+                {% if design.ahi %}
+                <div class="design-param">
+                    <span class="param-label">AHI:</span>
+                    <span class="param-value">{{ design.ahi }}</span>
+                </div>
+                {% endif %}
+                {% if design.rdi %}
+                <div class="design-param">
+                    <span class="param-label">RDI:</span>
+                    <span class="param-value">{{ design.rdi }}</span>
+                </div>
+                {% endif %}
+                {% if design.odi %}
+                <div class="design-param">
+                    <span class="param-label">ODI:</span>
+                    <span class="param-value">{{ design.odi }}</span>
+                </div>
+                {% endif %}
+                {% if design.o2_nadir %}
+                <div class="design-param">
+                    <span class="param-label">O2 Nadir:</span>
+                    <span class="param-value">{{ design.o2_nadir }}</span>
+                </div>
+                {% endif %}
+                {% if design.snoring_level %}
+                <div class="design-param">
+                    <span class="param-label">Snoring:</span>
+                    <span class="param-value">{{ design.snoring_level }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Clinical Background (from Level 4 report) -->
+            {% if design.clinical_background or design.patient_complaints or design.treatment_considerations %}
+            <div class="clinical-context" style="background: #fff3e0; border-left-color: #ff9800;">
+                <strong style="color: #e65100; margin-bottom: 10px; display: block;">Clinical Background (from Level 4 Report):</strong>
+                {% if design.clinical_background %}
+                <div class="info-box">
+                    <strong>Background:</strong> {{ design.clinical_background }}
+                </div>
+                {% endif %}
+                {% if design.patient_complaints %}
+                <div class="info-box">
+                    <strong>Complaints:</strong> {{ design.patient_complaints }}
+                </div>
+                {% endif %}
+                {% if design.treatment_considerations %}
+                <div class="info-box">
+                    <strong>Treatment Considerations:</strong> {{ design.treatment_considerations }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Structural Findings (from Level 4 report) -->
+            {% if design.obstruction_sites or design.bite_structure or design.soft_palate_uvula or design.tongue_position %}
+            <div class="clinical-context" style="background: #f3e5f5; border-left-color: #9c27b0;">
+                <strong style="color: #7b1fa2; margin-bottom: 10px; display: block;">Structural Findings (from Level 4 Report):</strong>
+                {% if design.obstruction_sites %}
+                <div class="design-param">
+                    <span class="param-label">Obstruction Sites:</span>
+                    <span class="param-value">{{ design.obstruction_sites }}</span>
+                </div>
+                {% endif %}
+                {% if design.tongue_position %}
+                <div class="design-param">
+                    <span class="param-label">Tongue Position:</span>
+                    <span class="param-value">{{ design.tongue_position }}</span>
+                </div>
+                {% endif %}
+                {% if design.bite_structure %}
+                <div class="design-param">
+                    <span class="param-label">Bite Structure:</span>
+                    <span class="param-value">{{ design.bite_structure }}</span>
+                </div>
+                {% endif %}
+                {% if design.soft_palate_uvula %}
+                <div class="design-param">
+                    <span class="param-label">Soft Palate/Uvula:</span>
+                    <span class="param-value">{{ design.soft_palate_uvula }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Device Design Parameters -->
+            <div class="device-design-card">
+                <div class="device-design-header">Device Design Parameters</div>
+                
+                {% if design.mandibular_advancement %}
+                <div class="design-param">
+                    <span class="param-label">Mandibular Advancement:</span>
+                    <span class="param-value">{{ design.mandibular_advancement }}</span>
+                </div>
+                {% endif %}
+                {% if design.preset_mm %}
+                <div class="design-param">
+                    <span class="param-label">Preset (mm):</span>
+                    <span class="param-value">{{ design.preset_mm }}</span>
+                </div>
+                {% endif %}
+                {% if design.vertical_opening %}
+                <div class="design-param">
+                    <span class="param-label">Vertical Opening:</span>
+                    <span class="param-value">{{ design.vertical_opening }}</span>
+                </div>
+                {% endif %}
+                {% if design.anterior_window %}
+                <div class="design-param">
+                    <span class="param-label">Anterior Window:</span>
+                    <span class="param-value">{{ design.anterior_window }}</span>
+                </div>
+                {% endif %}
+                {% if design.material %}
+                <div class="design-param">
+                    <span class="param-label">Material:</span>
+                    <span class="param-value">{{ design.material }}</span>
+                </div>
+                {% endif %}
+                {% if design.retention_features %}
+                <div class="design-param">
+                    <span class="param-label">Retention Features:</span>
+                    <span class="param-value">{{ design.retention_features }}</span>
+                </div>
+                {% endif %}
+                {% if design.coverage_notes %}
+                <div class="design-param">
+                    <span class="param-label">Coverage:</span>
+                    <span class="param-value">{{ design.coverage_notes }}</span>
+                </div>
+                {% endif %}
+                {% if design.clinical_notes %}
+                <div class="design-param">
+                    <span class="param-label">Clinical Notes:</span>
+                    <span class="param-value">{{ design.clinical_notes }}</span>
+                </div>
+                {% endif %}
+                <div class="design-param">
+                    <span class="param-label">Confidence:</span>
+                    <span class="param-value">{{ design.extraction_confidence|upper }}</span>
+                </div>
+            </div>
+            
+            <!-- Device Options for this design context -->
+            {% set context_options = report_data.device_options|selectattr('design_context', 'equalto', design.design_context)|list %}
+            {% if context_options %}
+            <div style="margin-top: 15px;">
+                <strong style="color: #e65100; display: block; margin-bottom: 10px;">Recommended Device Options:</strong>
+                {% for option in context_options %}
+                <div class="device-option">
+                    <div class="device-option-name">{{ option.device_name }}</div>
+                    {% if option.device_family %}
+                    <div style="color: #666; font-size: 14px; margin-bottom: 5px;">
+                        Family: {{ option.device_family }}
+                    </div>
+                    {% endif %}
+                    {% if option.key_features %}
+                    <div style="color: #555;">
+                        <strong>Key Features:</strong> {{ option.key_features }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+    </div>
+    {% endfor %}
+    
+    {% endif %}
+    </div>
+</div>
+
+<style>
+.view-btn {
+    padding: 10px 20px;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.view-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+table tbody tr:hover {
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+/* Highlight causality relationships on hover */
+table tbody tr:hover td[style*="background: #f5f5f5"] {
+    background: #e3f2fd !important;
+    font-weight: 500;
+}
+
+table tbody tr:hover td[style*="background: #f1f8e9"] {
+    background: #c8e6c9 !important;
+    font-weight: 500;
+}
+
+/* Causality indicators */
+.causality-link {
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: help;
+}
+</style>
+
+<script>
+function showTableView() {
+    document.getElementById('tableView').style.display = 'block';
+    document.getElementById('cardView').style.display = 'none';
+    document.getElementById('tableBtn').classList.add('active');
+    document.getElementById('cardBtn').classList.remove('active');
+}
+
+function showCardView() {
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('cardView').style.display = 'block';
+    document.getElementById('tableBtn').classList.remove('active');
+    document.getElementById('cardBtn').classList.add('active');
+}
+
+function filterData() {
+    const input = document.getElementById('reportSearch');
+    const filter = input.value.toLowerCase();
+    
+    // Filter table rows
+    const tableRows = document.querySelectorAll('#tableView tbody tr');
+    tableRows.forEach(row => {
+        const report = row.getAttribute('data-report') || '';
+        const patient = row.getAttribute('data-patient') || '';
+        const dentist = row.getAttribute('data-dentist') || '';
+        const observation = row.getAttribute('data-observation') || '';
+        
+        if (report.includes(filter) || patient.includes(filter) || dentist.includes(filter) || observation.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Filter cards
+    const cards = document.querySelectorAll('.report-card');
+    cards.forEach(card => {
+        const reportId = card.getAttribute('data-report-id') || '';
+        const patientId = card.getAttribute('data-patient-id') || '';
+        
+        if (reportId.includes(filter) || patientId.includes(filter)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Highlight causality patterns
+function highlightPattern(observation, designParam) {
+    const rows = document.querySelectorAll('#tableView tbody tr');
+    rows.forEach(row => {
+        const obsText = (row.cells[5]?.textContent || '').toLowerCase(); // Obstruction column
+        const tongueText = (row.cells[6]?.textContent || '').toLowerCase(); // Tongue column
+        const windowText = (row.cells[10]?.textContent || '').toLowerCase(); // Anterior window column
+        
+        if (obsText.includes(observation.toLowerCase()) || tongueText.includes(observation.toLowerCase())) {
+            if (windowText.includes(designParam.toLowerCase())) {
+                row.style.background = '#fff9c4';
+                row.style.border = '2px solid #fbc02d';
+            }
+        }
+    });
+}
+
+// Auto-detect and highlight common causality patterns
+document.addEventListener('DOMContentLoaded', function() {
+    // Common patterns: observation → design parameter
+    const patterns = [
+        { obs: 'posterior', design: 'large', desc: 'Posterior tongue → Large anterior window' },
+        { obs: 'velopharyngeal', design: 'edge', desc: 'Velopharyngeal obstruction → Edge-to-edge advancement' },
+        { obs: 'deep bite', design: 'posterior', desc: 'Deep bite → Posterior vertical opening' }
+    ];
+    
+    // Add pattern detection button
+    const patternDiv = document.createElement('div');
+    patternDiv.style.marginTop = '15px';
+    patternDiv.style.padding = '15px';
+    patternDiv.style.background = '#e8f5e9';
+    patternDiv.style.borderRadius = '8px';
+    patternDiv.innerHTML = '<strong>Quick Pattern Detection:</strong><br>';
+    
+    patterns.forEach((pattern, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = pattern.desc;
+        btn.style.margin = '5px';
+        btn.style.padding = '8px 12px';
+        btn.style.border = '1px solid #4caf50';
+        btn.style.background = 'white';
+        btn.style.borderRadius = '4px';
+        btn.style.cursor = 'pointer';
+        btn.onclick = () => {
+            // Reset all rows
+            document.querySelectorAll('#tableView tbody tr').forEach(r => {
+                r.style.background = '';
+                r.style.border = '';
+            });
+            highlightPattern(pattern.obs, pattern.design);
+        };
+        patternDiv.appendChild(btn);
+    });
+    
+    const tableContainer = document.querySelector('#tableView > div');
+    if (tableContainer) {
+        tableContainer.appendChild(patternDiv);
+    }
+});
+</script>
+{% endblock %}
+ if (tableContainer) {
+        tableContainer.appendChild(patternDiv);
+    }
+});
+</script>
+{% endblock %}
+        // Reset all rows
+            document.querySelectorAll('#tableView tbody tr').forEach(r => {
+                r.style.background = '';
+                r.style.border = '';
+            });
+            highlightPattern(pattern.obs, pattern.design);
+        };
+        patternDiv.appendChild(btn);
+    });
+    
+    const tableContainer = document.querySelector('#tableView > div');
+    if (tableContainer) {
+        tableContainer.appendChild(patternDiv);
+    }
+});
+</script>
+{% endblock %}
+ if (tableContainer) {
+        tableContainer.appendChild(patternDiv);
+    }
+});
+</script>
+{% endblock %}

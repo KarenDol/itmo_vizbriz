@@ -1,0 +1,8 @@
+.custom-tabs {
+    display: flex;
+    overflow-x: auto; /* Allow horizontal scrolling */
+    white-space: nowrap;
+}
+.custom-tabs .tab {
+    flex: 0 0 auto; /* Make tabs take only the needed space */
+}

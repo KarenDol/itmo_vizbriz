@@ -1,0 +1,233 @@
+{
+    "version": "osa_policy_base_v1",
+    "generated_at": "2025-08-11T02:40:38.660648",
+    "applies_to": "generic_clinic_policy",
+    "required_evidence": [
+      "AHI",
+      "SpO2_nadir",
+      "CPAP_intolerance",
+      "primary_narrowing_site",
+      "TMJ_status",
+      "nasal_obstruction_status"
+    ],
+    "hard_blocks": {
+      "tmj_unstable": [
+        "aggressive_MA",
+        "Herbst_family_max_advancement"
+      ],
+      "severe_nasal_obstruction": [
+        "nasal_breathing_required_devices_only"
+      ]
+    },
+    "eligibility_rules": {
+      "Herbst_family": [
+        "OSA_obstructive",
+        "AHI>=15",
+        "CPAP_intolerance==true"
+      ],
+      "TAP_family": [
+        "OSA_obstructive",
+        "AHI>=5"
+      ],
+      "Positional_therapy_first": [
+        "positional==true",
+        "AHI<30"
+      ],
+      "Combination_therapy": [
+        "partial_response_to_single_modality==true"
+      ]
+    },
+    "weights": {
+      "expected_AHI_reduction": 0.45,
+      "side_effect_risk": -0.25,
+      "patient_preference_fit": 0.15,
+      "titration_capacity": 0.1,
+      "turnaround_time": 0.05
+    },
+    "clinic_preferences": {
+      "preferred_devices": [
+        "Herbst family mandibular advancement appliance",
+        "TAP family mandibular advancement appliance"
+      ],
+      "disfavored_devices": [],
+      "notes": "Favor devices with robust titration range and good hygiene characteristics; consider TMJ-friendly titration protocols. Do not specify vendor or brand names to the patient; only use generic type or family."
+    },
+    "scoring_modifiers": [
+      {
+        "when": "primary_narrowing_site==velopharyngeal",
+        "boost": {
+          "Herbst_family": 0.05
+        }
+      },
+      {
+        "when": "tmj_findings_present==true",
+        "penalty": {
+          "aggressive_MA": 0.1
+        }
+      },
+      {
+        "when": "nasal_obstruction_present==true",
+        "penalty": {
+          "nasal_breathing_required_devices_only": 0.1
+        }
+      },
+      {
+        "when": "cpap_intolerance==true",
+        "boost": {
+          "OAT": 0.1
+        }
+      }
+    ],
+    "device_design_guidance": {
+      "mandibular_advancement_mm": {
+        "initial": 2,
+        "preset_additional": 1,
+        "max_over_time": 7,
+        "rationale": "Start conservative if TMJ symptoms present; allow gradual titration."
+      },
+      "vertical_opening_mm_anterior": 5,
+      "anterior_window": "large",
+      "retention": [
+        "ball_clasps",
+        "elastic_hooks"
+      ],
+      "material": "high_density_acrylic",
+      "coverage": "full",
+      "adjuncts_to_consider_initially": [
+        "elastic_bands",
+        "nose_cones",
+        "nasal_strips"
+      ]
+    },
+    "adjunct_therapies": [
+      {
+        "name": "positional_therapy",
+        "indications": [
+          "supine_dependency",
+          "AHI<30"
+        ],
+        "priority": "moderate"
+      },
+      {
+        "name": "nasal_airflow_optimization",
+        "indications": [
+          "nasal_obstruction_present"
+        ],
+        "priority": "high"
+      },
+      {
+        "name": "neuromuscular_stimulation_eXciteOSA",
+        "indications": [
+          "low_tone_posterior_tongue",
+          "residual_snoring"
+        ],
+        "priority": "optional"
+      }
+    ],
+    "followup_protocol": {
+      "post_device_delivery_weeks": [
+        2,
+        6,
+        12
+      ],
+      "tests": [
+        {
+          "at_week": 12,
+          "name": "repeat_sleep_study_on_device",
+          "required": true
+        }
+      ],
+      "consider_dise_if_persistent_symptoms": true,
+      "trackers": [
+        "ESS",
+        "snoring_intensity_dB",
+        "compliance_hours"
+      ]
+    },
+    "safety_checks": [
+      "If TMJ pain increases >2 points on VAS after advancement, pause titration and step back 0.5\u20131.0 mm",
+      "If persistent nasal obstruction impedes therapy, escalate ENT referral before further advancement"
+    ],
+    "explainability": {
+      "must_include": [
+        "which policy rules fired",
+        "why top device matches anatomy",
+        "why alternatives were deprioritized",
+        "what risks and follow-ups are planned"
+      ]
+    },
+    "action_mapping": {
+      "order_device": {
+        "action_key": "order_oral_appliance",
+        "required_params": [
+          "patient_id",
+          "appliance_type",
+          "order_date",
+          "notes"
+        ]
+      },
+      "schedule_followup_sleep_test": {
+        "action_key": "request_followup_sleep_test",
+        "required_params": [
+          "patient_id",
+          "document_types",
+          "message"
+        ],
+        "defaults": {
+          "document_types": [
+            "HST/PSG"
+          ],
+          "message": "Please complete the follow-up sleep study on-device."
+        }
+      },
+      "schedule_sleep_test_review": {
+        "action_key": "schedule_sleep_test_review",
+        "required_params": [
+          "patient_id",
+          "scheduled_date",
+          "scheduled_time",
+          "doctor_name",
+          "notes"
+        ]
+      },
+      "request_cbct": {
+        "action_key": "request_cbct_files",
+        "required_params": [
+          "patient_id",
+          "request_date",
+          "message"
+        ]
+      },
+      "request_intraoral_scan": {
+        "action_key": "request_intraoral_scan",
+        "required_params": [
+          "patient_id"
+        ]
+      },
+      "request_hipaa_consent": {
+        "action_key": "request_hipaa_consent",
+        "required_params": [
+          "patient_id",
+          "patient_email",
+          "request_date",
+          "message"
+        ]
+      }
+    },
+    "output_contract": {
+      "stage": "RECOMMEND_APPLIANCE",
+      "fields": [
+        "ranker_top_choice",
+        "alternatives",
+        "rationale",
+        "risks",
+        "required_followups",
+        "next_actions",
+        "confidence"
+      ]
+    },
+    "tie_break": [
+      "lower_side_effect_risk",
+      "faster_turnaround"
+    ]
+  }

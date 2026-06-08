@@ -1,0 +1,892 @@
+/* Base layout styles */
+body {
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text for readability */
+    margin: 0;
+    font-family: 'Roboto', sans-serif; /* Material Design recommended font */
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+/* Header and Navigation */
+header nav {
+    background-color: #424242;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+/* Hamburger Menu Styles */
+.hamburger-menu {
+    display: block !important;
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 1002 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 8px !important;
+    cursor: pointer !important;
+    color: white !important;
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.hamburger-menu:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.05) !important;
+}
+
+.hamburger-menu:active {
+    transform: scale(0.95) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Hide the default mobile trigger */
+.sidenav-trigger {
+    display: none !important;
+}
+
+/* Override sidenav behavior for hamburger mode */
+.sidenav-fixed {
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 1000 !important;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1) !important;
+}
+
+.sidenav-fixed.active {
+    transform: translateX(0) !important;
+}
+
+/* Sidenav */
+.sidenav {
+    width: 200px;
+    background-color: #1e1e1e;
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background-color: #263238 !important;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1) !important;
+}
+
+.sidenav li > a {
+    color: #e0e0e0;
+    padding: 8px 10px;
+}
+
+.sidenav li.active > a {
+    background-color: rgba(0, 186, 255, 0.15); /* Light blue highlight */
+    border-left: 4px solid #00BAFF;            /* Light blue border */
+    color: #00BAFF;
+    font-weight: 500;
+}
+
+.sidenav li > a:hover {
+    background-color: rgba(0, 186, 255, 0.10);
+    border-left: 4px solid rgba(0, 186, 255, 0.5);
+}
+
+.sidenav li.active > a i.material-icons {
+    color: #00BAFF;
+}
+
+.sidenav li > a > i.material-icons {
+    color: #00BAFF;
+}
+
+.sidenav li:not(.active) > a:hover {
+    background-color: rgba(0, 186, 255, 0.10);
+    border-left: 4px solid rgba(0, 186, 255, 0.5);
+}
+
+@media only screen and (min-width: 993px) {
+    main, footer {
+        padding-left: 290px; /* Match the sidebar width + small margin */
+    }
+
+    .sidenav-trigger {
+        display: none;
+    }
+}
+
+/* Main content */
+main {
+    flex: 1;
+    padding: 10px; /* Reduced padding for more space */
+}
+
+.container {
+    width: 100%;
+    max-width: none; /* Remove max-width constraint */
+    margin: 0 auto;
+    padding: 10px; /* Reduced padding for more space */
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+/* Flash messages */
+.flash-message {
+    padding: 10px 20px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+
+.flash-message.success {
+    background-color: #4caf50;
+    color: white;
+}
+
+.flash-message.error {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Loader */
+.loader-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+}
+
+.loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media only screen and (max-width: 992px) {
+    .sidenav {
+        top: 56px;
+        max-height: calc(100vh - 56px);
+        padding-bottom: 60px;
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    main {
+        margin-left: 0;
+    }
+}
+
+@media only screen and (min-width: 993px) {
+    .sidenav {
+        top: 64px;
+        max-height: calc(100vh - 64px);
+        overflow-y: auto;
+    }
+}
+
+/* Dropdown menu */
+.dropdown-content {
+    background-color: #fff;
+    min-width: 200px;
+}
+
+.dropdown-content li > a {
+    color: #424242;
+}
+
+/* Material Icons adjustments */
+.material-icons {
+    vertical-align: middle;
+}
+
+.nav-wrapper {
+    background-color: #1e1e1e;
+}
+
+.nav-wrapper .brand-logo img {
+    width: 40px;
+    height: auto;
+    vertical-align: middle;
+}
+
+/* Search Wrapper */
+.search-wrapper {
+    position: relative;
+    margin-right: 15px;
+}
+
+.search-wrapper input[type="search"] {
+    padding-right: 40px;
+    width: 250px;
+    height: 36px;
+    border-radius: 18px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+}
+
+.search-wrapper i {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    color: #bb86fc;
+}
+
+/* Dropdown Menu */
+.dropdown-content {
+    background-color: #2a2a2a;
+    min-width: 150px;
+}
+
+.dropdown-content li > a {
+    color: #e0e0e0;
+}
+
+.dropdown-content li > a:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+}
+
+/* Form Fields */
+.input-field input[type="text"],
+.input-field input[type="email"],
+.input-field input[type="date"] {
+    color: #e0e0e0;
+    border-bottom: 1px solid #03dac6;
+}
+
+.input-field input[type="text"]:focus,
+.input-field input[type="email"]:focus,
+.input-field input[type="date"]:focus {
+    border-bottom: 1px solid #03dac6;
+    box-shadow: 0 1px 0 0 #03dac6;
+    outline: none;
+}
+
+/* Buttons */
+button, .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    text-align: center;
+    height: 36px;
+    line-height: 36px;
+    background-color: #0066CC !important;
+    color: #fff !important;
+    border-radius: 5px;
+    border: none;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+button:hover, .btn:hover {
+    background-color: #e0e0e0;
+    color: #1e1e1e;
+}
+
+.btn.green {
+    background-color: #00BAFF;
+    color: #1e1e1e;
+}
+
+.btn.green:hover {
+    background-color: #e0e0e0;
+    color: #1e1e1e;
+}
+
+/* Table Styles */
+table {
+    color: white;
+    width: 100%;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+thead {
+    background-color: #333;
+}
+
+tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Status Badges */
+.new-status {
+    background-color: #03a9f4;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.claim-received-status {
+    background-color: #ffc107;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.completed-status {
+    background-color: #4caf50;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* Material Icons */
+.material-icons {
+    color: #00BAFF !important;
+    font-size: 1.6rem !important;
+    text-shadow: none !important;
+    transition: color 0.2s;
+}
+
+/* Logo */
+.logo {
+    width: 160px;
+    height: auto;
+    display: block;
+}
+
+.nav-wrapper .brand-logo img {
+    width: 120px;
+    height: auto;
+    vertical-align: middle;
+}
+
+/* Orientation Warning */
+.orientation-warning {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    z-index: 9999;
+    max-width: 90%;
+    font-size: 32px;
+    line-height: 1.4;
+}
+
+.orientation-warning i {
+    font-size: 80px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+/* Patient Details Page Specific Styles */
+.dark-card {
+    background-color: #2a2a2a !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    margin: 10px 0 !important;
+    width: 100% !important;
+}
+
+.dark-card .card-content {
+    padding: 30px !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-card .card-title {
+    color: #00BAFF !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    margin-bottom: 25px !important;
+}
+
+.section-title {
+    color: #00BAFF !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    margin: 25px 0 15px 0 !important;
+    border-bottom: 2px solid #00BAFF !important;
+    padding-bottom: 8px !important;
+}
+
+.section {
+    margin-bottom: 25px !important;
+    padding: 15px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.section p {
+    margin: 8px 0 !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+}
+
+.section strong {
+    color: #00BAFF !important;
+    font-weight: 600 !important;
+}
+
+/* Patient Details Container Optimization */
+#patient-info .container {
+    padding: 5px !important;
+    margin: 0 !important;
+    max-width: none !important;
+}
+
+/* Overall page container for patient details */
+body:has(.dark-card) .container {
+    padding: 5px !important;
+    margin: 0 auto !important;
+    max-width: none !important;
+    width: calc(100% - 20px) !important;
+}
+
+/* Improve spacing and layout for patient details */
+.tab-content {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Make sections in patient info use full width efficiently */
+.dark-card .section {
+    margin-bottom: 20px !important;
+    padding: 20px !important;
+}
+
+/* Improve the personal information grid layout */
+.section p {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 12px 0 !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.section p:last-child {
+    border-bottom: none !important;
+}
+
+/* Tabs styling for patient details */
+.custom-tabs {
+    background-color: transparent !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+}
+
+.custom-tabs .tab a {
+    color: #e0e0e0 !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    margin-right: 5px !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 12px 20px !important;
+    transition: all 0.3s ease !important;
+}
+
+.custom-tabs .tab a:hover,
+.custom-tabs .tab a.active {
+    background-color: #00BAFF !important;
+    color: #1e1e1e !important;
+}
+
+.custom-tabs .indicator {
+    display: none !important;
+}
+
+/* Admin Comments Section Optimization */
+.section:has(#comments-list-view) {
+    background: rgba(76, 175, 80, 0.1) !important;
+    border: 1px solid rgba(76, 175, 80, 0.3) !important;
+    padding: 25px !important;
+    border-radius: 12px !important;
+}
+
+#comments-list-view {
+    background: rgba(255,255,255,0.1) !important;
+    padding: 20px !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    min-height: 120px !important;
+}
+
+#new-admin-comment {
+    width: 100% !important;
+    min-height: 100px !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    border: 1px solid #555 !important;
+    background: rgba(255,255,255,0.1) !important;
+    color: white !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+    font-size: 16px !important;
+}
+
+#add-admin-comment {
+    background: #4CAF50 !important;
+    color: white !important;
+    font-weight: bold !important;
+    border: none !important;
+    padding: 15px 30px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+}
+
+/* Portrait Mode Handling */
+@media screen and (orientation: portrait) {
+    body {
+        /* Remove the rotation and scaling that was causing enlargement */
+        transform: none;
+        transform-origin: initial;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        top: auto;
+        left: auto;
+        overflow-x: auto;
+    }
+    
+    /* Adjust container for portrait mode */
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px;
+        margin: 0;
+    }
+    
+    /* Adjust main content for portrait */
+    main {
+        margin-left: 0;
+        padding: 10px;
+        width: 100%;
+    }
+    
+    /* Adjust sidenav for portrait */
+    .sidenav {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    /* Make text more readable in portrait */
+    body {
+        font-size: 14px;
+    }
+    
+    /* Adjust buttons and inputs for portrait */
+    .btn, button {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+    
+    /* Adjust tables for portrait */
+    table {
+        font-size: 12px;
+    }
+    
+    th, td {
+        padding: 8px 4px;
+    }
+    
+    /* Portrait-specific responsive adjustments */
+    .row {
+        margin: 0;
+        width: 100%;
+    }
+    
+    .col {
+        width: 100% !important;
+        margin: 0;
+        padding: 5px;
+    }
+    
+    /* Make cards stack vertically in portrait */
+    .card {
+        width: 100% !important;
+        margin: 10px 0 !important;
+    }
+    
+    /* Adjust file upload sections for portrait */
+    .upload-section {
+        width: 100% !important;
+        margin: 10px 0 !important;
+        padding: 15px !important;
+    }
+    
+    /* Make file previews stack vertically */
+    .file-preview {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+    
+    .file-preview-item {
+        width: 100% !important;
+        max-width: 300px !important;
+        margin: 5px 0 !important;
+    }
+    
+    /* Adjust form layouts for portrait */
+    .input-field {
+        width: 100% !important;
+        margin: 10px 0 !important;
+    }
+    
+    /* Make patient selection responsive */
+    .patient-selection {
+        width: 100% !important;
+        margin: 10px 0 !important;
+    }
+    
+    /* Adjust camera modal for portrait */
+    .modal {
+        width: 95% !important;
+        max-width: none !important;
+        height: 80% !important;
+    }
+    
+    /* Make status messages full width */
+    .upload-status {
+        width: 100% !important;
+        margin: 10px 0 !important;
+        padding: 15px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Adjust navigation for portrait */
+    .sidenav-trigger {
+        display: block !important;
+    }
+    
+    /* Hide fixed sidenav in portrait, show mobile version */
+    .sidenav-fixed {
+        display: none !important;
+    }
+    
+    /* Ensure main content takes full width in portrait */
+    main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 10px !important;
+    }
+    
+    /* Make headers and titles responsive */
+    h1, h2, h3, h4, h5, h6 {
+        font-size: 1.2em !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* Adjust spacing for portrait */
+    .section {
+        margin: 10px 0 !important;
+        padding: 15px !important;
+    }
+    
+    /* Make sure all content fits in portrait width */
+    * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* Drag-and-drop upload zones (unified / medical / imaging / billing) */
+.dark-upload-area {
+    background-color: #1e1e1e;
+    border: 2px dashed #03dac6;
+    padding: 36px 28px 28px;
+    text-align: center;
+    border-radius: 10px;
+    margin-top: 20px;
+    width: 100%;
+    min-height: 260px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.dark-upload-area i.material-icons.large {
+    font-size: 64px;
+    color: #03dac6;
+    margin: 0;
+}
+
+.dark-upload-area .upload-zone-hint,
+.dark-upload-area p.upload-zone-hint {
+    color: #e0e0e0;
+    margin: 12px 0 18px;
+    font-size: 1.05rem;
+    line-height: 1.45;
+}
+
+.dark-upload-area .upload-zone-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 16px;
+}
+
+.dark-upload-area .upload-zone-toolbar .btn {
+    float: none !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    line-height: 1.2;
+    padding: 0 18px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    max-width: none !important;
+}
+
+.dark-upload-area .upload-zone-toolbar .upload-zone-primary {
+    min-width: 140px;
+}
+
+@media (max-width: 640px) {
+    .dark-upload-area .upload-zone-toolbar {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .dark-upload-area .upload-zone-toolbar .btn {
+        width: min(100%, 280px);
+    }
+}
+
+/* Upload Files tab — category / file-type panels */
+.medical-file-type-panel {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(3, 218, 198, 0.35);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 16px;
+}
+
+.medical-file-type-panel .observation-label {
+    display: block;
+    font-weight: 600;
+    color: #03dac6;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.medical-file-type-panel .obs-radio-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: center;
+}
+
+.medical-file-type-panel .obs-radio-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin: 0;
+    transition: color 0.15s ease, font-weight 0.15s ease;
+}
+
+.medical-file-type-panel .obs-radio-row label:has(input:checked),
+#unified-category-panel .obs-radio-row label:has(input:checked) {
+    font-weight: 700;
+    color: #03dac6;
+}
+
+.medical-file-type-panel .obs-radio-row input[type="radio"] {
+    margin: 0;
+    accent-color: #03dac6;
+    width: 18px;
+    height: 18px;
+}
+
+#unified-subtype-medical.unified-subtype-hidden,
+#unified-subtype-imaging.unified-subtype-hidden {
+    display: none !important;
+}
+
+#unified-subtype-panel.unified-subtype-panel-hidden {
+    display: none !important;
+}
+
+.medical-uploaded-files-single {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(3, 218, 198, 0.35);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 16px;
+}
+
+.medical-uploaded-files-single .upload-files-section-title {
+    color: #03dac6;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 10px;
+}
+
+.medical-uploaded-files-single .file-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.medical-uploaded-files-single .file-list li {
+    color: #e0e0e0;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.medical-uploaded-files-single .file-list a {
+    color: #90caf9;
+}
+
+#file-uploads .grey-text {
+    font-size: 0.95rem;
+    color: #9ca3af !important;
+}
+
+#file-uploads #unified-dropzone-wrapper .file-list li {
+    font-size: 0.95rem;
+} 

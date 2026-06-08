@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSA Model Viewer</title>
+
+    <!-- Include Three.js and additional libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/PLYLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
+    
+    <!-- Link to CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='viewer_templates/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='viewer_templates/mobile.css') }}">
+</head>
+<body>
+    <!-- Toggle Buttons for Mobile -->
+    <div id="toggle-file-list" class="toggle-button">&#x276E;</div> <!-- Left Arrow -->
+    <div id="toggle-controls" class="toggle-button">&#x276F;</div> <!-- Right Arrow -->
+
+    <!-- Main Content Area -->
+    <div id="main-content">
+        <!-- File List and Title -->
+        <div id="file-list-container">
+            <!-- Title and Buttons -->
+            <div id="title-container">
+                <!-- First Row: Logo and Title -->
+                <div class="title-row">
+                    <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Logo" class="title-logo" />
+                    <h1>STL Viewer</h1>
+                </div>
+            
+                <!-- Second Row: Buttons -->
+                <div class="button-column">
+                    <button id="fullscreen-btn" class="small-button">Full Screen</button>
+                    <button id="load-selected" class="green-button">Load Selected STL(s)</button>
+                </div>
+            </div>
+
+            <!-- File List -->
+            <div id="file-list">
+                <h2>3D Model Files ({{ files|length if files else 0 }})</h2>
+                <ul id="files">
+                    {% if files and files|length > 0 %}
+                        {% for file in files %}
+                            <li class="file-item" title="{{ file.category }}{% if file.subcategory %} / {{ file.subcategory }}{% endif %}">
+                                <input type="checkbox" id="file-{{ loop.index }}" data-url="{{ file.url }}">
+                                <label for="file-{{ loop.index }}">
+                                    {{ file.file_name }}
+                                    {% if file.file_type == 'ply' %}
+                                    <span class="file-type ply" title="PLY file - may include vertex colors for realistic view">🎨 PLY</span>
+                                    {% else %}
+                                    <span class="file-type {{ file.file_type }}">{{ file.file_type|upper }}</span>
+                                    {% endif %}
+                                </label>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="no-files">No 3D model files (STL/GLB/PLY) available for this patient.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Viewer Section -->
+        <div id="viewer">
+            <div id="dicom-container"></div>
+            <div id="loading-spinner" class="loading-spinner"></div> <!-- Spinner -->
+        </div>
+
+        <!-- Controls Section -->
+        <div id="controls-container" class="controls-wrapper">
+            <h3>Object Configuration</h3>
+
+            <!-- Object Selector -->
+            <label for="object-selector">Select Object</label>
+            <select id="object-selector">
+                <option value="all">All Objects</option>
+            </select>
+
+            <!-- Position Controls -->
+            <h3>Position Adjustment</h3>
+            <label for="position-x">X Position</label>
+            <input id="position-x" type="range" min="-50" max="50" step="0.5" value="0">
+            <span id="position-x-value" style="font-size: 11px; color: #888;">0</span>
+
+            <label for="position-y">Y Position (Up/Down)</label>
+            <input id="position-y" type="range" min="-50" max="50" step="0.5" value="0">
+            <span id="position-y-value" style="font-size: 11px; color: #888;">0</span>
+
+            <label for="position-z">Z Position (Front/Back)</label>
+            <input id="position-z" type="range" min="-50" max="50" step="0.5" value="0">
+            <span id="position-z-value" style="font-size: 11px; color: #888;">0</span>
+
+            <button id="reset-position" style="margin-top: 10px; padding: 8px 12px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Reset Position</button>
+
+            <!-- Material Controls -->
+            <h3>Material</h3>
+            <label for="material-type">Material Type</label>
+            <select id="material-type">
+                <option value="lambert">Lambert</option>
+                <option value="standard">Standard</option>
+                <option value="phong">Phong</option>
+                <option value="physical">Physical</option>
+            </select>
+
+            <label for="object-color">Object Color</label>
+            <input id="object-color" type="color" value="#808080">
+
+            <label for="roughness">Roughness</label>
+            <input id="roughness" type="range" min="0" max="1" step="0.01" value="0.5">
+
+            <label for="opacity">Opacity</label>
+            <input id="opacity" type="range" min="0" max="1" step="0.01" value="1">
+
+            <h3>Lighting Configuration</h3>
+
+            <label for="ambient-light-intensity">Ambient Light Intensity</label>
+            <input id="ambient-light-intensity" type="range" min="0" max="10" step="0.1" value="0.6">
+
+            <label for="hemisphere-light-intensity">Hemisphere Light Intensity</label>
+            <input id="hemisphere-light-intensity" type="range" min="0" max="10" step="0.1" value="0.5">
+<!--
+            <label for="directional-light1-intensity">Directional Light 1 Intensity</label>
+            <input id="directional-light1-intensity" type="range" min="0" max="10" step="0.1" value="1">
+            
+            <label for="directional-light1-intensity">Directional Light 2 Intensity</label>
+            <input id="directional-light2-intensity" type="range" min="0" max="10" step="0.1" value="1">
+-->
+           <!-- Scene Controls -->
+            <h3>Scene Configuration</h3>
+            <label for="bounding-box-toggle">Bounding Box</label>
+            <input id="bounding-box-toggle" type="checkbox">
+
+            <label for="grid-toggle">Grid</label>
+            <input id="grid-toggle" type="checkbox">
+        </div>
+    </div>
+    
+    <div id="patient-info" data-patient-id="{{ patient_id }}"></div>
+
+    <!-- Link to JavaScript -->
+    <script type="module" src="{{ url_for('static', filename='js/viewerApp.js') }}"></script>
+</body>
+</html>

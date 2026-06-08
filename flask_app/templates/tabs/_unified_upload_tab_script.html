@@ -1,0 +1,743 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const PATIENT_ID = '{{ patient.id }}';
+    const PRESIGNED_URL = '{{ url_for("filemgmt.generate_client_presigned_url") }}';
+    const STORE_METADATA_URL = '{{ url_for("main.store_file_metadata") }}';
+    const STORE_ADMIN_METADATA_URL = '{{ url_for("main.store_admin_file_metadata") }}';
+
+    const SUBTYPES = {
+        'sleep-test': {
+            category: 'medical',
+            subcategory: 'sleep-test',
+            label: 'Sleep Test',
+            hint: 'Drag &amp; drop Sleep Test files or folders here',
+            uploadCategory: 'medical',
+        },
+        'questionnaire': {
+            category: 'medical',
+            subcategory: 'questionnaire',
+            label: 'Questionnaire',
+            hint: 'Drag &amp; drop Questionnaire files or folders here',
+            uploadCategory: 'medical',
+        },
+        'medical-background': {
+            category: 'medical',
+            subcategory: 'medical-background',
+            label: 'Medical Background',
+            hint: 'Drag &amp; drop Medical Background files or folders here',
+            uploadCategory: 'medical',
+        },
+        'clinical-pictures': {
+            category: 'imaging',
+            subcategory: 'clinical-pictures',
+            label: 'Clinical Pictures',
+            hint: 'Drag &amp; drop Clinical Pictures files or folders here',
+            uploadCategory: 'imaging',
+        },
+        'cbct': {
+            category: 'imaging',
+            subcategory: 'cbct',
+            label: 'CBCT',
+            hint: 'Drag &amp; drop CBCT files or folders here',
+            uploadCategory: 'imaging',
+        },
+        'intraoral-scan': {
+            category: 'imaging',
+            subcategory: 'intraoral-scan',
+            label: 'IntraOral Scan',
+            hint: 'Drag &amp; drop IntraOral Scan files or folders here',
+            uploadCategory: 'imaging',
+        },
+        'billing': {
+            category: 'billing',
+            subcategory: 'billing',
+            label: 'Billing',
+            hint: 'Drag &amp; drop billing files or folders here',
+            uploadCategory: 'billing',
+        },
+        'admin-reports': {
+            category: 'admin',
+            subcategory: 'reports',
+            label: 'Admin Reports',
+            hint: '',
+            uploadCategory: 'reports',
+        },
+    };
+
+    const CATEGORY_DEFAULTS = {
+        medical: 'sleep-test',
+        imaging: 'clinical-pictures',
+        billing: 'billing',
+        admin: 'admin-reports',
+    };
+
+    const categoryRadios = document.querySelectorAll('input[name="unified_upload_category"]');
+    const subtypeMedical = document.getElementById('unified-subtype-medical');
+    const subtypeImaging = document.getElementById('unified-subtype-imaging');
+    const subtypePanel = document.getElementById('unified-subtype-panel');
+    const uploadedPanels = document.querySelectorAll('.medical-uploaded-panel');
+    const uploadedHeading = document.getElementById('unified-uploaded-type-heading');
+    const pendingList = document.getElementById('unified-pending-file-list');
+    const pendingLabel = document.getElementById('unified-pending-type-label');
+    const uploadHint = document.getElementById('unified-upload-hint');
+    const dropzoneWrapper = document.getElementById('unified-dropzone-wrapper');
+    const dropzone = document.getElementById('dropzone-unified-upload');
+    const fileElem = document.getElementById('fileElemUnified');
+    const folderElem = document.getElementById('folderElemUnified');
+    const clearBtn = document.getElementById('unified-clear-files-btn');
+    const fileCountSpan = document.getElementById('unified-file-count');
+    const askLabRow = document.getElementById('unified-ask-lab-row');
+    const billingDownloadRow = document.getElementById('unified-billing-download-row');
+    const cbctFoldersBlock = document.getElementById('unified-cbct-folders-block');
+    const adminPanel = document.getElementById('unified-admin-panel');
+    const loader = document.getElementById('unified-upload-loader-wrapper');
+    const progressBar = document.getElementById('unified-upload-progress-bar');
+    const progressText = document.getElementById('unified-upload-progress-text');
+
+    let activeCategory = 'medical';
+    let activeSubtype = 'sleep-test';
+    let filesToUpload = {};
+
+    function getSubtypeConfig() {
+        return SUBTYPES[activeSubtype] || SUBTYPES['sleep-test'];
+    }
+
+    function getCheckedSubtypeInGroup(groupEl) {
+        if (!groupEl || groupEl.hidden) return null;
+        const checked = groupEl.querySelector('input[type="radio"]:checked');
+        return checked ? checked.value : null;
+    }
+
+    function showLoader(message) {
+        loader.style.display = 'flex';
+        progressBar.style.width = '0%';
+        progressText.textContent = message || 'Processing...';
+    }
+
+    function hideLoader() {
+        loader.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressText.textContent = '';
+    }
+
+    function updateProgressBar(percentage) {
+        progressBar.style.width = `${percentage}%`;
+        progressText.textContent = `Uploading: ${percentage.toFixed(2)}%`;
+    }
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function sanitizePathPart(part) {
+        if (!part) return 'untitled';
+        const noControls = part.replace(/[\u0000-\u001F\u007F]/g, '').trim();
+        const normalized = noControls.replace(/\\/g, '/');
+        const sanitized = normalized.replace(/[<>:"|?*]/g, '_');
+        return sanitized || 'untitled';
+    }
+
+    function sanitizeRelativePath(path) {
+        if (!path) return 'untitled';
+        const normalized = path.replace(/\\/g, '/');
+        return normalized.split('/').map(sanitizePathPart).join('/');
+    }
+
+    function refreshPendingList() {
+        pendingList.innerHTML = '';
+        const queue = filesToUpload[activeSubtype] || [];
+        if (!queue.length) {
+            const li = document.createElement('li');
+            li.className = 'muted';
+            li.textContent = 'No files selected yet.';
+            pendingList.appendChild(li);
+            updateClearButton();
+            return;
+        }
+        queue.forEach(({ relativePath }) => {
+            const li = document.createElement('li');
+            li.textContent = relativePath;
+            pendingList.appendChild(li);
+        });
+        updateClearButton();
+    }
+
+    function updateClearButton() {
+        const count = (filesToUpload[activeSubtype] || []).length;
+        if (fileCountSpan) fileCountSpan.textContent = String(count);
+        if (clearBtn) clearBtn.style.display = count > 0 ? 'inline-block' : 'none';
+    }
+
+    function setSubtypeGroupVisible(el, visible) {
+        if (!el) return;
+        el.classList.toggle('unified-subtype-hidden', !visible);
+        el.hidden = !visible;
+        el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+
+    function onCategoryOrSubtypeChange() {
+        const catRadio = document.querySelector('input[name="unified_upload_category"]:checked');
+        activeCategory = catRadio ? catRadio.value : 'medical';
+
+        if (activeCategory === 'medical') {
+            setSubtypeGroupVisible(subtypeMedical, true);
+            setSubtypeGroupVisible(subtypeImaging, false);
+            subtypePanel.classList.remove('unified-subtype-panel-hidden');
+            activeSubtype = getCheckedSubtypeInGroup(subtypeMedical) || CATEGORY_DEFAULTS.medical;
+        } else if (activeCategory === 'imaging') {
+            setSubtypeGroupVisible(subtypeMedical, false);
+            setSubtypeGroupVisible(subtypeImaging, true);
+            subtypePanel.classList.remove('unified-subtype-panel-hidden');
+            activeSubtype = getCheckedSubtypeInGroup(subtypeImaging) || CATEGORY_DEFAULTS.imaging;
+        } else if (activeCategory === 'billing') {
+            setSubtypeGroupVisible(subtypeMedical, false);
+            setSubtypeGroupVisible(subtypeImaging, false);
+            subtypePanel.classList.add('unified-subtype-panel-hidden');
+            activeSubtype = CATEGORY_DEFAULTS.billing;
+        } else if (activeCategory === 'admin') {
+            setSubtypeGroupVisible(subtypeMedical, false);
+            setSubtypeGroupVisible(subtypeImaging, false);
+            subtypePanel.classList.add('unified-subtype-panel-hidden');
+            activeSubtype = CATEGORY_DEFAULTS.admin;
+        }
+
+        const cfg = getSubtypeConfig();
+        if (uploadedHeading) uploadedHeading.textContent = cfg.label;
+        uploadedPanels.forEach((panel) => {
+            panel.hidden = panel.getAttribute('data-unified-subtype') !== activeSubtype;
+        });
+
+        if (askLabRow) askLabRow.style.display = activeCategory === 'imaging' ? 'block' : 'none';
+        if (billingDownloadRow) billingDownloadRow.style.display = activeCategory === 'billing' ? 'block' : 'none';
+        if (cbctFoldersBlock) {
+            cbctFoldersBlock.style.display =
+                activeCategory === 'imaging' && activeSubtype === 'cbct' ? 'block' : 'none';
+        }
+        if (dropzoneWrapper) dropzoneWrapper.style.display = activeCategory === 'admin' ? 'none' : 'block';
+        if (adminPanel) adminPanel.style.display = activeCategory === 'admin' ? 'block' : 'none';
+
+        if (pendingLabel) pendingLabel.textContent = cfg.label;
+        if (uploadHint) uploadHint.innerHTML = cfg.hint || '';
+        refreshPendingList();
+    }
+
+    categoryRadios.forEach((r) => r.addEventListener('change', onCategoryOrSubtypeChange));
+    subtypeMedical.querySelectorAll('input[type="radio"]').forEach((r) => {
+        r.addEventListener('change', onCategoryOrSubtypeChange);
+    });
+    subtypeImaging.querySelectorAll('input[type="radio"]').forEach((r) => {
+        r.addEventListener('change', onCategoryOrSubtypeChange);
+    });
+    onCategoryOrSubtypeChange();
+
+    async function validateStlFile(file) {
+        const fileName = file.name.toLowerCase();
+        if (!fileName.endsWith('.stl')) {
+            return { valid: false, error: `File "${file.name}" is not an STL file. Only .stl files are allowed for intraoral scans.` };
+        }
+        try {
+            const header = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(new Uint8Array(e.target.result));
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file.slice(0, 80));
+            });
+            const headerText = new TextDecoder('utf-8', { fatal: false }).decode(header);
+            if (headerText.trim().toLowerCase().startsWith('solid ')) return { valid: true };
+            if (file.size > 84) return { valid: true };
+            return { valid: false, error: `File "${file.name}" does not appear to be a valid STL file.` };
+        } catch (e) {
+            return { valid: true };
+        }
+    }
+
+    async function handleZipFile(zipFile, sectionId) {
+        showLoader('Unzipping...');
+        try {
+            const zip = await JSZip.loadAsync(zipFile);
+            const zipBaseName = sanitizePathPart(zipFile.name.replace(/\.zip$/i, ''));
+            const zipEntries = Object.keys(zip.files);
+            if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+            let processedEntries = 0;
+            for (const entry of zipEntries) {
+                const zipEntry = zip.files[entry];
+                if (!zipEntry.dir) {
+                    processedEntries++;
+                    updateProgressBar((processedEntries / zipEntries.length) * 100);
+                    progressText.textContent = `Unzipping: ${processedEntries}/${zipEntries.length}`;
+                    const blob = await zipEntry.async('blob');
+                    const safeEntry = sanitizeRelativePath(entry);
+                    const relativePath = `${zipBaseName}/${safeEntry}`;
+                    const uploadFileName = safeEntry.split('/').pop() || 'untitled';
+                    const file = new File([blob], uploadFileName, { type: blob.type });
+                    if (sectionId === 'intraoral-scan') {
+                        const validation = await validateStlFile(file);
+                        if (!validation.valid) continue;
+                    }
+                    filesToUpload[sectionId].push({ file, relativePath });
+                }
+            }
+            refreshPendingList();
+        } catch (err) {
+            alert(`Failed to unzip: ${err.message}`);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function handleRarFile(rarFile, sectionId) {
+        showLoader('Uploading RAR to server...');
+        try {
+            const formData = new FormData();
+            formData.append('rar_file', rarFile);
+            formData.append('patient_id', PATIENT_ID);
+            formData.append('folder_name', rarFile.name.replace(/\.rar$/i, ''));
+            const result = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/extract_rar_files');
+                xhr.timeout = 2 * 60 * 60 * 1000;
+                xhr.onload = () => {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+                        else reject(new Error(data.message || `Server error: ${xhr.status}`));
+                    } catch (e) {
+                        reject(new Error('Invalid server response'));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Network error'));
+                xhr.ontimeout = () => reject(new Error('RAR processing timed out. Check CBCT folder list shortly.'));
+                xhr.send(formData);
+            });
+            if (result.success) {
+                alert(`Uploaded ${result.uploaded_count || 0} files from RAR.`);
+                loadExistingCbctFolders();
+                window.location.reload();
+            } else {
+                throw new Error(result.message || 'RAR extraction failed');
+            }
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function traverseFileTree(item, path, sectionId) {
+        if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+        if (item.isFile) {
+            item.file(async (file) => {
+                const rawPath = path + file.name;
+                const relativePath =
+                    getSubtypeConfig().uploadCategory === 'imaging'
+                        ? sanitizeRelativePath(rawPath)
+                        : rawPath;
+                if (sectionId === 'intraoral-scan') {
+                    const validation = await validateStlFile(file);
+                    if (!validation.valid) {
+                        alert(validation.error);
+                        return;
+                    }
+                }
+                filesToUpload[sectionId].push({ file, relativePath });
+                refreshPendingList();
+            });
+        } else if (item.isDirectory) {
+            const dirReader = item.createReader();
+            dirReader.readEntries((entries) => {
+                entries.forEach((entry) => traverseFileTree(entry, path + item.name + '/', sectionId));
+            });
+        }
+    }
+
+    async function handleDrop(e) {
+        const sectionId = activeSubtype;
+        const items = e.dataTransfer.items;
+        if (!items) return;
+        for (const item of Array.from(items)) {
+            const entry = item.webkitGetAsEntry && item.webkitGetAsEntry();
+            if (!entry) continue;
+            const fileName = (entry.name || '').toLowerCase();
+            if (entry.isFile && fileName.endsWith('.zip')) {
+                await new Promise((resolve) => {
+                    entry.file(async (file) => {
+                        await handleZipFile(file, sectionId);
+                        resolve();
+                    });
+                });
+            } else if (entry.isFile && fileName.endsWith('.rar') && sectionId === 'cbct') {
+                await new Promise((resolve) => {
+                    entry.file(async (file) => {
+                        await handleRarFile(file, sectionId);
+                        resolve();
+                    });
+                });
+            } else {
+                await traverseFileTree(entry, '', sectionId);
+            }
+        }
+    }
+
+    async function handleFiles(files) {
+        const sectionId = activeSubtype;
+        if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+        for (const file of Array.from(files)) {
+            const lower = file.name.toLowerCase();
+            if (lower.endsWith('.zip')) {
+                await handleZipFile(file, sectionId);
+            } else if (lower.endsWith('.rar') && sectionId === 'cbct') {
+                await handleRarFile(file, sectionId);
+            } else {
+                if (sectionId === 'intraoral-scan') {
+                    const validation = await validateStlFile(file);
+                    if (!validation.valid) {
+                        alert(validation.error);
+                        continue;
+                    }
+                }
+                const rawPath = file.webkitRelativePath || file.name;
+                const relativePath =
+                    getSubtypeConfig().uploadCategory === 'imaging'
+                        ? sanitizeRelativePath(rawPath)
+                        : rawPath;
+                filesToUpload[sectionId].push({ file, relativePath });
+            }
+        }
+        refreshPendingList();
+    }
+
+    async function processUploads() {
+        const cfg = getSubtypeConfig();
+        const sectionId = activeSubtype;
+        if (!filesToUpload[sectionId] || !filesToUpload[sectionId].length) {
+            alert('No files to upload!');
+            return;
+        }
+        const files = filesToUpload[sectionId];
+        const totalBytes = files.reduce((acc, { file }) => acc + file.size, 0);
+        let bytesUploaded = 0;
+        if (!totalBytes) return;
+
+        updateProgressBar(0);
+        for (const { file, relativePath } of files) {
+            try {
+                const presignedResponse = await fetch(PRESIGNED_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: relativePath,
+                        section: sectionId,
+                        patient_id: PATIENT_ID,
+                        category: cfg.uploadCategory,
+                    }),
+                });
+                const presignedData = await presignedResponse.json();
+                if (!presignedResponse.ok || !presignedData.success) {
+                    throw new Error(presignedData.message || 'Failed to get presigned URL');
+                }
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', presignedData.url);
+                    xhr.upload.addEventListener('progress', (e) => {
+                        if (e.lengthComputable) {
+                            updateProgressBar(((bytesUploaded + e.loaded) / totalBytes) * 100);
+                        }
+                    });
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status >= 200 && xhr.status < 300) resolve();
+                        else reject(new Error(`Upload failed for ${relativePath}`));
+                    });
+                    xhr.addEventListener('error', () => reject(new Error(`Error uploading ${relativePath}`)));
+                    const formData = new FormData();
+                    Object.keys(presignedData.fields).forEach((k) => formData.append(k, presignedData.fields[k]));
+                    formData.append('file', file);
+                    xhr.send(formData);
+                });
+                bytesUploaded += file.size;
+                const metadataResponse = await fetch(STORE_METADATA_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        patient_id: PATIENT_ID,
+                        s3_key: presignedData.s3_key,
+                        file_size: file.size,
+                        file_type: file.type || 'application/octet-stream',
+                        category: cfg.uploadCategory,
+                        subcategory: cfg.subcategory,
+                    }),
+                });
+                const metadataResult = await metadataResponse.json();
+                if (!metadataResponse.ok || !metadataResult.success) {
+                    throw new Error(metadataResult.message || 'Failed to store metadata');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        updateProgressBar(100);
+        filesToUpload[sectionId] = [];
+        refreshPendingList();
+        if (sectionId === 'cbct') {
+            try {
+                await fetch(`/api/patient/${PATIENT_ID}/trigger_cbct_prezip`, { method: 'POST' });
+            } catch (e) {
+                console.warn('CBCT pre-zip trigger failed', e);
+            }
+        }
+        alert(`Upload completed for ${cfg.label}.`);
+        window.location.reload();
+    }
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((ev) => {
+        dropzone.addEventListener(ev, preventDefaults, false);
+    });
+    dropzone.addEventListener('dragenter', () => dropzone.classList.add('highlight'));
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('highlight'));
+    dropzone.addEventListener('drop', (e) => {
+        dropzone.classList.remove('highlight');
+        handleDrop(e);
+    });
+    fileElem.addEventListener('change', () => handleFiles(fileElem.files));
+    folderElem.addEventListener('change', () => handleFiles(folderElem.files));
+    document.getElementById('unified-select-files-btn').addEventListener('click', () => fileElem.click());
+    document.getElementById('unified-select-folder-btn').addEventListener('click', () => folderElem.click());
+    document.getElementById('unified-submit-files-btn').addEventListener('click', async () => {
+        showLoader('Uploading files...');
+        try {
+            await processUploads();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            hideLoader();
+        }
+    });
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            filesToUpload[activeSubtype] = [];
+            refreshPendingList();
+        });
+    }
+
+    async function loadExistingCbctFolders() {
+        const loadingEl = document.getElementById('unified-cbct-folders-loading');
+        const listEl = document.getElementById('unified-cbct-folders-list');
+        const noMsg = document.getElementById('unified-no-cbct-message');
+        if (!loadingEl || !listEl) return;
+        try {
+            const response = await fetch(`/api/patient/${PATIENT_ID}/cbct_folders_s3`);
+            const data = await response.json();
+            loadingEl.style.display = 'none';
+            if (data.success && data.folders && data.folders.length) {
+                if (noMsg) noMsg.style.display = 'none';
+                let html = '<div style="background:#1a1a2e;border-radius:8px;padding:10px;"><div style="color:#4caf50;font-weight:bold;margin-bottom:8px;">Existing CBCT Folders</div><ul style="margin:0;padding-left:20px;">';
+                for (const folder of data.folders) {
+                    const sizeInMB = folder.total_size ? (folder.total_size / 1024 / 1024).toFixed(1) : '?';
+                    html += `<li style="color:#ddd;padding:5px 0;"><span style="color:#64b5f6;">${folder.name}</span> <span style="color:#888;font-size:0.85em;">(${folder.file_count || '?'} files, ${sizeInMB} MB)</span></li>`;
+                }
+                html += '</ul></div>';
+                listEl.innerHTML = html;
+                listEl.style.display = 'block';
+            } else {
+                listEl.style.display = 'none';
+            }
+        } catch (e) {
+            loadingEl.innerHTML = '<span style="color:#ff6b6b;">Could not load CBCT folders</span>';
+        }
+    }
+    loadExistingCbctFolders();
+
+    const askLabPopup = document.getElementById('ask-lab-popup');
+    const askLabForm = document.getElementById('ask-lab-form');
+    const labEmailInput = document.getElementById('lab-email');
+    function hideAskLabPopup() {
+        askLabPopup.style.display = 'none';
+        if (labEmailInput) labEmailInput.value = '';
+    }
+    document.getElementById('unified-ask-lab-upload-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        askLabPopup.style.display = 'block';
+    });
+    document.getElementById('ask-lab-cancel-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        hideAskLabPopup();
+    });
+    askLabForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const labEmail = labEmailInput.value;
+        const uploadLink = '{{ base_url }}/partner_upload/{{ patient.upload_token }}';
+        const emailBody = `A file upload has been requested for {{ patient.name }}. Please use the following link: ${uploadLink}`;
+        try {
+            const response = await fetch('/send_partner_email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: labEmail,
+                    subject: `Vizbriz - Request file Upload for {{ patient.name }}`,
+                    message: emailBody,
+                }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert(`Email sent successfully to ${labEmail}`);
+                hideAskLabPopup();
+            } else {
+                alert(`Failed to send email: ${result.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert('An unexpected error occurred while sending the email.');
+        }
+    });
+
+    const unifiedFileConfigList = document.getElementById('unified-file-config-list');
+    const unifiedFileConfigWrapper = document.getElementById('unified-file-config-wrapper');
+
+    async function uploadAdminFile(file, perFile) {
+        const presignedResponse = await fetch(PRESIGNED_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: file.name,
+                patient_id: PATIENT_ID,
+                section: 'admin-files',
+                category: 'reports',
+            }),
+        });
+        const presignedData = await presignedResponse.json();
+        if (!presignedResponse.ok || !presignedData.success) {
+            throw new Error(presignedData.message || 'Failed to get presigned URL');
+        }
+        const formData = new FormData();
+        for (const key in presignedData.fields) formData.append(key, presignedData.fields[key]);
+        formData.append('file', file);
+        const uploadResponse = await fetch(presignedData.url, { method: 'POST', body: formData });
+        if (!uploadResponse.ok) throw new Error(`Upload failed for ${file.name}`);
+        const metadataResponse = await fetch(STORE_ADMIN_METADATA_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                patient_id: PATIENT_ID,
+                s3_key: presignedData.s3_key,
+                file_size: file.size,
+                file_type: file.type || 'application/octet-stream',
+                category: 'reports',
+                subcategory: 'reports',
+                is_public: perFile.isPublic,
+                file_category: perFile.category,
+            }),
+        });
+        const metadataResult = await metadataResponse.json();
+        if (!metadataResponse.ok || !metadataResult.success) {
+            throw new Error(metadataResult.message || 'Failed to store metadata');
+        }
+        return true;
+    }
+
+    function setupAdminDragDrop(row) {
+        const dropZone = row.querySelector('.file-drop-zone');
+        const fileInput = row.querySelector('input[type="file"]');
+        if (!dropZone || !fileInput) return;
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((ev) => {
+            dropZone.addEventListener(ev, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                const dt = new DataTransfer();
+                dt.items.add(files[0]);
+                fileInput.files = dt.files;
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files && fileInput.files[0];
+            const display = dropZone.querySelector('.file-name-display');
+            if (file) {
+                dropZone.classList.add('has-file');
+                if (!display) {
+                    const d = document.createElement('div');
+                    d.className = 'file-name-display';
+                    dropZone.appendChild(d);
+                }
+                dropZone.querySelector('.file-name-display').textContent = file.name;
+            }
+        });
+    }
+
+    function addUnifiedAdminFileRow() {
+        const row = document.createElement('div');
+        row.className = 'file-config-row';
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;margin:8px 0;';
+        row.innerHTML = `
+            <div class="file-input-wrapper" style="flex:1;min-width:200px;">
+                <div class="file-drop-zone">
+                    <div class="file-drop-zone-text">Drag & drop file here or click to browse</div>
+                    <input type="file" class="file-input" required />
+                </div>
+            </div>
+            <select class="browser-default" style="background:#222;color:#fff;border:1px solid #888;padding:6px 8px;border-radius:4px;min-width:200px;">
+                <option value="" disabled selected>Select report level</option>
+                <option value="Level 1 - Screening (Questionnaire Only)">Level 1 – Screening (Questionnaire Only)</option>
+                <option value="Level 2 - Screening (Questionnaire + CBCT)">Level 2 – Screening (Questionnaire + CBCT)</option>
+                <option value="Level 3 - Data Assessment (Dental Treatment suggestions)">Level 3 – Data Assessment (Dental Treatment suggestions)</option>
+                <option value="Level 4 - Full Data Assessment (With Oral Appliance Prescription)">Level 4 – Full Data Assessment (With Oral Appliance Prescription)</option>
+                <option value="Level 5 - First Follow-Up Report">Level 5 – First Follow-Up Report</option>
+                <option value="Level 6 - Second Follow-Up Report">Level 6 – Second Follow-Up Report</option>
+                <option value="Level 7 - OSA Transitional Re-Assessment Report">Level 7 – OSA Transitional Re-Assessment Report</option>
+            </select>
+            <label style="display:flex;align-items:center;color:#fff;">
+                <input type="checkbox" class="public-checkbox" checked style="margin-right:6px;" />
+                <span>Public</span>
+            </label>
+            <button type="button" class="btn-flat remove-file-row" style="color:#ff7675;">Remove</button>
+        `;
+        row.querySelector('.remove-file-row').addEventListener('click', () => {
+            row.remove();
+            if (!unifiedFileConfigList.children.length) unifiedFileConfigWrapper.style.display = 'none';
+        });
+        unifiedFileConfigList.appendChild(row);
+        unifiedFileConfigWrapper.style.display = 'block';
+        setupAdminDragDrop(row);
+    }
+
+    document.getElementById('unified-add-file-row-btn')?.addEventListener('click', addUnifiedAdminFileRow);
+    document.getElementById('unified-submit-admin-files-btn')?.addEventListener('click', async () => {
+        const rows = document.querySelectorAll('#unified-file-config-list .file-config-row');
+        const files = [];
+        const configs = [];
+        let invalid = false;
+        rows.forEach((row) => {
+            const fileInput = row.querySelector('input[type="file"]');
+            const select = row.querySelector('select');
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            const file = fileInput.files && fileInput.files[0];
+            const category = select.value;
+            if (!file || !category) invalid = true;
+            else {
+                files.push(file);
+                configs.push({ category, isPublic: checkbox.checked });
+            }
+        });
+        if (invalid || !files.length) {
+            alert('Please choose a file and category for each row.');
+            return;
+        }
+        showLoader('Uploading admin files...');
+        let ok = 0;
+        for (let i = 0; i < files.length; i++) {
+            try {
+                if (await uploadAdminFile(files[i], configs[i])) ok++;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        hideLoader();
+        alert(ok === files.length ? 'All files uploaded successfully!' : `Uploaded ${ok} of ${files.length} files.`);
+        if (ok > 0) setTimeout(() => window.location.reload(), 1500);
+    });
+    addUnifiedAdminFileRow();
+});
+</script>

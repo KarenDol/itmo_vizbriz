@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}Enhanced Patient Journey - {{ patient.name }} | Dr. Briz{% endblock %}
+
+{% block content %}
+<style>
+    /* Enhanced Patient Journey Styles */
+    .container {
+        max-width: 95% !important;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+    
+    .journey-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .journey-overview {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .journey-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .journey-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .patient-info {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .progress-section {
+        margin-top: 1.5rem;
+    }
+
+    .progress-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .progress-text {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #ecf0f1;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    /* Enhanced Timeline Layout */
+    .journey-content {
+        display: flex;
+        gap: 1.5rem;
+        height: calc(100vh - 300px);
+        margin: 0;
+        max-width: 100%;
+        align-items: stretch;
+    }
+
+    .timeline-section {
+        width: 500px;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    .timeline-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #ecf0f1;
+    }
+
+    .stage-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #bdc3c7;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .stage-item.completed {
+        border-left-color: #27ae60;
+        background: #e8f5e8;
+    }
+
+    .stage-item.current {
+        border-left-color: #3498db;
+        background: #e3f2fd;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+    }
+
+    .stage-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .stage-number {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+
+    .stage-status {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+
+    .stage-status.completed {
+        background: #27ae60;
+        color: white;
+    }
+
+    .stage-status.pending {
+        background: #f39c12;
+        color: white;
+    }
+
+    .stage-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .stage-date {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-bottom: 0.5rem;
+    }
+
+    .stage-message {
+        font-size: 0.9rem;
+        color: #34495e;
+        margin-bottom: 0.5rem;
+    }
+
+    /* File Links Section */
+    .files-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #ecf0f1;
+    }
+
+    .files-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #ecf0f1;
+        transition: all 0.2s ease;
+    }
+
+    .file-item:hover {
+        border-color: #3498db;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+    }
+
+    .file-icon {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .file-info {
+        flex: 1;
+    }
+
+    .file-name {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.2rem;
+    }
+
+    .file-date {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+    }
+
+    .file-download {
+        padding: 0.3rem 0.6rem;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s ease;
+    }
+
+    .file-download:hover {
+        background: #2980b9;
+        text-decoration: none;
+        color: white;
+    }
+
+    .file-download:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+    }
+
+    /* Details Section */
+    .details-section {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow-y: auto;
+    }
+
+    .details-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #ecf0f1;
+    }
+
+    .stage-details {
+        display: none;
+    }
+
+    .stage-details.active {
+        display: block;
+    }
+
+    .detail-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-value {
+        color: #34495e;
+        line-height: 1.5;
+    }
+
+    .stage-data {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .journey-content {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .timeline-section {
+            width: 100%;
+            max-height: 400px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="journey-container">
+        <!-- Journey Overview -->
+        <div class="journey-overview">
+            <div class="journey-header">
+                <div>
+                    <h1 class="journey-title">Enhanced Patient Journey</h1>
+                    <div class="patient-info">
+                        <strong>{{ patient.name }}</strong> | Patient ID: {{ patient.id }} | 
+                        Email: {{ patient.email or 'Not provided' }}
+                    </div>
+                </div>
+                <div class="doctor-info">
+                    <strong>{{ doctor_name }}</strong><br>
+                    <small>Treating Physician</small>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-label">Treatment Progress</div>
+                <div class="progress-text">
+                    {{ completed_stages }} of {{ total_stages }} stages completed
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journey Content -->
+        <div class="journey-content">
+            <!-- Timeline Section -->
+            <div class="timeline-section">
+                <h2 class="timeline-title">Treatment Stages</h2>
+                
+                {% for stage in stages %}
+                <div class="stage-item {% if stage.is_completed %}completed{% elif stage == current_stage %}current{% endif %}" 
+                     data-stage-key="{{ stage.stage_key }}">
+                    <div class="stage-header">
+                        <span class="stage-number">Stage {{ stage.stage_number }}</span>
+                        <span class="stage-status {% if stage.is_completed %}completed{% else %}pending{% endif %}">
+                            {% if stage.is_completed %}✅ Completed{% else %}⏳ Pending{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="stage-name">{{ stage.stage_name }}</div>
+                    
+                    {% if stage.completion_date %}
+                    <div class="stage-date">
+                        Completed: {{ stage.completion_date.strftime('%B %d, %Y') }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="stage-message">{{ stage.status_message }}</div>
+                    
+                    {% if stage.files %}
+                    <div class="files-section">
+                        <div class="files-title">📁 Files ({{ stage.files|length }})</div>
+                        {% for file in stage.files %}
+                        <div class="file-item">
+                            <div class="file-icon">
+                                {% if file.download_url %}📄{% else %}📋{% endif %}
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">{{ file.name }}</div>
+                                <div class="file-date">{{ file.date.strftime('%B %d, %Y') }}</div>
+                            </div>
+                            {% if file.download_url %}
+                            <a href="{{ file.download_url }}" target="_blank" class="file-download">
+                                Download
+                            </a>
+                            {% else %}
+                            <button class="file-download" disabled>No Link</button>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Details Section -->
+            <div class="details-section">
+                <h2 class="details-title">Stage Details</h2>
+                
+                {% for stage in stages %}
+                <div class="stage-details" id="details-{{ stage.stage_key }}">
+                    <div class="detail-item">
+                        <div class="detail-label">Stage Information</div>
+                        <div class="detail-value">
+                            <strong>Stage {{ stage.stage_number }}:</strong> {{ stage.stage_name }}<br>
+                            <strong>Status:</strong> {% if stage.is_completed %}Completed{% else %}Pending{% endif %}<br>
+                            {% if stage.completion_date %}
+                            <strong>Completion Date:</strong> {{ stage.completion_date.strftime('%B %d, %Y at %I:%M %p') }}<br>
+                            {% endif %}
+                            <strong>Status Message:</strong> {{ stage.status_message }}
+                        </div>
+                    </div>
+
+                    {% if stage.files %}
+                    <div class="detail-item">
+                        <div class="detail-label">Associated Files</div>
+                        <div class="detail-value">
+                            {% for file in stage.files %}
+                            <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
+                                <strong>{{ file.name }}</strong><br>
+                                <small>Type: {{ file.type }} | Date: {{ file.date.strftime('%B %d, %Y') }}</small><br>
+                                <small>Description: {{ file.description }}</small>
+                                {% if file.download_url %}
+                                <br><a href="{{ file.download_url }}" target="_blank" class="file-download" style="margin-top: 0.5rem; display: inline-block;">
+                                    📥 Download File
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if stage.stage_data %}
+                    <div class="detail-item">
+                        <div class="detail-label">Stage Data</div>
+                        <div class="stage-data">
+                            {{ stage.stage_data|tojson(indent=2) }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show first stage details by default
+    const firstStage = document.querySelector('.stage-item');
+    if (firstStage) {
+        const stageKey = firstStage.dataset.stageKey;
+        showStageDetails(stageKey);
+    }
+
+    // Add click handlers to stage items
+    document.querySelectorAll('.stage-item').forEach(function(stageItem) {
+        stageItem.addEventListener('click', function() {
+            const stageKey = this.dataset.stageKey;
+            showStageDetails(stageKey);
+            
+            // Update active state
+            document.querySelectorAll('.stage-item').forEach(item => {
+                item.classList.remove('current');
+            });
+            this.classList.add('current');
+        });
+    });
+
+    function showStageDetails(stageKey) {
+        // Hide all stage details
+        document.querySelectorAll('.stage-details').forEach(function(detail) {
+            detail.classList.remove('active');
+        });
+        
+        // Show selected stage details
+        const selectedDetail = document.getElementById('details-' + stageKey);
+        if (selectedDetail) {
+            selectedDetail.classList.add('active');
+        }
+    }
+});
+</script>
+{% endblock %} 

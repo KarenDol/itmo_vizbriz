@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "patient",
+    "policy_context",
+    "sleep_study",
+    "policy_features",
+    "stage_context",
+    "meta"
+  ],
+  "properties": {
+    "patient": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sex": {
+          "type": "string"
+        },
+        "age": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_context": {
+      "type": "object",
+      "required": [
+        "policy_version"
+      ],
+      "properties": {
+        "policy_version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sleep_study": {
+      "type": "object",
+      "required": [
+        "type",
+        "date",
+        "AHI",
+        "SpO2_nadir",
+        "severity"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "HST",
+            "PSG",
+            "unknown"
+          ]
+        },
+        "date": {
+          "type": "string"
+        },
+        "AHI": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 200
+        },
+        "SpO2_nadir": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 50,
+          "maximum": 100
+        },
+        "ODI": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "mild",
+            "moderate",
+            "severe",
+            "unknown"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "phenotype_highlights": {
+      "type": "object"
+    },
+    "policy_features": {
+      "type": "object"
+    },
+    "stage_context": {
+      "type": "object",
+      "required": [
+        "stage",
+        "completion_pct"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string"
+        },
+        "completion_pct": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "packet_hash"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 2
+        },
+        "packet_hash": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

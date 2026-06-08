@@ -1,0 +1,16 @@
+{
+  "name": "VizBriz Application",
+  "short_name": "VizBriz",
+  "description": "VizBriz Medical Application",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "icons": [
+    {
+      "src": "/static/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -1,0 +1,3194 @@
+{
+  "metadata": {
+    "id": "vizbriz_osa_quiz",
+    "version": "v3.1",
+    "default_language": "en",
+    "languages": [
+      "en",
+      "he",
+      "ru"
+    ],
+    "notes": "Multilingual manifest with EN questions/options; HE/RU placeholders flagged; risk bands/outcomes/CTAs included.",
+    "display_groups": {
+      "Section_0": {
+        "title": "Section 0 – Patient Profile & Demographics",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_1": {
+        "title": "Section 1 – Diagnosis & Treatment",
+        "trigger_qid": "Q1",
+        "expr": "ANS.Q1== 'Yes'",
+        "description": null
+      },
+      "Section_2": {
+        "title": "Section 2 – Sleep Patterns & Daily Symptoms",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3": {
+        "title": "Section 3 – Jaw / TMJ / Bruxism",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_4": {
+        "title": "Section 4 – Lifestyle & Medical Background",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Nasal_Breathing_Follow_up": {
+        "title": "Nasal Breathing Follow-up",
+        "trigger_qid": "Q32",
+        "expr": "ANS.Q32-trigger== 'Yes'",
+        "description": null
+      },
+      "Section_5": {
+        "title": "Section 5 – Daytime Function & Social Impact (FOSQ-5)",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_6": {
+        "title": "Section 6 – Personal Goals & Priorities",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_7": {
+        "title": "Section 7 – Additional Information",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      }
+    },
+    "cta_map": {
+      "CTA_PROVIDE_REASSURANCE_AND_OPTIONAL_REFERRAL_TO_A_SLEEP_PROFESSIONAL_FOR_SCREENING": {
+        "label": "Provide reassurance and optional referral to a sleep professional for screening.",
+        "deeplink": null
+      },
+      "CTA_ENCOURAGE_DIAGNOSTIC_SLEEP_TEST_OR_CONSULTATION_WITH_A_SLEEP_PROFESSIONAL": {
+        "label": "Encourage diagnostic sleep test or consultation with a sleep professional.",
+        "deeplink": null
+      },
+      "CTA_REFER_FOR_DIAGNOSTIC_SLEEP_TEST_ENCOURAGE_EVALUATION_WITH_A_SLEEP_SPECIALIST": {
+        "label": "Refer for diagnostic sleep test; encourage evaluation with a sleep specialist.",
+        "deeplink": null
+      },
+      "CTA_ENCOURAGE_FOLLOW_UP_SLEEP_TEST_OR_CONSULTATION_TO_RESTART_THERAPY": {
+        "label": "Encourage follow-up sleep test or consultation to restart therapy.",
+        "deeplink": null
+      },
+      "CTA_RECOMMEND_THERAPY_REASSESSMENT_DEVICE_REVIEW_OR_EXPLORATION_OF_ALTERNATIVE_COMPLEMENTARY_TREATMENTS": {
+        "label": "Recommend therapy reassessment, device review, or exploration of alternative/complementary treatments.",
+        "deeplink": null
+      },
+      "CTA_MAINTAIN_FOLLOW_UP_OFFER_DISCUSSION_ON_SECONDARY_OR_ALTERNATIVE_TREATMENT_OPTIONS_IF_RELEVANT": {
+        "label": "Maintain follow-up; offer discussion on secondary or alternative treatment options if relevant.",
+        "deeplink": null
+      }
+    }
+  },
+  "questions": [
+    {
+      "qid": "DEMO_FULL_NAME",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Full name"
+    },
+    {
+      "qid": "DEMO_DOB",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Date of birth (DD/MM/YYYY)"
+    },
+    {
+      "qid": "DEMO_EMAIL",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Email address"
+    },
+    {
+      "qid": "DEMO_REFERRING_DENTIST_OR_CLI",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Referring dentist or clinic"
+    },
+    {
+      "qid": "DEMO_AGE",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Age"
+    },
+    {
+      "qid": "DEMO_SEX",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "male",
+          "label": "Male"
+        },
+        {
+          "value": "female",
+          "label": "Female"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        },
+        {
+          "value": "prefer_not_to_say",
+          "label": "Prefer not to say"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Gender"
+    },
+    {
+      "qid": "DEMO_HEIGHT_CM",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Height (cm)"
+    },
+    {
+      "qid": "DEMO_WEIGHT_KG",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Weight (kg)"
+    },
+    {
+      "qid": "Q1",
+      "section": "Section 1 – Diagnosis & Treatment",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Have you been diagnosed with sleep apnea?"
+    },
+    {
+      "qid": "Q2",
+      "section": "Section 1 – Diagnosis & Treatment",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q1== 'Yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Are you currently receiving any treatment for your sleep apnea?"
+    },
+    {
+      "qid": "Q3",
+      "section": "Section 1 – Diagnosis & Treatment",
+      "display_group": "Section_1",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q2== 'Yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Which type of treatment are you currently using?"
+    },
+    {
+      "qid": "Q4",
+      "section": "Section 1 – Diagnosis & Treatment",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q1== 'Yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Have you ever undergone surgery related to sleep apnea or airway breathing?"
+    },
+    {
+      "qid": "Q6",
+      "section": "Section 1 – Diagnosis & Treatment",
+      "display_group": "Section_1",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "When was your most recent sleep study performed?"
+    },
+    {
+      "qid": "Q8",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How long does it usually take you to fall asleep?"
+    },
+    {
+      "qid": "Q9",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How many hours of sleep do you typically get per night?"
+    },
+    {
+      "qid": "Q10",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_poor",
+          "label": "Very poor"
+        },
+        {
+          "value": "poor",
+          "label": "Poor"
+        },
+        {
+          "value": "fair",
+          "label": "Fair"
+        },
+        {
+          "value": "good",
+          "label": "Good"
+        },
+        {
+          "value": "very_good",
+          "label": "Very good"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "very_poor": 3,
+          "poor": 2,
+          "fair": 1,
+          "good": 0,
+          "very_good": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_scale",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How would you rate your overall sleep quality?"
+    },
+    {
+      "qid": "Q11",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you snore loudly?"
+    },
+    {
+      "qid": "Q12",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Has anyone observed you stop breathing, gasping, or choking during sleep?"
+    },
+    {
+      "qid": "Q13",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "don’t_know",
+          "label": "Don’t know"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up feeling unrefreshed despite getting enough sleep?"
+    },
+    {
+      "qid": "Q14",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "don’t_know",
+          "label": "Don’t know"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience excessive daytime sleepiness?"
+    },
+    {
+      "qid": "Q15",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have trouble staying awake while driving?"
+    },
+    {
+      "qid": "Q16",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up with a headache?"
+    },
+    {
+      "qid": "Q17",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up frequently during the night?"
+    },
+    {
+      "qid": "Q18",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have trouble falling back asleep after waking up?"
+    },
+    {
+      "qid": "Q19",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up early in the morning and cannot fall back asleep?"
+    },
+    {
+      "qid": "Q20",
+      "section": "Section 2 – Sleep Patterns & Daily Symptoms",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience restless or disturbed sleep?"
+    },
+    {
+      "qid": "Q21",
+      "section": "Section 3 – Jaw / TMJ / Bruxism",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you grind your teeth at night?"
+    },
+    {
+      "qid": "Q22",
+      "section": "Section 3 – Jaw / TMJ / Bruxism",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you clench your jaw during sleep?"
+    },
+    {
+      "qid": "Q23",
+      "section": "Section 3 – Jaw / TMJ / Bruxism",
+      "display_group": "Section_3",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up with jaw pain or stiffness?"
+    },
+    {
+      "qid": "Q24",
+      "section": "Section 3 – Jaw / TMJ / Bruxism",
+      "display_group": "Section_3",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "ear_pain",
+          "label": "Ear pain"
+        },
+        {
+          "value": "tinnitus",
+          "label": "Tinnitus (ringing in ears)"
+        },
+        {
+          "value": "vertigo",
+          "label": "Vertigo (dizziness)"
+        },
+        {
+          "value": "other",
+          "label": "Other (please specify)"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience any of the following? (Select all that apply)"
+    },
+    {
+      "qid": "Q25",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have high blood pressure?"
+    },
+    {
+      "qid": "Q26",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have diabetes?"
+    },
+    {
+      "qid": "Q27",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have asthma or other breathing problems?"
+    },
+    {
+      "qid": "Q28",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have thyroid problems?"
+    },
+    {
+      "qid": "Q29",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have depression or anxiety?"
+    },
+    {
+      "qid": "Q30",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "hypertension",
+          "label": "Hypertension"
+        },
+        {
+          "value": "diabetes",
+          "label": "Diabetes"
+        },
+        {
+          "value": "asthma",
+          "label": "Asthma"
+        },
+        {
+          "value": "thyroid_disorder",
+          "label": "Thyroid disorder"
+        },
+        {
+          "value": "depression/anxiety",
+          "label": "Depression/Anxiety"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ],
+      "score_map": {
+        "mode": "multi_option",
+        "weights": {
+          "hypertension": 1,
+          "diabetes": 1,
+          "asthma": 1,
+          "thyroid_disorder": 1,
+          "depression/anxiety": 1,
+          "other": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_multi",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have any of the following medical conditions? (Select all that apply)"
+    },
+    {
+      "qid": "Q31",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you take any medications for sleep?"
+    },
+    {
+      "qid": "Q32",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have nasal congestion or obstruction?"
+    },
+    {
+      "qid": "Q32-trigger",
+      "section": "Section 4 – Lifestyle & Medical Background",
+      "display_group": "Section_4",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have difficulty breathing through your nose?"
+    },
+    {
+      "qid": "Q32a",
+      "section": "Nasal Breathing Follow-up",
+      "display_group": "Nasal_Breathing_Follow_up",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q32-trigger== 'Yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Rate your nasal breathing during the day (1 = very poor, 5 = excellent)"
+    },
+    {
+      "qid": "Q32b",
+      "section": "Nasal Breathing Follow-up",
+      "display_group": "Nasal_Breathing_Follow_up",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q32-trigger== 'Yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Rate your nasal breathing at night (1 = very poor, 5 = excellent)"
+    },
+    {
+      "qid": "Q32c",
+      "section": "Nasal Breathing Follow-up",
+      "display_group": "Nasal_Breathing_Follow_up",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q32-trigger== 'Yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Rate your overall breathing comfort (1 = very poor, 5 = excellent)"
+    },
+    {
+      "qid": "Q33",
+      "section": "Section 5 – Daytime Function & Social Impact (FOSQ-5)",
+      "display_group": "Section_5",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How much difficulty do you have with general productivity?"
+    },
+    {
+      "qid": "Q34",
+      "section": "Section 5 – Daytime Function & Social Impact (FOSQ-5)",
+      "display_group": "Section_5",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How much difficulty do you have with social outcomes?"
+    },
+    {
+      "qid": "Q35",
+      "section": "Section 5 – Daytime Function & Social Impact (FOSQ-5)",
+      "display_group": "Section_5",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How much difficulty do you have with activity level?"
+    },
+    {
+      "qid": "Q36",
+      "section": "Section 5 – Daytime Function & Social Impact (FOSQ-5)",
+      "display_group": "Section_5",
+      "type": "scale_1_5",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How much difficulty do you have with vigilance?"
+    },
+    {
+      "qid": "Q37",
+      "section": "Section 5 – Daytime Function & Social Impact (FOSQ-5)",
+      "display_group": "Section_5",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_low",
+          "label": "Very low"
+        },
+        {
+          "value": "low",
+          "label": "Low"
+        },
+        {
+          "value": "moderate",
+          "label": "Moderate"
+        },
+        {
+          "value": "high",
+          "label": "High"
+        },
+        {
+          "value": "very_high",
+          "label": "Very high"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "very_low": 3,
+          "low": 2,
+          "moderate": 1,
+          "high": 0,
+          "very_high": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_scale",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How would you rate your overall quality of life?"
+    },
+    {
+      "qid": "Q38",
+      "section": "Section 6 – Personal Goals & Priorities",
+      "display_group": "Section_6",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "better_sleep_quality",
+          "label": "Better sleep quality"
+        },
+        {
+          "value": "reduce_snoring",
+          "label": "Reduce snoring"
+        },
+        {
+          "value": "more_energy",
+          "label": "More energy during the day"
+        },
+        {
+          "value": "better_concentration",
+          "label": "Better concentration"
+        },
+        {
+          "value": "reduce_daytime_sleepiness",
+          "label": "Reduce daytime sleepiness"
+        },
+        {
+          "value": "improve_mood",
+          "label": "Improve mood"
+        },
+        {
+          "value": "better_relationship",
+          "label": "Better relationship with partner"
+        },
+        {
+          "value": "other",
+          "label": "Other (please specify)"
+        }
+      ],
+      "score_map": {
+        "mode": "multi_option",
+        "weights": {
+          "better_sleep_quality": 1,
+          "reduce_snoring": 1,
+          "more_energy": 1,
+          "better_concentration": 1,
+          "reduce_daytime_sleepiness": 1,
+          "improve_mood": 1,
+          "better_relationship": 1,
+          "other": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": true,
+      "score_source": "inferred_multi",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "What would you most like to improve about your sleep or health? (Select all that apply)"
+    },
+    {
+      "qid": "Q39",
+      "section": "Section 7 – Additional Information",
+      "display_group": "Section_7",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Is there anything else you would like us to know about your sleep or health?"
+    }
+  ],
+  "scoring": {
+    "aggregation": {
+      "strategy": "weighted_sum"
+    },
+    "risk_bands": [
+      {
+        "id": "low",
+        "label": "Low Risk",
+        "min_score": 0,
+        "max_score": 3,
+        "rule_text": "0–3 points AND no Red Flags",
+        "description": null,
+        "message": {
+          "title": "Low Risk",
+          "body": "0–3 points AND no Red Flags",
+          "cta": null
+        }
+      },
+      {
+        "id": "moderate",
+        "label": "Moderate Risk",
+        "min_score": 4,
+        "max_score": 6,
+        "rule_text": "4–6 points OR exactly 1 Red Flag",
+        "description": null,
+        "message": {
+          "title": "Moderate Risk",
+          "body": "4–6 points OR exactly 1 Red Flag",
+          "cta": null
+        }
+      },
+      {
+        "id": "high",
+        "label": "High Risk",
+        "min_score": 7,
+        "max_score": 99,
+        "rule_text": "≥7 points OR ≥2 Red Flags",
+        "description": null,
+        "message": {
+          "title": "High Risk",
+          "body": "≥7 points OR ≥2 Red Flags",
+          "cta": null
+        }
+      }
+    ],
+    "red_flag_overrides": {}
+  },
+  "outcomes": [
+    {
+      "id": "OUT_LOW_RISK",
+      "if": {
+        "expr": "Diagnosed == 'No AND Risk'≤ 3"
+      },
+      "message_ref": "low",
+      "next_step": {
+        "id": "CTA_PROVIDE_REASSURANCE_AND_OPTIONAL_REFERRAL_TO_A_SLEEP_PROFESSIONAL_FOR_SCREENING",
+        "label": "Provide reassurance and optional referral to a sleep professional for screening.",
+        "deeplink": null,
+        "priority": 1
+      }
+    },
+    {
+      "id": "OUT_MODERATE_RISK",
+      "if": {
+        "expr": "Diagnosed == 'No AND Risk'== 4–6"
+      },
+      "message_ref": "moderate",
+      "next_step": {
+        "id": "CTA_ENCOURAGE_DIAGNOSTIC_SLEEP_TEST_OR_CONSULTATION_WITH_A_SLEEP_PROFESSIONAL",
+        "label": "Encourage diagnostic sleep test or consultation with a sleep professional.",
+        "deeplink": null,
+        "priority": 1
+      }
+    },
+    {
+      "id": "OUT_HIGH_RISK",
+      "if": {
+        "expr": "Diagnosed == 'No AND Risk'≥ 7"
+      },
+      "message_ref": "high",
+      "next_step": {
+        "id": "CTA_REFER_FOR_DIAGNOSTIC_SLEEP_TEST_ENCOURAGE_EVALUATION_WITH_A_SLEEP_SPECIALIST",
+        "label": "Refer for diagnostic sleep test; encourage evaluation with a sleep specialist.",
+        "deeplink": null,
+        "priority": 1
+      }
+    },
+    {
+      "id": "OUT_DIAGNOSED_NOT_TREATED",
+      "if": {
+        "expr": "Diagnosed == 'Yes AND Treatment'== 'No'"
+      },
+      "message_ref": null,
+      "next_step": {
+        "id": "CTA_ENCOURAGE_FOLLOW_UP_SLEEP_TEST_OR_CONSULTATION_TO_RESTART_THERAPY",
+        "label": "Encourage follow-up sleep test or consultation to restart therapy.",
+        "deeplink": null,
+        "priority": 1
+      }
+    },
+    {
+      "id": "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC",
+      "if": {
+        "expr": "Diagnosed == 'Yes AND Treatment'== 'Yes AND Symptomatic'== 'Yes'"
+      },
+      "message_ref": null,
+      "next_step": {
+        "id": "CTA_RECOMMEND_THERAPY_REASSESSMENT_DEVICE_REVIEW_OR_EXPLORATION_OF_ALTERNATIVE_COMPLEMENTARY_TREATMENTS",
+        "label": "Recommend therapy reassessment, device review, or exploration of alternative/complementary treatments.",
+        "deeplink": null,
+        "priority": 1
+      }
+    },
+    {
+      "id": "OUT_DIAGNOSED_TREATED_AND_STABLE",
+      "if": {
+        "expr": "Diagnosed == 'Yes AND Treatment'== 'Yes AND Symptomatic'== 'No'"
+      },
+      "message_ref": null,
+      "next_step": {
+        "id": "CTA_MAINTAIN_FOLLOW_UP_OFFER_DISCUSSION_ON_SECONDARY_OR_ALTERNATIVE_TREATMENT_OPTIONS_IF_RELEVANT",
+        "label": "Maintain follow-up; offer discussion on secondary or alternative treatment options if relevant.",
+        "deeplink": null,
+        "priority": 1
+      }
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "Driving sleepiness (Yes)",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "trigger_text": "Trouble staying awake while driving?",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "FOSQ driving item (1–2)",
+      "section": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+      "trigger_text": "Operating a motor vehicle",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Observed apneas/gasping (≥Often)",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "trigger_text": "Observed stop breathing / gasping / choking",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "BMI ≥ 25",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "trigger_text": "Overweight (BMI ≥ 25)",
+      "effect": "Cannot be Low Risk (min Moderate)",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Regular sedatives use",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "trigger_text": "Sedatives or sleeping pills",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Daily/heavy alcohol",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "trigger_text": "Alcohol frequency",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Hypertension",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "trigger_text": "High blood pressure / Hypertension",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Bruxism (any Yes)",
+      "section": "Section 3b – TMJ & Bruxism",
+      "trigger_text": "Bruxism / tooth grinding",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "TMJ/Bruxism subtotal ≥ 2",
+      "section": "Section 3b – TMJ & Bruxism",
+      "trigger_text": "Section sum",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Sleep Symptoms subtotal ≥ 2",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "trigger_text": "Section sum",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    },
+    {
+      "id": "Nasal obstruction ≥ Often",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "trigger_text": "Nasal obstruction frequency",
+      "effect": "Override Low Risk",
+      "if": null,
+      "needs_mapping_review": true
+    }
+  ],
+  "i18n": {
+    "en": {
+      "questions": {
+        "Q1": {
+          "title": "Have you been diagnosed with sleep apnea?",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          }
+        },
+        "Q2": {
+          "title": "Are you currently receiving any treatment for your sleep apnea?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q3": {
+          "title": "Which type of treatment are you currently using?"
+        },
+        "Q4": {
+          "title": "Have you ever undergone surgery related to sleep apnea or airway breathing?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q6": {
+          "title": "When was your most recent sleep study performed?"
+        },
+        "Q8": {
+          "title": "How long does it usually take you to fall asleep?"
+        },
+        "Q9": {
+          "title": "How many hours of sleep do you typically get per night?"
+        },
+        "Q10": {
+          "title": "How would you rate your overall sleep quality?",
+          "options": {
+            "very_poor": "Very poor",
+            "poor": "Poor",
+            "fair": "Fair",
+            "good": "Good",
+            "very_good": "Very good"
+          }
+        },
+        "Q11": {
+          "title": "Do you snore loudly?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q12": {
+          "title": "Has anyone observed you stop breathing, gasping, or choking during sleep?",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          }
+        },
+        "Q13": {
+          "title": "Do you wake up feeling unrefreshed despite getting enough sleep?",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "don’t_know": "Don’t know"
+          }
+        },
+        "Q14": {
+          "title": "Do you experience excessive daytime sleepiness?",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "don’t_know": "Don’t know"
+          }
+        },
+        "Q15": {
+          "title": "Do you have trouble staying awake while driving?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q16": {
+          "title": "Do you wake up with a headache?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q17": {
+          "title": "Do you wake up frequently during the night?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q18": {
+          "title": "Do you have trouble falling back asleep after waking up?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q19": {
+          "title": "Do you wake up early in the morning and cannot fall back asleep?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q20": {
+          "title": "Do you experience restless or disturbed sleep?",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          }
+        },
+        "Q21": {
+          "title": "Do you grind your teeth at night?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q22": {
+          "title": "Do you clench your jaw during sleep?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q23": {
+          "title": "Do you wake up with jaw pain or stiffness?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q24": {
+          "title": "Do you experience any of the following? (Select all that apply)"
+        },
+        "Q25": {
+          "title": "Do you have high blood pressure?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q26": {
+          "title": "Do you have diabetes?"
+        },
+        "Q27": {
+          "title": "Do you have asthma or other breathing problems?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q28": {
+          "title": "Do you have thyroid problems?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q29": {
+          "title": "Do you have depression or anxiety?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q30": {
+          "title": "Do you have any of the following medical conditions? (Select all that apply)",
+          "options": {
+            "hypertension": "Hypertension",
+            "diabetes": "Diabetes",
+            "asthma": "Asthma",
+            "thyroid_disorder": "Thyroid disorder",
+            "depression/anxiety": "Depression/Anxiety",
+            "other": "Other"
+          }
+        },
+        "Q31": {
+          "title": "Do you take any medications for sleep?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q32": {
+          "title": "Do you have nasal congestion or obstruction?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q32-trigger": {
+          "title": "Do you have difficulty breathing through your nose?",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          }
+        },
+        "Q32a": {
+          "title": "Rate your nasal breathing during the day (1 = very poor, 5 = excellent)",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q32b": {
+          "title": "Rate your nasal breathing at night (1 = very poor, 5 = excellent)",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q32c": {
+          "title": "Rate your overall breathing comfort (1 = very poor, 5 = excellent)",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q33": {
+          "title": "How much difficulty do you have with general productivity?",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q34": {
+          "title": "How much difficulty do you have with social outcomes?",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q35": {
+          "title": "How much difficulty do you have with activity level?",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q36": {
+          "title": "How much difficulty do you have with vigilance?",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          }
+        },
+        "Q37": {
+          "title": "How would you rate your overall quality of life?",
+          "options": {
+            "very_low": "Very low",
+            "low": "Low",
+            "moderate": "Moderate",
+            "high": "High",
+            "very_high": "Very high"
+          }
+        },
+        "Q38": {
+          "title": "What would you most like to improve about your sleep or health? (Select all that apply)"
+        },
+        "Q39": {
+          "title": "Is there anything else you would like us to know about your sleep or health?"
+        },
+        "DEMO_AGE": {
+          "title": "Age"
+        },
+        "DEMO_DOB": {
+          "title": "Date of birth (DD/MM/YYYY)"
+        },
+        "DEMO_EMAIL": {
+          "title": "Email address"
+        },
+        "DEMO_FULL_NAME": {
+          "title": "Full name"
+        },
+        "DEMO_HEIGHT_CM": {
+          "title": "Height (cm)"
+        },
+        "DEMO_REFERRING_DENTIST_OR_CLI": {
+          "title": "Referring dentist or clinic"
+        },
+        "DEMO_SEX": {
+          "title": "Gender",
+          "options": {
+            "male": "Male",
+            "female": "Female",
+            "other": "Other",
+            "prefer_not_to_say": "Prefer not to say"
+          }
+        },
+        "DEMO_WEIGHT_KG": {
+          "title": "Weight (kg)"
+        }
+      },
+      "risk_bands": {
+        "low": {
+          "title": "Low Risk",
+          "body": "0–3 points AND no Red Flags"
+        },
+        "moderate": {
+          "title": "Moderate Risk",
+          "body": "4–6 points OR exactly 1 Red Flag"
+        },
+        "high": {
+          "title": "High Risk",
+          "body": "≥7 points OR ≥2 Red Flags"
+        }
+      },
+      "outcomes": {
+        "OUT_LOW_RISK": {
+          "title": "Low Outcome",
+          "body": ""
+        },
+        "OUT_MODERATE_RISK": {
+          "title": "Moderate Outcome",
+          "body": ""
+        },
+        "OUT_HIGH_RISK": {
+          "title": "High Outcome",
+          "body": ""
+        },
+        "OUT_DIAGNOSED_NOT_TREATED": {
+          "title": "OUT_DIAGNOSED_NOT_TREATED",
+          "body": ""
+        },
+        "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC": {
+          "title": "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC",
+          "body": ""
+        },
+        "OUT_DIAGNOSED_TREATED_AND_STABLE": {
+          "title": "OUT_DIAGNOSED_TREATED_AND_STABLE",
+          "body": ""
+        }
+      },
+      "ctas": {
+        "CTA_PROVIDE_REASSURANCE_AND_OPTIONAL_REFERRAL_TO_A_SLEEP_PROFESSIONAL_FOR_SCREENING": {
+          "label": "Provide reassurance and optional referral to a sleep professional for screening."
+        },
+        "CTA_ENCOURAGE_DIAGNOSTIC_SLEEP_TEST_OR_CONSULTATION_WITH_A_SLEEP_PROFESSIONAL": {
+          "label": "Encourage diagnostic sleep test or consultation with a sleep professional."
+        },
+        "CTA_REFER_FOR_DIAGNOSTIC_SLEEP_TEST_ENCOURAGE_EVALUATION_WITH_A_SLEEP_SPECIALIST": {
+          "label": "Refer for diagnostic sleep test; encourage evaluation with a sleep specialist."
+        },
+        "CTA_ENCOURAGE_FOLLOW_UP_SLEEP_TEST_OR_CONSULTATION_TO_RESTART_THERAPY": {
+          "label": "Encourage follow-up sleep test or consultation to restart therapy."
+        },
+        "CTA_RECOMMEND_THERAPY_REASSESSMENT_DEVICE_REVIEW_OR_EXPLORATION_OF_ALTERNATIVE_COMPLEMENTARY_TREATMENTS": {
+          "label": "Recommend therapy reassessment, device review, or exploration of alternative/complementary treatments."
+        },
+        "CTA_MAINTAIN_FOLLOW_UP_OFFER_DISCUSSION_ON_SECONDARY_OR_ALTERNATIVE_TREATMENT_OPTIONS_IF_RELEVANT": {
+          "label": "Maintain follow-up; offer discussion on secondary or alternative treatment options if relevant."
+        }
+      }
+    },
+    "he": {
+      "questions": {
+        "Q1": {
+          "title": "Q1",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          },
+          "missing_translation": true
+        },
+        "Q2": {
+          "title": "Q2",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q3": {
+          "title": "Q3",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q4": {
+          "title": "Q4",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q6": {
+          "title": "Q6",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q8": {
+          "title": "Q8",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q9": {
+          "title": "Q9",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q10": {
+          "title": "Q10",
+          "options": {
+            "very_poor": "Very poor",
+            "poor": "Poor",
+            "fair": "Fair",
+            "good": "Good",
+            "very_good": "Very good"
+          },
+          "missing_translation": true
+        },
+        "Q11": {
+          "title": "Q11",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q12": {
+          "title": "Q12",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          },
+          "missing_translation": true
+        },
+        "Q13": {
+          "title": "Q13",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "don’t_know": "Don’t know"
+          },
+          "missing_translation": true
+        },
+        "Q14": {
+          "title": "Q14",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "don’t_know": "Don’t know"
+          },
+          "missing_translation": true
+        },
+        "Q15": {
+          "title": "Q15",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q16": {
+          "title": "Q16",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q17": {
+          "title": "Q17",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q18": {
+          "title": "Q18",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q19": {
+          "title": "Q19",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q20": {
+          "title": "Q20",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          },
+          "missing_translation": true
+        },
+        "Q21": {
+          "title": "Q21",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q22": {
+          "title": "Q22",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q23": {
+          "title": "Q23",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q24": {
+          "title": "Q24",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q25": {
+          "title": "Q25",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q26": {
+          "title": "Q26",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q27": {
+          "title": "Q27",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q28": {
+          "title": "Q28",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q29": {
+          "title": "Q29",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q30": {
+          "title": "Q30",
+          "options": {
+            "hypertension": "Hypertension",
+            "diabetes": "Diabetes",
+            "asthma": "Asthma",
+            "thyroid_disorder": "Thyroid disorder",
+            "depression/anxiety": "Depression/Anxiety",
+            "other": "Other"
+          },
+          "missing_translation": true
+        },
+        "Q31": {
+          "title": "Q31",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q32": {
+          "title": "Q32",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q32-trigger": {
+          "title": "Q32-trigger",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q32a": {
+          "title": "Q32a",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q32b": {
+          "title": "Q32b",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q32c": {
+          "title": "Q32c",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q33": {
+          "title": "Q33",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q34": {
+          "title": "Q34",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q35": {
+          "title": "Q35",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q36": {
+          "title": "Q36",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q37": {
+          "title": "Q37",
+          "options": {
+            "very_low": "Very low",
+            "low": "Low",
+            "moderate": "Moderate",
+            "high": "High",
+            "very_high": "Very high"
+          },
+          "missing_translation": true
+        },
+        "Q38": {
+          "title": "Q38",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q39": {
+          "title": "Q39",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_AGE": {
+          "title": "Age",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_DOB": {
+          "title": "Date of birth (DD/MM/YYYY)",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_EMAIL": {
+          "title": "Email address",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_FULL_NAME": {
+          "title": "Full name",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_HEIGHT_CM": {
+          "title": "Height (cm)",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_REFERRING_DENTIST_OR_CLI": {
+          "title": "Referring dentist or clinic",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_SEX": {
+          "title": "Gender",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_WEIGHT_KG": {
+          "title": "Weight (kg)",
+          "options": {},
+          "missing_translation": true
+        }
+      },
+      "risk_bands": {
+        "low": {
+          "title": "Low Risk",
+          "body": "",
+          "missing_translation": true
+        },
+        "moderate": {
+          "title": "Moderate Risk",
+          "body": "",
+          "missing_translation": true
+        },
+        "high": {
+          "title": "High Risk",
+          "body": "",
+          "missing_translation": true
+        }
+      },
+      "outcomes": {
+        "OUT_LOW_RISK": {
+          "title": "OUT_LOW_RISK",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_MODERATE_RISK": {
+          "title": "OUT_MODERATE_RISK",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_HIGH_RISK": {
+          "title": "OUT_HIGH_RISK",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_DIAGNOSED_NOT_TREATED": {
+          "title": "OUT_DIAGNOSED_NOT_TREATED",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC": {
+          "title": "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_DIAGNOSED_TREATED_AND_STABLE": {
+          "title": "OUT_DIAGNOSED_TREATED_AND_STABLE",
+          "body": "",
+          "missing_translation": true
+        }
+      },
+      "ctas": {
+        "CTA_PROVIDE_REASSURANCE_AND_OPTIONAL_REFERRAL_TO_A_SLEEP_PROFESSIONAL_FOR_SCREENING": {
+          "label": "Provide reassurance and optional referral to a sleep professional for screening.",
+          "missing_translation": true
+        },
+        "CTA_ENCOURAGE_DIAGNOSTIC_SLEEP_TEST_OR_CONSULTATION_WITH_A_SLEEP_PROFESSIONAL": {
+          "label": "Encourage diagnostic sleep test or consultation with a sleep professional.",
+          "missing_translation": true
+        },
+        "CTA_REFER_FOR_DIAGNOSTIC_SLEEP_TEST_ENCOURAGE_EVALUATION_WITH_A_SLEEP_SPECIALIST": {
+          "label": "Refer for diagnostic sleep test; encourage evaluation with a sleep specialist.",
+          "missing_translation": true
+        },
+        "CTA_ENCOURAGE_FOLLOW_UP_SLEEP_TEST_OR_CONSULTATION_TO_RESTART_THERAPY": {
+          "label": "Encourage follow-up sleep test or consultation to restart therapy.",
+          "missing_translation": true
+        },
+        "CTA_RECOMMEND_THERAPY_REASSESSMENT_DEVICE_REVIEW_OR_EXPLORATION_OF_ALTERNATIVE_COMPLEMENTARY_TREATMENTS": {
+          "label": "Recommend therapy reassessment, device review, or exploration of alternative/complementary treatments.",
+          "missing_translation": true
+        },
+        "CTA_MAINTAIN_FOLLOW_UP_OFFER_DISCUSSION_ON_SECONDARY_OR_ALTERNATIVE_TREATMENT_OPTIONS_IF_RELEVANT": {
+          "label": "Maintain follow-up; offer discussion on secondary or alternative treatment options if relevant.",
+          "missing_translation": true
+        }
+      }
+    },
+    "ru": {
+      "questions": {
+        "Q1": {
+          "title": "Q1",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          },
+          "missing_translation": true
+        },
+        "Q2": {
+          "title": "Q2",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q3": {
+          "title": "Q3",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q4": {
+          "title": "Q4",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q6": {
+          "title": "Q6",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q8": {
+          "title": "Q8",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q9": {
+          "title": "Q9",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q10": {
+          "title": "Q10",
+          "options": {
+            "very_poor": "Very poor",
+            "poor": "Poor",
+            "fair": "Fair",
+            "good": "Good",
+            "very_good": "Very good"
+          },
+          "missing_translation": true
+        },
+        "Q11": {
+          "title": "Q11",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q12": {
+          "title": "Q12",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          },
+          "missing_translation": true
+        },
+        "Q13": {
+          "title": "Q13",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "don’t_know": "Don’t know"
+          },
+          "missing_translation": true
+        },
+        "Q14": {
+          "title": "Q14",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "don’t_know": "Don’t know"
+          },
+          "missing_translation": true
+        },
+        "Q15": {
+          "title": "Q15",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q16": {
+          "title": "Q16",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q17": {
+          "title": "Q17",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q18": {
+          "title": "Q18",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q19": {
+          "title": "Q19",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q20": {
+          "title": "Q20",
+          "options": {
+            "yes": "Yes",
+            "no": "No",
+            "not_sure": "Not sure"
+          },
+          "missing_translation": true
+        },
+        "Q21": {
+          "title": "Q21",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q22": {
+          "title": "Q22",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q23": {
+          "title": "Q23",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q24": {
+          "title": "Q24",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q25": {
+          "title": "Q25",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q26": {
+          "title": "Q26",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q27": {
+          "title": "Q27",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q28": {
+          "title": "Q28",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q29": {
+          "title": "Q29",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q30": {
+          "title": "Q30",
+          "options": {
+            "hypertension": "Hypertension",
+            "diabetes": "Diabetes",
+            "asthma": "Asthma",
+            "thyroid_disorder": "Thyroid disorder",
+            "depression/anxiety": "Depression/Anxiety",
+            "other": "Other"
+          },
+          "missing_translation": true
+        },
+        "Q31": {
+          "title": "Q31",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q32": {
+          "title": "Q32",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q32-trigger": {
+          "title": "Q32-trigger",
+          "options": {
+            "yes": "Yes",
+            "no": "No"
+          },
+          "missing_translation": true
+        },
+        "Q32a": {
+          "title": "Q32a",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q32b": {
+          "title": "Q32b",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q32c": {
+          "title": "Q32c",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q33": {
+          "title": "Q33",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q34": {
+          "title": "Q34",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q35": {
+          "title": "Q35",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q36": {
+          "title": "Q36",
+          "options": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5"
+          },
+          "missing_translation": true
+        },
+        "Q37": {
+          "title": "Q37",
+          "options": {
+            "very_low": "Very low",
+            "low": "Low",
+            "moderate": "Moderate",
+            "high": "High",
+            "very_high": "Very high"
+          },
+          "missing_translation": true
+        },
+        "Q38": {
+          "title": "Q38",
+          "options": {},
+          "missing_translation": true
+        },
+        "Q39": {
+          "title": "Q39",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_AGE": {
+          "title": "Age",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_DOB": {
+          "title": "Date of birth (DD/MM/YYYY)",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_EMAIL": {
+          "title": "Email address",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_FULL_NAME": {
+          "title": "Full name",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_HEIGHT_CM": {
+          "title": "Height (cm)",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_REFERRING_DENTIST_OR_CLI": {
+          "title": "Referring dentist or clinic",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_SEX": {
+          "title": "Gender",
+          "options": {},
+          "missing_translation": true
+        },
+        "DEMO_WEIGHT_KG": {
+          "title": "Weight (kg)",
+          "options": {},
+          "missing_translation": true
+        }
+      },
+      "risk_bands": {
+        "low": {
+          "title": "Low Risk",
+          "body": "",
+          "missing_translation": true
+        },
+        "moderate": {
+          "title": "Moderate Risk",
+          "body": "",
+          "missing_translation": true
+        },
+        "high": {
+          "title": "High Risk",
+          "body": "",
+          "missing_translation": true
+        }
+      },
+      "outcomes": {
+        "OUT_LOW_RISK": {
+          "title": "OUT_LOW_RISK",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_MODERATE_RISK": {
+          "title": "OUT_MODERATE_RISK",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_HIGH_RISK": {
+          "title": "OUT_HIGH_RISK",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_DIAGNOSED_NOT_TREATED": {
+          "title": "OUT_DIAGNOSED_NOT_TREATED",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC": {
+          "title": "OUT_DIAGNOSED_TREATED_BUT_STILL_SYMPTOMATIC",
+          "body": "",
+          "missing_translation": true
+        },
+        "OUT_DIAGNOSED_TREATED_AND_STABLE": {
+          "title": "OUT_DIAGNOSED_TREATED_AND_STABLE",
+          "body": "",
+          "missing_translation": true
+        }
+      },
+      "ctas": {
+        "CTA_PROVIDE_REASSURANCE_AND_OPTIONAL_REFERRAL_TO_A_SLEEP_PROFESSIONAL_FOR_SCREENING": {
+          "label": "Provide reassurance and optional referral to a sleep professional for screening.",
+          "missing_translation": true
+        },
+        "CTA_ENCOURAGE_DIAGNOSTIC_SLEEP_TEST_OR_CONSULTATION_WITH_A_SLEEP_PROFESSIONAL": {
+          "label": "Encourage diagnostic sleep test or consultation with a sleep professional.",
+          "missing_translation": true
+        },
+        "CTA_REFER_FOR_DIAGNOSTIC_SLEEP_TEST_ENCOURAGE_EVALUATION_WITH_A_SLEEP_SPECIALIST": {
+          "label": "Refer for diagnostic sleep test; encourage evaluation with a sleep specialist.",
+          "missing_translation": true
+        },
+        "CTA_ENCOURAGE_FOLLOW_UP_SLEEP_TEST_OR_CONSULTATION_TO_RESTART_THERAPY": {
+          "label": "Encourage follow-up sleep test or consultation to restart therapy.",
+          "missing_translation": true
+        },
+        "CTA_RECOMMEND_THERAPY_REASSESSMENT_DEVICE_REVIEW_OR_EXPLORATION_OF_ALTERNATIVE_COMPLEMENTARY_TREATMENTS": {
+          "label": "Recommend therapy reassessment, device review, or exploration of alternative/complementary treatments.",
+          "missing_translation": true
+        },
+        "CTA_MAINTAIN_FOLLOW_UP_OFFER_DISCUSSION_ON_SECONDARY_OR_ALTERNATIVE_TREATMENT_OPTIONS_IF_RELEVANT": {
+          "label": "Maintain follow-up; offer discussion on secondary or alternative treatment options if relevant.",
+          "missing_translation": true
+        }
+      }
+    }
+  },
+  "validation_summary": {
+    "total_questions": 51,
+    "questions_with_text": 51,
+    "options_with_text": 36,
+    "missing_question_text": 0,
+    "scored_questions": 28,
+    "needs_scoring_review": 0,
+    "groups_with_expr": 2,
+    "risk_bands": 3,
+    "outcomes": 6,
+    "red_flags": 11,
+    "languages": [
+      "en",
+      "he",
+      "ru"
+    ]
+  }
+}

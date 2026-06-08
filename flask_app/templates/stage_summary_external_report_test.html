@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>External Report API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            color: #1f2933;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            font-family: Consolas, monospace;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        label {
+            font-weight: 600;
+        }
+        input[type="text"] {
+            width: 360px;
+            padding: 0.5rem;
+            font-size: 0.95rem;
+        }
+        button {
+            padding: 0.6rem 1.5rem;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .links {
+            margin-top: 1rem;
+        }
+        .links a {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2563eb;
+        }
+        .error {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>External Report API Test</h1>
+    <p>Patient ID: <strong>{{ patient_id }}</strong></p>
+    {% if quiz_id %}
+    <p>Quiz Submission ID: <strong>{{ quiz_id }}</strong></p>
+    {% endif %}
+
+    <section>
+        <h2>Payload (read-only)</h2>
+        <textarea readonly>{{ payload_pretty }}</textarea>
+    </section>
+
+    <section>
+        <h2>Send Request</h2>
+        <div class="controls">
+            <label for="apiToken">Bearer Token:</label>
+            <input id="apiToken" type="text" placeholder="Paste Authorization token" autocomplete="off">
+            <button id="sendRequest" type="button">Call External API</button>
+        </div>
+        <p id="status"></p>
+    </section>
+
+    <section>
+        <h2>API Response</h2>
+        <pre id="response">(no response yet)</pre>
+        <div class="links" id="links"></div>
+    </section>
+
+    <script>
+        const payload = {{ payload|tojson }};
+        const statusEl = document.getElementById('status');
+        const responseEl = document.getElementById('response');
+        const linksEl = document.getElementById('links');
+        const buttonEl = document.getElementById('sendRequest');
+
+        buttonEl.addEventListener('click', async () => {
+            const token = document.getElementById('apiToken').value.trim();
+            if (!token) {
+                statusEl.textContent = 'Please provide the bearer token first.';
+                statusEl.className = 'error';
+                return;
+            }
+
+            statusEl.textContent = 'Sending request…';
+            statusEl.className = '';
+            linksEl.innerHTML = '';
+            responseEl.textContent = '';
+            buttonEl.disabled = true;
+
+            try {
+                const res = await fetch('https://vizbriz.dvir.us/reports', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (err) {
+                    throw new Error(`Response was not valid JSON: ${text}`);
+                }
+
+                responseEl.textContent = JSON.stringify(data, null, 2);
+
+                if (data.pdf_url) {
+                    const pdfLink = document.createElement('a');
+                    pdfLink.href = data.pdf_url;
+                    pdfLink.textContent = 'Open PDF URL';
+                    pdfLink.target = '_blank';
+                    linksEl.appendChild(pdfLink);
+                }
+
+                if (data.frame_url) {
+                    const frameLink = document.createElement('a');
+                    frameLink.href = data.frame_url;
+                    frameLink.textContent = 'Open Frame URL';
+                    frameLink.target = '_blank';
+                    linksEl.appendChild(frameLink);
+                }
+
+                statusEl.textContent = `HTTP ${res.status}`;
+                statusEl.className = '';
+            } catch (error) {
+                statusEl.textContent = error.message || String(error);
+                statusEl.className = 'error';
+                responseEl.textContent = '(failed to fetch)';
+            } finally {
+                buttonEl.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vzibriz - Dental Management</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a2b3c;
+            color: #ffffff;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #233446;
+            height: 100vh;
+            padding: 20px;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            width: 75%;
+            margin: 0 auto;
+        }
+        .mdc-text-field {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .mdc-button {
+            margin-top: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            padding: 40px;
+            text-align: center;
+            margin-top: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <img src="sharkbiit-logo.png" alt="SharkBiit Logo" style="width: 100%; margin-bottom: 20px;">
+            <div class="mdc-list">
+                <a class="mdc-list-item mdc-list-item--activated" href="#" aria-current="page">
+                    <span class="mdc-list-item__ripple"></span>
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">cloud_upload</i>
+                    <span class="mdc-list-item__text">Upload Patient Data</span>
+                </a>
+                <a class="mdc-list-item" href="#">
+                    <span class="mdc-list-item__ripple"></span>
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">home</i>
+                    <span class="mdc-list-item__text">Home</span>
+                </a>
+                <!-- Add other menu items here -->
+            </div>
+        </div>
+        <div class="main-content">
+            <h1 class="mdc-typography--headline4">Upload Patient Data</h1>
+            <div class="mdc-text-field mdc-text-field--outlined">
+                <input class="mdc-text-field__input" id="patientName" type="text">
+                <div class="mdc-notched-outline">
+                    <div class="mdc-notched-outline__leading"></div>
+                    <div class="mdc-notched-outline__notch">
+                        <label for="patientName" class="mdc-floating-label">Patient Name</label>
+                    </div>
+                    <div class="mdc-notched-outline__trailing"></div>
+                </div>
+            </div>
+            <div class="upload-area" id="dropZone">
+                <i class="material-icons" style="font-size: 48px; color: #3498db;">cloud_upload</i>
+                <p>Drag and drop files here or click to select</p>
+                <input type="file" id="fileInput" multiple>
+            </div>
+            <button class="mdc-button mdc-button--raised" id="uploadButton">
+                <span class="mdc-button__label">Upload Files</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        mdc.ripple.MDCRipple.attachTo(document.querySelector('.mdc-button'));
+        mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.backgroundColor = 'transparent';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = 'transparent';
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', () => {
+            handleFiles(fileInput.files);
+        });
+
+        function handleFiles(files) {
+            console.log('Files selected:', files);
+        }
+
+        uploadButton.addEventListener('click', () => {
+            const patientName = document.getElementById('patientName').value;
+            console.log('Uploading files for patient:', patientName);
+            alert('Files uploaded successfully!');
+        });
+    </script>
+</body>
+</html>

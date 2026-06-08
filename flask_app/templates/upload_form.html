@@ -1,0 +1,592 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Patient Data - Dentist Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .upload-card {
+        background-color: #1e1e1e;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        max-width: 100%;
+    }
+
+    .upload-area {
+        border: 2px dashed #bb86fc;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .upload-area:hover {
+        background-color: rgba(187, 134, 252, 0.1);
+    }
+
+    .file-item {
+        background-color: #2a2a2a;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .file-item span {
+        cursor: pointer;
+        color: #bb86fc;
+    }
+
+    .file-item i {
+        cursor: pointer;
+        color: #bb86fc;
+    }
+
+    .card-title, p, label {
+        color: #e0e0e0;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+        color: #e0e0e0;
+        background-color: #2a2a2a;
+        border-bottom: 1px solid #bb86fc;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+        border-bottom: 1px solid #03dac6;
+        box-shadow: 0 1px 0 0 #03dac6;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+
+    select {
+        color: #e0e0e0;
+        background-color: #2a2a2a;
+        padding-right: 25px;
+        background-position: right 10px center;
+        background-size: 10px;
+    }
+
+    .material-icons {
+        color: #bb86fc;
+    }
+
+    .btn-upload {
+        background-color: #03dac6;
+        color: #121212;
+        margin-bottom: 10px;
+    }
+
+    .btn-upload:hover {
+        background-color: #04e9d5;
+    }
+
+    .input-field > label {
+        color: #bb86fc;
+    }
+
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #03dac6;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .upload-btn-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .upload-btn-group button {
+        width: 48%;
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 30px;
+        transition: background-color 0.3s ease;
+    }
+
+    .upload-btn-group button:hover {
+        background-color: #3a3a3a;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .center-align .btn-upload {
+        width: auto;
+        display: inline-block;
+        margin-top: 30px;
+    }
+
+    /* Alert styling */
+    .alert {
+        display: none;
+        position: fixed;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 80%;
+        background-color: #333;
+        color: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+    }
+
+    .alert.success {
+        background-color: #28a745;
+    }
+
+    .alert.error {
+        background-color: #dc3545;
+    }
+
+    .alert .close-btn {
+        background: none;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        float: right;
+        font-size: 1.2rem;
+    }
+
+    /* Progress circle styling */
+    .progress-container {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 200;
+        text-align: center;
+    }
+
+    .progress-circle {
+        width: 120px;
+        height: 120px;
+        background: conic-gradient(#03dac6 0%, #03dac6 var(--progress), #2a2a2a var(--progress), #2a2a2a 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e0e0e0;
+        font-size: 20px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col s12 m10 offset-m1">
+        <div class="card upload-card">
+            <div class="card-content">
+                <span class="card-title">Upload Patient Data</span>
+                <form id="upload-form" method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data" novalidate>
+                    {% include 'partials/personal_information.html' %}
+                    {% include 'partials/insurance_information.html' %}
+                    {% include 'partials/sleep_questions.html' %}
+                    {% include 'partials/billing_files.html' %}
+                    {% include 'partials/imaging_files.html' %}
+                    {% include 'partials/medical_files.html' %}
+                </form>
+                <div class="progress-container">
+                    <div class="progress-circle" id="progress-circle" style="--progress: 0%;">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alert-message" class="alert">
+    <p id="alert-text"></p>
+    <button class="close-btn" onclick="closeAlert()">Close</button>
+</div>
+{% endblock %}
+
+
+
+{% block extra_js %}
+<!-- Load JSZip library to enable file zipping -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        M.FormSelect.init(document.querySelectorAll('select'));
+
+        // Load clinic options for dentists with multiple clinics
+        loadClinicOptions();
+
+        function loadClinicOptions() {
+            fetch('/api/dentist/clinics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.clinics.length > 1) {
+                        // Show clinic selection field if dentist has multiple clinics
+                        const clinicField = document.getElementById('clinic-selection-field');
+                        const clinicSelect = document.getElementById('clinic_id');
+                        
+                        // Clear existing options
+                        clinicSelect.innerHTML = '<option value="" disabled selected>Select Clinic</option>';
+                        
+                        // Add clinic options
+                        data.clinics.forEach(clinic => {
+                            const option = document.createElement('option');
+                            option.value = clinic.id;
+                            option.textContent = clinic.name;
+                            clinicSelect.appendChild(option);
+                        });
+                        
+                        // Show the clinic selection field
+                        clinicField.style.display = 'block';
+                        
+                        // Reinitialize Materialize select
+                        M.FormSelect.init(clinicSelect);
+                        
+                        console.log(`Loaded ${data.clinics.length} clinics for dentist`);
+                    } else if (data.success && data.clinics.length === 1) {
+                        // Hide clinic selection if dentist has only one clinic
+                        const clinicField = document.getElementById('clinic-selection-field');
+                        clinicField.style.display = 'none';
+                        console.log('Dentist has only one clinic, hiding selection');
+                    } else {
+                        console.log('No clinics found or error loading clinics');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading clinics:', error);
+                });
+        }
+
+        function showLoader() {
+            document.querySelector('.progress-container').style.display = 'block';
+        }
+
+        function hideLoader() {
+            document.querySelector('.progress-container').style.display = 'none';
+        }
+
+        function updateProgress(percentage) {
+            const progressCircle = document.getElementById('progress-circle');
+            progressCircle.style.setProperty('--progress', `${percentage}%`);
+            progressCircle.textContent = `${percentage}%`;
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alert-message');
+            alertBox.classList.remove('success', 'error');
+            alertBox.classList.add(type);
+            document.getElementById('alert-text').textContent = message;
+            alertBox.style.display = 'block';
+        }
+
+        function closeAlert() {
+            const alertBox = document.getElementById('alert-message');
+            alertBox.style.display = 'none';
+            alertBox.classList.remove('success', 'error');
+        }
+
+        document.querySelector('.close-btn').addEventListener('click', closeAlert);
+
+        window.nextStep = function(step) {
+            const currentStep = document.querySelector('.form-step:not([style*="display: none"])');
+            const nextStep = document.getElementById('step-' + step);
+
+            if (nextStep) {
+                currentStep.style.display = 'none';
+                nextStep.style.display = 'block';
+            } else {
+                console.error('Next step not found');
+            }
+        };
+
+        window.prevStep = function(step) {
+            const currentStep = document.querySelector('.form-step:not([style*="display: none"])');
+            const previousStep = document.getElementById('step-' + step);
+
+            if (previousStep) {
+                currentStep.style.display = 'none';
+                previousStep.style.display = 'block';
+            } else {
+                console.error('Previous step not found');
+            }
+        };
+
+        const manageVisibility = (selectId, fieldId, expectedValue) => {
+            const select = document.getElementById(selectId);
+            const field = document.getElementById(fieldId);
+            select.addEventListener('change', function() {
+                field.style.display = this.value === expectedValue ? 'block' : 'none';
+            });
+        };
+
+        manageVisibility('snoring', 'snoring_other_field', 'other');
+        manageVisibility('daytime_sleepiness', 'daytime_sleepiness_other_field', 'other');
+        manageVisibility('sleep_study', 'sleep_study_date_field', 'yes');
+        manageVisibility('cpap_intolerant', 'cpap_intolerant_other_field', 'other');
+
+        const filesToUpload = {
+            billing: [],
+            clinical: [],
+            cbct: [],
+            intraoral: [],
+            sleep: [],
+            questionnaire: [],
+            medical: []
+        };
+
+        const fileLists = {
+            billing: document.getElementById('file-list-billing'),
+            clinical: document.getElementById('file-list-clinical'),
+            cbct: document.getElementById('file-list-cbct'),
+            intraoral: document.getElementById('file-list-intraoral'),
+            sleep: document.getElementById('file-list-sleep'),
+            questionnaire: document.getElementById('file-list-questionnaire'),
+            medical: document.getElementById('file-list-medical')
+        };
+
+        const dropZones = document.querySelectorAll('.drop-zone');
+
+        dropZones.forEach(function(dropZone) {
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.classList.add('highlight');
+            });
+
+            dropZone.addEventListener('dragleave', function() {
+                dropZone.classList.remove('highlight');
+            });
+
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('highlight');
+                const files = e.dataTransfer.items;
+                const section = dropZone.id.split('-')[2];
+                const fileList = fileLists[section];
+
+                if (files.length) {
+                    for (let i = 0; i < files.length; i++) {
+                        const entry = files[i].webkitGetAsEntry();
+                        if (entry.isDirectory) {
+                            readDirectory(entry, fileList, section);
+                        } else {
+                            entry.file(function(file) {
+                                processFile(file, fileList, section);
+                            });
+                        }
+                    }
+                }
+            });
+        });
+
+        function readDirectory(entry, fileList, section) {
+            const reader = entry.createReader();
+            reader.readEntries(function(entries) {
+                for (let i = 0; i < entries.length; i++) {
+                    if (entries[i].isDirectory) {
+                        readDirectory(entries[i], fileList, section);
+                    } else {
+                        entries[i].file(function(file) {
+                            processFile(file, fileList, section);
+                        });
+                    }
+                }
+            });
+        }
+
+        function processFile(file, fileList, section) {
+            if (!file.name || file.size === 0) {
+                console.error("Empty or unnamed file detected, skipping...");
+                return;
+            }
+
+            if (filesToUpload[section].some(f => f.name === file.name)) {
+                console.warn(`File "${file.name}" is already in the list.`);
+                return;
+            }
+
+            filesToUpload[section].push(file);
+            addFileToList(file, fileList);
+        }
+
+        function addFileToList(file, fileList) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span>${file.name}</span>
+                <i class="material-icons" onclick="this.parentElement.remove()">close</i>
+            `;
+            fileList.appendChild(fileItem);
+        }
+
+        window.uploadFolder = function(inputId, fileListId) {
+            const input = document.getElementById(inputId);
+            input.setAttribute("webkitdirectory", "");
+            input.setAttribute("directory", "");
+            input.click();
+            input.addEventListener('change', function() {
+                const files = input.files;
+                const section = inputId.split('fileElem')[1].toLowerCase();
+                const fileList = document.getElementById(fileListId);
+                for (let i = 0; i < files.length; i++) {
+                    processFile(files[i], fileList, section);
+                }
+            });
+        };
+
+        window.uploadFiles = function(inputId, fileListId) {
+            const input = document.getElementById(inputId);
+            input.click();
+            input.addEventListener('change', function() {
+                const files = input.files;
+                const section = inputId.split('fileElem')[1].toLowerCase();
+                const fileList = document.getElementById(fileListId);
+                for (let i = 0; i < files.length; i++) {
+                    processFile(files[i], fileList, section);
+                }
+            });
+        };
+
+        const form = document.getElementById('upload-form');
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const patientNameInput = document.getElementById('patient_name');
+            const patientName = patientNameInput.value.trim();
+            if (!patientName) {
+                showAlert('Patient Name is required.', 'error');
+                patientNameInput.focus();
+                return;
+            }
+
+            const formData = new FormData(form);
+            showLoader();
+
+            try {
+                for (const section in filesToUpload) {
+                    const zipFile = await zipFiles(section);
+                    if (zipFile) {
+                        formData.append(section, zipFile);
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing zip files', error);
+                showAlert('An error occurred while zipping the files.', 'error');
+                hideLoader();
+                return;
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ url_for("main.upload") }}', true);
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    updateProgress(percentComplete);
+                }
+            });
+
+            xhr.onload = function() {
+                hideLoader();
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        showAlert(`Patient registration successful! Welcome, ${patientName}.`, 'success');
+                    } else {
+                        showAlert(response.message || 'Error during upload.', 'error');
+                    }
+                } else {
+                    console.error('Upload failed:', xhr.statusText);
+                    showAlert('An unexpected error occurred. Please try again.', 'error');
+                }
+            };
+
+            xhr.onerror = function() {
+                hideLoader();
+                console.error('Upload error');
+                showAlert('An unexpected error occurred. Please try again.', 'error');
+            };
+
+            xhr.send(formData);
+        });
+
+        async function zipFiles(section) {
+            if (filesToUpload[section].length === 0) {
+                console.warn(`No files found for section: ${section}`);
+                return;
+            }
+
+            const zip = new JSZip();
+            const folder = zip.folder(section);
+
+            for (const file of filesToUpload[section]) {
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                // Check if the file is already compressed
+                if (['zip', 'tar', 'gz', '7z'].includes(fileExtension)) {
+                    console.log(`Skipping compression for already compressed file: "${file.name}"`);
+                    return file; // Skip zipping and return the file as is
+                }
+
+                console.log(`Adding file "${file.name}" to section "${section}"`);
+                folder.file(file.name, file);
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+            console.log(`Zipping completed for section "${section}"`);
+            return new File([content], `${section}_files.zip`, { type: "application/zip" });
+        }
+    });
+</script>
+
+
+
+ 
+{% endblock %}

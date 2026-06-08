@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversion Funnel Analytics - VizBriz</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 300;
+            margin: 0;
+        }
+        
+        .back-link {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        /* Filters Section */
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .filter-btn {
+            background: #1e3c72;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        .filter-btn:hover {
+            background: #2a5298;
+        }
+        
+        /* Overview Cards */
+        .overview-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .overview-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #e1e8ed;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .overview-card h3 {
+            color: #1e3c72;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .overview-card .value {
+            font-size: 2.5em;
+            font-weight: 300;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .overview-card .label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        /* Funnel Sections */
+        .funnel-section {
+            background: white;
+            border-radius: 15px;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .funnel-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+        
+        .funnel-content {
+            padding: 30px;
+        }
+        
+        /* Funnel Steps */
+        .funnel-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .funnel-step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 5px solid #1e3c72;
+            transition: all 0.3s ease;
+        }
+        
+        .funnel-step:hover {
+            background: #f0f4f8;
+            transform: translateX(5px);
+        }
+        
+        .step-number {
+            background: #1e3c72;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .step-subtitle {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .step-metrics {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .step-count {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .step-rate {
+            background: #e8f4f8;
+            color: #1e3c72;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .rate-good { background: #d4edda; color: #155724; }
+        .rate-fair { background: #fff3cd; color: #856404; }
+        .rate-poor { background: #f8d7da; color: #721c24; }
+        
+        /* Visual Funnel */
+        .visual-funnel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 30px 0;
+        }
+        
+        .funnel-bar {
+            background: #e1e8ed;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            height: 50px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .funnel-fill {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            height: 100%;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            font-size: 1.1em;
+        }
+        
+        .funnel-label {
+            position: absolute;
+            left: 15px;
+            color: white;
+            font-weight: 600;
+            z-index: 2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* CTA Breakdown */
+        .cta-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .cta-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-card:hover {
+            border-color: #1e3c72;
+            background: white;
+        }
+        
+        .cta-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .cta-count {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+        
+        .cta-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .step-metrics {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .funnel-step {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        
+        .step-secondary-rate {
+            font-size: 0.85em;
+            color: #888;
+            margin-left: 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="VizBriz Logo" class="logo">
+                <h1>📊 Conversion Funnel Analytics</h1>
+            </div>
+            <a href="{{ url_for('unified.unified_dashboard') }}" class="back-link">← Back to Dashboard</a>
+        </div>
+        
+        <div class="content">
+            <!-- Filters -->
+            <form method="GET" class="filters">
+                <div class="filter-group">
+                    <label>Clinic</label>
+                    <select name="clinic_id">
+                        <option value="">All Clinics</option>
+                        {% for clinic in clinics %}
+                        <option value="{{ clinic.id }}" {% if selected_clinic_id == clinic.id|string %}selected{% endif %}>
+                            {{ clinic.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>From Date</label>
+                    <input type="date" name="date_from" value="{{ date_from or '' }}">
+                </div>
+                <div class="filter-group">
+                    <label>To Date</label>
+                    <input type="date" name="date_to" value="{{ date_to or '' }}">
+                </div>
+                <button type="submit" class="filter-btn">Apply Filters</button>
+            </form>
+            
+            <!-- Data Quality Notice -->
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
+                <h3 style="color: #155724; margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px;">
+                    ✅ Pure Tracking Data
+                </h3>
+                <p style="color: #155724; margin: 0; line-height: 1.5;">
+                    Funnel analysis is now based entirely on page view and CTA interaction tracking data. 
+                    This provides accurate, real-time conversion metrics without relying on quiz submission records.
+                </p>
+            </div>
+
+            <!-- Funnel Phase Explanation -->
+            <div style="background: #e8f4f8; border: 1px solid #bee5eb; border-radius: 15px; padding: 25px; margin-bottom: 30px;">
+                <h3 style="color: #1e3c72; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px;">
+                    📋 Understanding Your Funnel Stages
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <!-- Basic Quiz Explanation -->
+                    <div>
+                        <h4 style="color: #1e3c72; margin: 0 0 10px 0;">🔵 Basic Quiz (Stage A) - Sleep Risk Assessment</h4>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 1 - Started:</strong> User views the introduction page and begins the assessment
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 2 - Phase 1:</strong> User progresses to personal information phase (counted when they reach step 2)
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 3 - Phase 2:</strong> User answers clinical questions about sleep symptoms
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 4 - Submitted:</strong> User completes the assessment and receives risk results
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px;">
+                            <strong>Step 5 - CTA Actions:</strong> Unique sessions that clicked on sleep test, consultation, or advanced assessment (max 1 per session)
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Quiz Explanation -->
+                    <div>
+                        <h4 style="color: #1e3c72; margin: 0 0 10px 0;">🟣 Advanced Quiz (Stage B) - Detailed Sleep Analysis</h4>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 1 - Started:</strong> User accesses the advanced assessment from basic quiz results
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 2 - Phase 1:</strong> User completes introduction and understanding of advanced assessment
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 3 - Phase 2:</strong> User answers detailed sleep pattern and lifestyle questions
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px;">
+                            <strong>Step 4 - Submitted:</strong> User completes advanced assessment with comprehensive analysis
+                        </div>
+                        <div style="background: white; border-radius: 10px; padding: 15px;">
+                            <strong>Step 5 - CTA Actions:</strong> Unique sessions that scheduled sleep test or requested consultation (max 1 per session)
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #1e3c72;">
+                    <strong>💡 Key Insights:</strong> Each step represents a critical decision point where users can drop off. 
+                    High drop-off rates indicate areas for improvement in user experience, form design, or content clarity.
+                </div>
+            </div>
+
+            <!-- Overview Cards -->
+            <div class="overview-cards">
+                <div class="overview-card">
+                    <h3>Total Unique Visitors</h3>
+                    <div class="value">{{ overall_metrics.total_unique_visitors }}</div>
+                    <div class="label">Tracked Sessions</div>
+                </div>
+                <div class="overview-card">
+                    <h3>Identified Patients</h3>
+                    <div class="value">{{ overall_metrics.total_unique_patients }}</div>
+                    <div class="label">With Email Addresses</div>
+                </div>
+                <div class="overview-card">
+                    <h3>Basic → Advanced</h3>
+                    <div class="value">{{ overall_metrics.basic_to_advanced_conversion }}%</div>
+                    <div class="label">Conversion Rate</div>
+                </div>
+                <div class="overview-card">
+                    <h3>Total CTA Actions</h3>
+                    <div class="value">{{ overall_metrics.overall_cta_conversion }}</div>
+                    <div class="label">Sleep Tests + Consultations</div>
+                </div>
+            </div>
+            
+            <!-- Basic Quiz Funnel -->
+            <div class="funnel-section">
+                <div class="funnel-header">
+                    🔵 Basic Quiz Funnel (Stage A)
+                </div>
+                <div class="funnel-content">
+                    <div class="funnel-steps">
+                        <div class="funnel-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Started Quiz</div>
+                                <div class="step-subtitle">User viewed introduction page and began sleep risk assessment</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ basic_funnel.started }}</div>
+                                <div class="step-rate" title="100% of started">100%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="funnel-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Phase 1 Completed</div>
+                                <div class="step-subtitle">Unique sessions that progressed to personal information phase</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ basic_funnel.phase1_completed }}</div>
+                                <div class="step-rate {% if basic_funnel.conversion_rates.phase1_cum >= 70 %}rate-good{% elif basic_funnel.conversion_rates.phase1_cum >= 40 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ basic_funnel.conversion_rates.phase1_step }}% of previous step">
+                                    {{ basic_funnel.conversion_rates.phase1_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ basic_funnel.conversion_rates.phase1_step }}% of previous)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="funnel-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Phase 2 Completed</div>
+                                <div class="step-subtitle">Unique sessions that progressed to clinical questions phase</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ basic_funnel.phase2_completed }}</div>
+                                <div class="step-rate {% if basic_funnel.conversion_rates.phase2_cum >= 60 %}rate-good{% elif basic_funnel.conversion_rates.phase2_cum >= 30 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ basic_funnel.conversion_rates.phase2_step }}% of previous step">
+                                    {{ basic_funnel.conversion_rates.phase2_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ basic_funnel.conversion_rates.phase2_step }}% of previous)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="funnel-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Quiz Submitted</div>
+                                <div class="step-subtitle">Completed assessment and received results</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ basic_funnel.submitted }}</div>
+                                <div class="step-rate {% if basic_funnel.conversion_rates.submitted_cum >= 50 %}rate-good{% elif basic_funnel.conversion_rates.submitted_cum >= 25 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ basic_funnel.conversion_rates.submitted_step }}% of previous step">
+                                    {{ basic_funnel.conversion_rates.submitted_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ basic_funnel.conversion_rates.submitted_step }}% of previous)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="funnel-step">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
+                                <div class="step-title">🎯 CTA Actions Taken</div>
+                                <div class="step-subtitle">Unique sessions that clicked sleep test, consultation, or advanced quiz</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ basic_funnel.cta_actions }}</div>
+                                <div class="step-rate {% if basic_funnel.conversion_rates.cta_cum >= 30 %}rate-good{% elif basic_funnel.conversion_rates.cta_cum >= 15 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ basic_funnel.conversion_rates.cta_step }}% of previous step">
+                                    {{ basic_funnel.conversion_rates.cta_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ basic_funnel.conversion_rates.cta_step }}% of previous)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Funnel for Basic Quiz -->
+                    <div class="visual-funnel">
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Started ({{ basic_funnel.started }})</div>
+                            <div class="funnel-fill" style="width: 100%;">100%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Phase 1 ({{ basic_funnel.phase1_completed }})</div>
+                            <div class="funnel-fill" style="width: {{ basic_funnel.conversion_rates.phase1_cum }}%;">{{ basic_funnel.conversion_rates.phase1_cum }}%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Phase 2 ({{ basic_funnel.phase2_completed }})</div>
+                            <div class="funnel-fill" style="width: {{ basic_funnel.conversion_rates.phase2_cum }}%;">{{ basic_funnel.conversion_rates.phase2_cum }}%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Submitted ({{ basic_funnel.submitted }})</div>
+                            <div class="funnel-fill" style="width: {{ basic_funnel.conversion_rates.submitted_cum }}%;">{{ basic_funnel.conversion_rates.submitted_cum }}%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">🎯 CTA Actions ({{ basic_funnel.cta_actions }})</div>
+                            <div class="funnel-fill" style="width: {{ basic_funnel.conversion_rates.cta_cum }}%;">{{ basic_funnel.conversion_rates.cta_cum }}%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Summary for Basic Quiz -->
+                    <div class="cta-summary" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="margin: 0 0 10px 0; color: #333;">📊 CTA Summary</h4>
+                        <div style="display: flex; gap: 20px; align-items: center;">
+                            <div>
+                                <strong>Total CTA Actions:</strong> {{ basic_funnel.cta_actions }}
+                            </div>
+                            <div>
+                                <strong>Conversion Rate:</strong> {{ basic_funnel.conversion_rates.cta_cum }}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Breakdown for Basic Quiz -->
+                    <div class="cta-breakdown">
+                        <div class="cta-card">
+                            <div class="cta-icon">🛏️</div>
+                            <div class="cta-count">{{ basic_funnel.cta_breakdown.schedule_sleep_test }}</div>
+                            <div class="cta-label">Scheduled Sleep Test</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">💬</div>
+                            <div class="cta-count">{{ basic_funnel.cta_breakdown.requested_consultation }}</div>
+                            <div class="cta-label">Requested Consultation</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📋</div>
+                            <div class="cta-count">{{ basic_funnel.cta_breakdown.moved_to_advanced }}</div>
+                            <div class="cta-label">Moved to Advanced</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📧</div>
+                            <div class="cta-count">{{ basic_funnel.cta_breakdown.email_link_clicks }}</div>
+                            <div class="cta-label">Email Link Clicks</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📞</div>
+                            <div class="cta-count">{{ basic_funnel.cta_breakdown.phone_clicks }}</div>
+                            <div class="cta-label">Phone Clicks</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📊</div>
+                            <div class="cta-count">{{ basic_funnel.conversion_rates.cta_cum }}%</div>
+                            <div class="cta-label">Conversion Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Quiz Funnel -->
+            <div class="funnel-section">
+                <div class="funnel-header">
+                    🟣 Advanced Quiz Funnel (Stage B)
+                </div>
+                <div class="funnel-content">
+                    <div class="funnel-steps">
+                        <div class="funnel-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">Started Advanced</div>
+                                <div class="step-subtitle">Accessed advanced assessment</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ advanced_funnel.started }}</div>
+                                <div class="step-rate" title="100% of started">100%</div>
+                            </div>
+                        </div>
+                        <div class="funnel-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">Phase 1 Completed</div>
+                                <div class="step-subtitle">Completed introduction</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ advanced_funnel.phase1_completed }}</div>
+                                <div class="step-rate {% if advanced_funnel.conversion_rates.phase1_cum >= 70 %}rate-good{% elif advanced_funnel.conversion_rates.phase1_cum >= 40 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ advanced_funnel.conversion_rates.phase1_step }}% of previous step">
+                                    {{ advanced_funnel.conversion_rates.phase1_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ advanced_funnel.conversion_rates.phase1_step }}% of previous)</div>
+                            </div>
+                        </div>
+                        <div class="funnel-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">Phase 2 Completed</div>
+                                <div class="step-subtitle">Answered sleep pattern questions</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ advanced_funnel.phase2_completed }}</div>
+                                <div class="step-rate {% if advanced_funnel.conversion_rates.phase2_cum >= 60 %}rate-good{% elif advanced_funnel.conversion_rates.phase2_cum >= 30 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ advanced_funnel.conversion_rates.phase2_step }}% of previous step">
+                                    {{ advanced_funnel.conversion_rates.phase2_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ advanced_funnel.conversion_rates.phase2_step }}% of previous)</div>
+                            </div>
+                        </div>
+                        <div class="funnel-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <div class="step-title">Advanced Submitted</div>
+                                <div class="step-subtitle">Completed advanced assessment</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ advanced_funnel.submitted }}</div>
+                                <div class="step-rate {% if advanced_funnel.conversion_rates.submitted_cum >= 50 %}rate-good{% elif advanced_funnel.conversion_rates.submitted_cum >= 25 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ advanced_funnel.conversion_rates.submitted_step }}% of previous step">
+                                    {{ advanced_funnel.conversion_rates.submitted_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ advanced_funnel.conversion_rates.submitted_step }}% of previous)</div>
+                            </div>
+                        </div>
+                        <div class="funnel-step">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
+                                <div class="step-title">🎯 CTA Actions Taken</div>
+                                <div class="step-subtitle">Unique sessions that clicked sleep test or consultation</div>
+                            </div>
+                            <div class="step-metrics">
+                                <div class="step-count">{{ advanced_funnel.cta_actions }}</div>
+                                <div class="step-rate {% if advanced_funnel.conversion_rates.cta_cum >= 30 %}rate-good{% elif advanced_funnel.conversion_rates.cta_cum >= 15 %}rate-fair{% else %}rate-poor{% endif %}" title="{{ advanced_funnel.conversion_rates.cta_step }}% of previous step">
+                                    {{ advanced_funnel.conversion_rates.cta_cum }}%
+                                </div>
+                                <div class="step-secondary-rate">({{ advanced_funnel.conversion_rates.cta_step }}% of previous)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Funnel for Advanced Quiz -->
+                    <div class="visual-funnel">
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Started ({{ advanced_funnel.started }})</div>
+                            <div class="funnel-fill" style="width: 100%;">100%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Phase 1 ({{ advanced_funnel.phase1_completed }})</div>
+                            <div class="funnel-fill" style="width: {{ advanced_funnel.conversion_rates.phase1_cum }}%;">{{ advanced_funnel.conversion_rates.phase1_cum }}%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Phase 2 ({{ advanced_funnel.phase2_completed }})</div>
+                            <div class="funnel-fill" style="width: {{ advanced_funnel.conversion_rates.phase2_cum }}%;">{{ advanced_funnel.conversion_rates.phase2_cum }}%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">Submitted ({{ advanced_funnel.submitted }})</div>
+                            <div class="funnel-fill" style="width: {{ advanced_funnel.conversion_rates.submitted_cum }}%;">{{ advanced_funnel.conversion_rates.submitted_cum }}%</div>
+                        </div>
+                        <div class="funnel-bar">
+                            <div class="funnel-label">🎯 CTA Actions ({{ advanced_funnel.cta_actions }})</div>
+                            <div class="funnel-fill" style="width: {{ advanced_funnel.conversion_rates.cta_cum }}%;">{{ advanced_funnel.conversion_rates.cta_cum }}%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Summary for Advanced Quiz -->
+                    <div class="cta-summary" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="margin: 0 0 10px 0; color: #333;">📊 CTA Summary</h4>
+                        <div style="display: flex; gap: 20px; align-items: center;">
+                            <div>
+                                <strong>Total CTA Actions:</strong> {{ advanced_funnel.cta_actions }}
+                            </div>
+                            <div>
+                                <strong>Conversion Rate:</strong> {{ advanced_funnel.conversion_rates.cta_cum }}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CTA Breakdown for Advanced Quiz -->
+                    <div class="cta-breakdown">
+                        <div class="cta-card">
+                            <div class="cta-icon">🛏️</div>
+                            <div class="cta-count">{{ advanced_funnel.cta_breakdown.schedule_sleep_test }}</div>
+                            <div class="cta-label">Scheduled Sleep Test</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">💬</div>
+                            <div class="cta-count">{{ advanced_funnel.cta_breakdown.requested_consultation }}</div>
+                            <div class="cta-label">Requested Consultation</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📧</div>
+                            <div class="cta-count">{{ advanced_funnel.cta_breakdown.email_link_clicks }}</div>
+                            <div class="cta-label">Email Link Clicks</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📞</div>
+                            <div class="cta-count">{{ advanced_funnel.cta_breakdown.phone_clicks }}</div>
+                            <div class="cta-label">Phone Clicks</div>
+                        </div>
+                        <div class="cta-card">
+                            <div class="cta-icon">📊</div>
+                            <div class="cta-count">{{ advanced_funnel.conversion_rates.cta_cum }}%</div>
+                            <div class="cta-label">Conversion Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Add some animation effects
+        window.addEventListener('load', function() {
+            const funnelFills = document.querySelectorAll('.funnel-fill');
+            funnelFills.forEach((fill, index) => {
+                setTimeout(() => {
+                    fill.style.opacity = '1';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html> 

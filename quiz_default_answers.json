@@ -1,0 +1,43 @@
+{
+  "basic_quiz": {
+    "full_name": "Test Patient",
+    "patient_email": "test@example.com",
+    "phone": "555-123-4567",
+    "gender": "male",
+    "age": "over_50",
+    "snoring": "often",
+    "tiredness": "often",
+    "observed_apnea": "sometimes",
+    "blood_pressure": "yes",
+    "weight": "overweight",
+    "neck_circumference": "yes",
+    "daytime_sleepiness": "yes",
+    "driving_fatigue": "no",
+    "diagnosed_osa": "no",
+    "using_cpap": "no",
+    "doctor_referral": "Dr. Smith"
+  },
+  "advanced_quiz": {
+    "patient_email": "test@example.com",
+    "trouble_falling_asleep_again": "yes",
+    "mouth_breathing": "yes",
+    "day_sleepy": "yes",
+    "napping": "yes",
+    "night_urination": "no",
+    "tmj_problems": "yes",
+    "jaw_pain_morning": "yes",
+    "worn_teeth": "no",
+    "ear_symptoms": ["ringing", "pain"],
+    "tobacco": "no",
+    "alcohol": "3_6",
+    "caffeine": "yes",
+    "exercise": "no",
+    "stress_level": "high",
+    "sleep_position": "back",
+    "bedtime": "11:00 PM",
+    "wake_time": "6:00 AM",
+    "sleep_quality": "poor",
+    "family_history": "yes",
+    "goals": ["better_sleep", "more_energy", "stop_snoring", "reduce_fatigue"]
+  }
+} 

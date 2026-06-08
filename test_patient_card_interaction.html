@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Card Interaction Test</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css" rel="stylesheet">
+    <style>
+        .patient-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 18px;
+            padding: 20px;
+            margin: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .patient-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+        }
+
+        .patient-card.selected {
+            border-color: #27ae60;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+        }
+
+        .patient-card.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .selection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(39, 174, 96, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 18px;
+            padding: 20px;
+            border: 2px solid #27ae60;
+        }
+
+        .selection-overlay i {
+            font-size: 24px;
+            color: #27ae60;
+            margin-bottom: 8px;
+        }
+
+        .selection-overlay span {
+            font-size: 14px;
+            color: #27ae60;
+            font-weight: 500;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        .loading-overlay i {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 8px;
+        }
+
+        .loading-overlay span {
+            font-size: 14px;
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .rotating {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Patient Card Interaction Test</h1>
+    <p>Click on a patient card to test the selection and loading indicators:</p>
+    
+    <div class="patient-card" onclick="showLoadingAndNavigate('/test-url', this)">
+        <h3>John Doe</h3>
+        <p>Email: john.doe@example.com</p>
+        <p>Stage: Sleep Test</p>
+    </div>
+
+    <div class="patient-card" onclick="showLoadingAndNavigate('/test-url-2', this)">
+        <h3>Jane Smith</h3>
+        <p>Email: jane.smith@example.com</p>
+        <p>Stage: Dental Consult</p>
+    </div>
+
+    <script>
+        // Loading indicator function - must be global for onclick to work
+        function showLoadingAndNavigate(url, cardElement) {
+            console.log('Function called with URL:', url);
+            
+            // First show selection indicator
+            cardElement.classList.add('selected');
+            
+            // Create selection indicator
+            const selectionIndicator = document.createElement('div');
+            selectionIndicator.className = 'selection-overlay';
+            selectionIndicator.innerHTML = '<div style="display: flex; align-items: center; gap: 8px;"><i class="material-icons">check_circle</i><span>Selected</span></div>';
+            cardElement.appendChild(selectionIndicator);
+            
+            // Disable all patient cards to prevent multiple clicks
+            document.querySelectorAll('.patient-card').forEach(card => {
+                card.style.pointerEvents = 'none';
+            });
+            
+            // After 500ms, transition to loading state
+            setTimeout(() => {
+                console.log('Transitioning to loading state');
+                
+                // Remove selection indicator
+                cardElement.classList.remove('selected');
+                const existingSelection = cardElement.querySelector('.selection-overlay');
+                if (existingSelection) {
+                    existingSelection.remove();
+                }
+                
+                // Add loading class to the card
+                cardElement.classList.add('loading');
+                
+                // Show loading text
+                const loadingText = document.createElement('div');
+                loadingText.className = 'loading-overlay';
+                loadingText.innerHTML = '<div style="display: flex; align-items: center; gap: 8px;"><i class="material-icons rotating">refresh</i><span>Loading...</span></div>';
+                cardElement.appendChild(loadingText);
+                
+                // Navigate after a brief delay to show the loading state
+                setTimeout(() => {
+                    console.log('Navigating to:', url);
+                    // For testing, just show an alert instead of navigating
+                    alert('Would navigate to: ' + url);
+                }, 300);
+            }, 500);
+        }
+    </script>
+</body>
+</html> 

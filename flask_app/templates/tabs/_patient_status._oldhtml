@@ -1,0 +1,263 @@
+<style>
+    /* Increase dropdown width */
+    .dropdown-content.dropdown-custom {
+        width: 120%; /* 20% wider than the default */
+    }
+
+    /* Reduce spacing between options */
+    .dropdown-content.dropdown-custom li a {
+        line-height: 1.2rem; /* Adjust line spacing for multi-line options */
+        padding: 5px 10px; /* Reduce padding to make spacing tighter */
+    }
+</style>
+
+
+<div id="patient-status" class="col s12 tab-content"></div>
+    <h5 style="color: white;">Patient Status</h5>
+    <table class="highlight responsive-table" style="width: 100%;">
+        <thead>
+            <tr>
+                <th>Status Type</th>
+                <th>Status Value</th>
+                <th>Last Updated</th>
+                <th>Comment</th>
+                <th>Document Mapping</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+         <!-- Static Row for Overall Status -->
+            <tr id="status-row-1">
+                <td>Overall Status</td>
+                <td>
+                    <a class="dropdown-trigger btn status-btn" href="#" data-target="dropdown-1"
+                       style="background-color: {{ 'green' if patient.status.lower() == 'yes' else 'red' if patient.status.lower() == 'no' else 'grey' }};">
+                        {{ patient.status if patient.status else 'Select' }}
+                    </a>
+                    <ul id="dropdown-1" class="dropdown-content">
+                        <li><a href="#!" data-value="New" class="dropdown-option">New</a></li>
+                        <li><a href="#!" data-value="Waiting for Referral" class="dropdown-option">Waiting for Referral</a></li>
+                        <li><a href="#!" data-value="Referral in Process" class="dropdown-option">Referral in Process</a></li>
+                        <li><a href="#!" data-value="RX Available" class="dropdown-option">RX Available</a></li>
+                        <li><a href="#!" data-value="Schedule DMD Consult" class="dropdown-option">Schedule DMD Consult</a></li>
+                    </ul>
+                    <input type="hidden" id="status-value-1" value="{{ patient.status }}">
+                </td>
+                <td>{{ patient.last_update.strftime('%Y-%m-%d') if patient.last_update else 'N/A' }}</td>
+                <td>
+                    <textarea id="comment-1" class="materialize-textarea">{{ patient.comments[-1].content if patient.comments else '' }}</textarea>
+                </td>
+                <td>
+                    <select id="document-mapping-1" class="browser-default">
+                        <option value="" {% if not patient.document_mapping %}selected{% endif %}>None</option>
+                        {% for category, files in uploaded_files.items() %}
+                        {% for file in files %}
+                        <option value="{{ file.name }}" {% if patient.document_mapping == file.name %}selected{% endif %}>{{ file.name }}</option>
+                        {% endfor %}
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <a class="update-status-btn" data-patient-id="{{ patient.id }}" data-field="status" data-index="1">
+                        <i class="material-icons">save</i>
+                    </a>
+                </td>
+            </tr>
+            <tr id="status-row-2">
+                <td>Payment Method</td>
+                <td>
+                    <a class="dropdown-trigger btn status-btn" href="#" data-target="dropdown-2"
+                       style="background-color: {{ 'green' if patient.payment_method == 'In Network' else 'red' if patient.payment_method == 'Out of Network' else 'grey' }};">
+                        {{ patient.payment_method if patient.payment_method else 'Select' }}
+                    </a>
+                    <ul id="dropdown-2" class="dropdown-content">
+                        <li><a href="#!" data-value="N/A" class="dropdown-option">N/A</a></li>
+                        <li><a href="#!" data-value="In Network" class="dropdown-option">In Network</a></li>
+                        <li><a href="#!" data-value="Out of Network" class="dropdown-option">Out of Network</a></li>
+                        <li><a href="#!" data-value="Private" class="dropdown-option">Private</a></li>
+                    </ul>
+                    <input type="hidden" id="payment-method-value" value="{{ patient.payment_method }}">
+                </td>
+                <td>{{ patient.last_update.strftime('%Y-%m-%d') if patient.last_update else 'N/A' }}</td>
+                <td>
+                    <textarea id="payment-method-comment" class="materialize-textarea">{{ patient.comments[-1].content if patient.comments else '' }}</textarea>
+                </td>
+                <td>
+                    <select id="payment-document-mapping" class="browser-default">
+                        <option value="" {% if not patient.payment_document_mapping %}selected{% endif %}>None</option>
+                        {% for category, files in uploaded_files.items() %}
+                        {% for file in files %}
+                        <option value="{{ file.name }}" {% if patient.payment_document_mapping == file.name %}selected{% endif %}>{{ file.name }}</option>
+                        {% endfor %}
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <a class="update-payment-btn" data-patient-id="{{ patient.id }}" data-field="payment_method">
+                        <i class="material-icons">save</i>
+                    </a>
+                </td>
+            </tr>
+           
+            <!-- Additional rows dynamically generated -->
+            {% for status_type in all_status_types if status_type.lower() not in ['overall status', 'payment method'] %}
+            <tr id="status-row-{{ loop.index + 2 }}">
+                <td>{{ status_type }}</td>
+                <td style="max-width: 150px;">
+                    <a class="dropdown-trigger btn" href="#" data-target="dropdown-{{ loop.index + 2 }}" style="font-size: 0.9rem; padding: 2px 5px; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; background-color: {{ 'green' if patient_statuses[status_type] and patient_statuses[status_type].status_value.lower() == 'yes' else 'red' if patient_statuses[status_type] and patient_statuses[status_type].status_value.lower() == 'no' else '#42a5f5' }};">
+                        {{ patient_statuses[status_type].status_value if patient_statuses[status_type] else 'Select' }}
+                    </a>
+                    <ul id="dropdown-{{ loop.index + 2 }}" class="dropdown-content" style="min-width: 150px; max-width: 150px;">
+                        {% for option in status_options if option.status_type.lower() == status_type.lower() %}
+                            <li>
+                                <a href="#!" data-value="{{ option.status_value }}" class="dropdown-option" style="font-size: 0.9rem; padding: 5px 10px;">{{ option.status_value }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <input type="hidden" id="status-value-{{ loop.index + 2 }}" value="{{ patient_statuses[status_type].status_value if patient_statuses[status_type] else '' }}">
+                </td>
+                <td>
+                    {{ patient_statuses[status_type].updated_at.strftime('%Y-%m-%d') if patient_statuses[status_type] and patient_statuses[status_type].updated_at else 'N/A' }}
+                </td>
+                <td>
+                    <textarea id="comment-{{ loop.index + 2 }}" class="materialize-textarea" style="font-size: 0.9rem; margin: 0; height: 30px; width: 250px;">{{ patient_statuses[status_type].comment if patient_statuses[status_type] else '' }}</textarea>
+                </td>
+                <td>
+                    <select id="document-mapping-{{ loop.index + 2 }}" class="browser-default" style="font-size: 0.9rem;">
+                        <option value="" {% if not patient_statuses[status_type] or not patient_statuses[status_type].mapping %}selected{% endif %}>None</option>
+                        {% for category, files in uploaded_files.items() %}
+                            {% for file in files %}
+                                <option value="{{ file.name }}" {% if patient_statuses[status_type] and patient_statuses[status_type].mapping == file.name %}selected{% endif %}>{{ file.name }}</option>
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <a class="update-status-btn" data-status-id="{{ patient_statuses[status_type].id if patient_statuses[status_type] else 'new' }}" data-patient-id="{{ patient.id }}" data-status-type="{{ status_type }}" data-index="{{ loop.index + 2 }}">
+                        <i class="material-icons" style="font-size: 1.8rem; color: #42a5f5;">save</i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>`
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        M.AutoInit(); // Initialize Materialize components
+
+        // Handle dropdown option selection for status and payment methods
+        document.querySelectorAll('.dropdown-option').forEach(option => {
+            option.addEventListener('click', function () {
+                const value = this.getAttribute('data-value');
+                const rowIndex = this.closest('ul').id.split('-')[1];
+                const hiddenInput = document.getElementById(`status-value-${rowIndex}`);
+                const dropdownTrigger = document.querySelector(`a[data-target="dropdown-${rowIndex}"]`);
+
+                if (hiddenInput) hiddenInput.value = value;
+                if (dropdownTrigger) {
+                    dropdownTrigger.textContent = value;
+                    dropdownTrigger.style.backgroundColor =
+                        value.toLowerCase() === 'yes' ? 'green' :
+                        value.toLowerCase() === 'no' ? 'red' : 'grey';
+                }
+            });
+        });
+
+        // Update status via API
+        document.querySelectorAll('.update-status-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const patientId = this.getAttribute('data-patient-id');
+                const field = this.getAttribute('data-field');
+                const index = this.getAttribute('data-index');
+                const valueElement = document.getElementById(`status-value-${index}`);
+                const commentElement = document.getElementById(`comment-${index}`);
+
+                if (!valueElement || !commentElement) {
+                    M.toast({ html: 'Error: Unable to find required elements for status update.', displayLength: 2000 });
+                    console.error("Missing elements for status update:", { valueElement, commentElement });
+                    return;
+                }
+
+                const value = valueElement.value.trim();
+                const comment = commentElement.value.trim();
+
+                if (!field || !value) {
+                    M.toast({ html: 'Error: Both field and value are required for status.', displayLength: 2000 });
+                    console.error("Missing key or value for status update:", { field, value });
+                    return;
+                }
+
+                console.log("Updating status field:", { key: field, value, comment });
+
+                fetch(`/patient/${patientId}/status/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status_id: field, status_value: value, comment }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            M.toast({ html: 'Status updated successfully!', displayLength: 2000 });
+                        } else {
+                            M.toast({ html: `Error: ${data.message}`, displayLength: 2000 });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating status:', error);
+                        M.toast({ html: 'An error occurred while updating status.', displayLength: 2000 });
+                    });
+            });
+        });
+
+        // Update payment method via API
+        const paymentButton = document.querySelector('.update-payment-btn');
+        if (paymentButton) {
+            paymentButton.addEventListener('click', function () {
+                const patientId = this.getAttribute('data-patient-id');
+                const field = 'payment_method'; // Fixed field for payment method
+                const valueElement = document.getElementById('payment-method-select');
+                const commentElement = document.getElementById('payment-method-comment');
+
+                if (!valueElement || !commentElement) {
+                    M.toast({ html: 'Error: Unable to find required elements for payment method.', displayLength: 2000 });
+                    console.error("Missing elements for payment method update:", { valueElement, commentElement });
+                    return;
+                }
+
+                const value = valueElement.value.trim();
+                const comment = commentElement.value.trim();
+
+                if (!value) {
+                    M.toast({ html: 'Error: Payment method value is required.', displayLength: 2000 });
+                    console.error("Missing payment method value:", { field, value });
+                    return;
+                }
+
+                console.log("Updating payment method:", { key: field, value, comment });
+
+                fetch(`/patient/${patientId}/update_field`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: field, value, comment }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            M.toast({ html: 'Payment method updated successfully!', displayLength: 2000 });
+                        } else {
+                            M.toast({ html: `Error: ${data.message}`, displayLength: 2000 });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating payment method:', error);
+                        M.toast({ html: 'An error occurred while updating payment method.', displayLength: 2000 });
+                    });
+            });
+        }
+    });
+</script>
+
+
+
+    

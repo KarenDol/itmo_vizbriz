@@ -1,0 +1,33 @@
+<!-- Step 4: Billing Documents -->
+<div class="form-step" id="step-4" style="display:none;">
+    <h5>Step 4: Billing Documents</h5>
+
+    <div class="upload-area drop-zone" id="drop-area-billing">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop billing files here<br>Or select manually</p>
+        <input type="file" id="fileElemBilling" name="billing_files[]" style="display:none" multiple> 
+    </div>
+    <div id="file-list-billing" class="file-list"></div>
+
+    <!-- Upload Buttons -->
+    <div class="upload-btn-group center-align">
+        <button class="btn waves-effect waves-light" type="button" onclick="uploadFiles('fileElemBilling', 'file-list-billing');">
+            Upload Files
+        </button>
+        <button class="btn waves-effect waves-light" type="button" onclick="uploadFolder('fileElemBilling', 'file-list-billing');">
+            Upload Folder
+        </button>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="center-align">
+        <button class="btn waves-effect waves-light" type="button" onclick="prevStep(3)">
+            Previous
+            <i class="material-icons left">arrow_back</i>
+        </button>
+        <button class="btn waves-effect waves-light" type="button" onclick="nextStep(5)">
+            Next
+            <i class="material-icons right">arrow_forward</i>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,156 @@
+<style>
+/* Hide the large left panel with selected date display */
+.datepicker-date-display {
+    display: none !important;
+}
+
+/* Adjust calendar container to fill the space */
+.datepicker-calendar-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* Datepicker input styling */
+input.datepicker {
+    color: #e0e0e0;
+    background-color: #2a2a2a;
+    border-bottom: 1px solid #00BAFF;
+    cursor: pointer;
+}
+
+input.datepicker:focus {
+    border-bottom: 1px solid #03dac6;
+    box-shadow: 0 1px 0 0 #03dac6;
+}
+
+/* Fix the typo in the selector (was missing a period) */
+.form-step .button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin: 20px auto !important;
+    position: relative !important;
+    flex-direction: row !important;
+    text-align: center !important;
+}
+
+/* Add specific button styles */
+.form-step .button-container .btn {
+    display: inline-flex !important;
+    float: none !important;
+    position: relative !important;
+    margin: 0 !important;
+    transform: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Override Materialize's default button alignment */
+.center-align {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+}
+
+/* Add specific button container styles */
+.form-step .center-align {
+    margin: 20px auto !important;
+    padding: 0 !important;
+    float: none !important;
+}
+
+/* Override any potential Materialize grid classes */
+.row .col {
+    float: none !important;
+}
+
+</style>
+<!-- Step 3: Sleep Questions -->
+<div class="form-step" id="step-3" style="display:none;">
+    <h5>Step 3: Sleep Questions</h5>
+
+    <!-- Snoring Question -->
+    <div class="input-field">
+        <select id="snoring" name="snoring">
+            <option value="" disabled selected>Does the patient snore?</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="other">Other (please specify)</option>
+        </select>
+        <label for="snoring">Does the patient snore?</label>
+    </div>
+
+    <div class="input-field" id="snoring_other_field" style="display:none;">
+        <input id="snoring_other" name="snoring_other" type="text" placeholder="Please specify">
+    </div>
+
+    <!-- Daytime Sleepiness Question -->
+    <div class="input-field">
+        <select id="daytime_sleepiness" name="daytime_sleepiness">
+            <option value="" disabled selected>Does the patient experience daytime sleepiness?</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="other">Other (please specify)</option>
+        </select>
+        <label for="daytime_sleepiness">Does the patient experience daytime sleepiness?</label>
+    </div>
+
+    <div class="input-field" id="daytime_sleepiness_other_field" style="display:none;">
+        <input id="daytime_sleepiness_other" name="daytime_sleepiness_other" type="text" placeholder="Please specify">
+    </div>
+
+    <!-- Sleep Study Question -->
+    <div class="input-field">
+        <select id="sleep_study" name="sleep_study">
+            <option value="" disabled selected>Has the patient done a sleep study?</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
+        <label for="sleep_study">Has the patient done a sleep study?</label>
+    </div>
+
+    <!-- Sleep Study Date Field -->
+    <div class="input-field" id="sleep_study_date_field" style="display:none;">
+        <input id="sleep_study_date" name="sleep_study_date" type="text" class="datepicker validate">
+        <label for="sleep_study_date">If yes, when?</label>
+        <span class="helper-text" data-error="Please enter a valid date"></span>
+    </div>
+
+    <!-- Doctor's Name Field for Sleep Study -->
+    <div class="input-field" id="sleep_study_doctor_field" style="display:none;">
+        <input id="sleep_study_doctor" name="sleep_study_doctor" type="text" placeholder="Doctor's Name">
+        <label for="sleep_study_doctor">Referring Doctor's Name</label>
+    </div>
+
+    <!-- CPAP Intolerant Question -->
+    <div class="input-field">
+        <select id="cpap_intolerant" name="cpap_intolerant">
+            <option value="" disabled selected>Is the patient CPAP intolerant?</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="other">Other (please specify)</option>
+        </select>
+        <label for="cpap_intolerant">Is the patient CPAP intolerant?</label>
+    </div>
+
+    <div class="input-field" id="cpap_intolerant_other_field" style="display:none;">
+        <input id="cpap_intolerant_other" name="cpap_intolerant_other" type="text" placeholder="Please specify">
+    </div>
+
+   <div class="button-container">
+    <button class="btn waves-effect waves-light" type="button" onclick="prevStep(2)">
+        <i class="material-icons left">arrow_back</i>
+        Previous
+    </button>
+    <button class="btn waves-effect waves-light"id="submit-btn" type="submit">
+        Submit
+        <i class="material-icons right">send</i>
+    </button>
+   </div>
+</div>

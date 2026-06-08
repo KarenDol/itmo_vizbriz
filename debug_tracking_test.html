@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tracking Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Tracking Debug Test</h1>
+    
+    <div class="debug-section">
+        <h2>1. Test EngagementTracker Initialization</h2>
+        <button onclick="testInitialization()">Test Initialization</button>
+        <div id="init-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. Test Quiz ID Generation</h2>
+        <button onclick="testQuizIdGeneration()">Test Quiz ID Generation</button>
+        <div id="quizid-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. Test Page View Tracking</h2>
+        <button onclick="testPageViewTracking()">Test Page View Tracking</button>
+        <div id="pageview-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>4. Test CTA Tracking</h2>
+        <button onclick="testCTATracking()">Test CTA Tracking</button>
+        <div id="cta-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>5. Manual API Test</h2>
+        <button onclick="testManualAPI()">Test Manual API Call</button>
+        <div id="manual-result"></div>
+    </div>
+
+    <script src="/flask_static/js/engagement_tracking.js"></script>
+    <script>
+        let engagementTracker;
+        
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        function testInitialization() {
+            try {
+                log('Testing EngagementTracker initialization...');
+                
+                // Enable debug mode
+                window.engagementTracker = new EngagementTracker();
+                engagementTracker.debugMode = true;
+                
+                log('EngagementTracker created successfully');
+                log(`Session ID: ${engagementTracker.sessionId}`);
+                
+                updateResult('init-result', 
+                    `✅ EngagementTracker initialized successfully<br>
+                     Session ID: ${engagementTracker.sessionId}<br>
+                     Base URL: ${engagementTracker.baseUrl}`, 'success');
+                     
+            } catch (error) {
+                log(`Error initializing EngagementTracker: ${error.message}`, 'error');
+                updateResult('init-result', 
+                    `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testQuizIdGeneration() {
+            try {
+                if (!engagementTracker) {
+                    updateResult('quizid-result', '❌ Please initialize EngagementTracker first', 'error');
+                    return;
+                }
+                
+                log('Testing quiz ID generation...');
+                
+                const quizId = engagementTracker.getQuizId();
+                log(`Generated quiz ID: ${quizId}`);
+                
+                // Test multiple calls to ensure consistency
+                const quizId2 = engagementTracker.getQuizId();
+                const isConsistent = quizId === quizId2;
+                
+                updateResult('quizid-result', 
+                    `✅ Quiz ID generated successfully<br>
+                     Quiz ID: ${quizId}<br>
+                     Consistent across calls: ${isConsistent ? 'Yes' : 'No'}`, 'success');
+                     
+            } catch (error) {
+                log(`Error generating quiz ID: ${error.message}`, 'error');
+                updateResult('quizid-result', 
+                    `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testPageViewTracking() {
+            try {
+                if (!engagementTracker) {
+                    updateResult('pageview-result', '❌ Please initialize EngagementTracker first', 'error');
+                    return;
+                }
+                
+                log('Testing page view tracking...');
+                updateResult('pageview-result', '🔄 Testing page view tracking...', 'info');
+                
+                // Test the tracking call
+                await engagementTracker.trackPageView('test_page', { 
+                    test: true, 
+                    timestamp: new Date().toISOString() 
+                });
+                
+                log('Page view tracking completed');
+                updateResult('pageview-result', 
+                    `✅ Page view tracking completed successfully<br>
+                     Check browser console for detailed logs`, 'success');
+                     
+            } catch (error) {
+                log(`Error in page view tracking: ${error.message}`, 'error');
+                updateResult('pageview-result', 
+                    `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCTATracking() {
+            try {
+                if (!engagementTracker) {
+                    updateResult('cta-result', '❌ Please initialize EngagementTracker first', 'error');
+                    return;
+                }
+                
+                log('Testing CTA tracking...');
+                updateResult('cta-result', '🔄 Testing CTA tracking...', 'info');
+                
+                // Test the tracking call
+                await engagementTracker.trackCTAClick('test_button', 'Test Button', { 
+                    test: true, 
+                    timestamp: new Date().toISOString() 
+                });
+                
+                log('CTA tracking completed');
+                updateResult('cta-result', 
+                    `✅ CTA tracking completed successfully<br>
+                     Check browser console for detailed logs`, 'success');
+                     
+            } catch (error) {
+                log(`Error in CTA tracking: ${error.message}`, 'error');
+                updateResult('cta-result', 
+                    `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testManualAPI() {
+            try {
+                log('Testing manual API call...');
+                updateResult('manual-result', '🔄 Testing manual API call...', 'info');
+                
+                const testData = {
+                    patient_email: 'test@example.com',
+                    session_id: 'test_session_123',
+                    page_type: 'test_page',
+                    quiz_id: 'quiz_test_123',
+                    clinic_id: 1,
+                    user_agent: navigator.userAgent,
+                    page_url: window.location.href,
+                    referrer: document.referrer || null
+                };
+                
+                log('Sending test data:', testData);
+                
+                const response = await fetch('/api/tracking/track-page-view', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const responseText = await response.text();
+                log(`Response status: ${response.status}`);
+                log(`Response body: ${responseText}`);
+                
+                if (response.ok) {
+                    updateResult('manual-result', 
+                        `✅ Manual API call successful<br>
+                         Status: ${response.status}<br>
+                         Response: <pre>${responseText}</pre>`, 'success');
+                } else {
+                    updateResult('manual-result', 
+                        `❌ Manual API call failed<br>
+                         Status: ${response.status}<br>
+                         Response: <pre>${responseText}</pre>`, 'error');
+                }
+                
+            } catch (error) {
+                log(`Error in manual API call: ${error.message}`, 'error');
+                updateResult('manual-result', 
+                    `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, auto-initializing EngagementTracker...');
+            testInitialization();
+        });
+    </script>
+</body>
+</html> 

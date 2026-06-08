@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; direction: rtl; text-align: right; padding: 20px; line-height: 1.6; }
+        .header { font-size: 1.2em; font-weight: bold; margin-bottom: 20px; }
+        .section { margin: 15px 0; }
+        .label { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">VIZBRIZ – הפניה למכון רנטגן (דום נשימה בשינה / OSA)</div>
+    <div class="section">
+        <p class="label">פרטי המטופל:</p>
+        <p>שם: {{ patient_name }}</p>
+        <p>תעודת זהות: {{ patient_id_number }}</p>
+        <p>טלפון: {{ patient_phone }}</p>
+        <p>אימייל: {{ patient_email }}</p>
+    </div>
+    <div class="section">
+        <p class="label">פרטי הרופא/ה המפנה/ה:</p>
+        <p>שם: {{ dentist_name }}</p>
+        <p>אימייל: {{ dentist_email }}</p>
+    </div>
+    <div class="section">
+        <p class="label">הצילומים/הסריקות המבוקשות (פרוטוקול VIZBRIZ):</p>
+        <ul>
+            {% for scan in scans_list %}
+            <li>{{ scan }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="section">
+        {% if coordinator_name and coordinator_phone %}
+        <p>נא לתאם הגעה מול {{ coordinator_name }} בטל: {{ coordinator_phone }}</p>
+        {% elif coordinator_name %}
+        <p>נא לתאם הגעה מול {{ coordinator_name }}.</p>
+        {% else %}
+        <p>נא לתאם הגעה ישירות עם המכון.</p>
+        {% endif %}
+    </div>
+    <p>בברכה, צוות VIZBRIZ</p>
+</body>
+</html>

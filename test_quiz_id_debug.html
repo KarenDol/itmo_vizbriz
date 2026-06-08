@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz ID Debug Test</title>
+</head>
+<body>
+    <h1>Quiz ID Debug Test</h1>
+    <div id="debug-output"></div>
+    
+    <button onclick="testQuizIdStorage()">Test Quiz ID Storage</button>
+    <button onclick="testEngagementTracker()">Test EngagementTracker</button>
+    <button onclick="clearStorage()">Clear Storage</button>
+    
+    <script>
+        // Simulate the quiz ID generation from the template
+        function generateUniqueQuizId() {
+            const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
+            const randomSuffix = Math.random().toString(36).substring(2, 10);
+            return `quiz_${timestamp}_${randomSuffix}`;
+        }
+        
+        // Simulate the EngagementTracker class
+        class EngagementTracker {
+            constructor() {
+                this.sessionId = this.generateSessionId();
+                this.baseUrl = '/api/tracking';
+                this.debugMode = true;
+            }
+            
+            generateSessionId() {
+                let sessionId = sessionStorage.getItem('quiz_session_id');
+                if (!sessionId) {
+                    sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    sessionStorage.setItem('quiz_session_id', sessionId);
+                }
+                return sessionId;
+            }
+            
+            getQuizId() {
+                return sessionStorage.getItem('quiz_id') || null;
+            }
+            
+            async trackPageView(pageType, additionalData = {}) {
+                const data = {
+                    patient_email: 'test@example.com',
+                    session_id: this.sessionId,
+                    page_type: pageType,
+                    clinic_id: 1,
+                    quiz_id: this.getQuizId(),  // This should get the quiz_id from sessionStorage
+                    user_agent: 'test_agent',
+                    page_url: window.location.href,
+                    referrer: document.referrer || null,
+                    ...additionalData
+                };
+                
+                console.log('trackPageView data:', data);
+                return data;
+            }
+        }
+        
+        function testQuizIdStorage() {
+            const output = document.getElementById('debug-output');
+            output.innerHTML = '<h3>Testing Quiz ID Storage</h3>';
+            
+            // Generate a quiz ID
+            const quizId = generateUniqueQuizId();
+            output.innerHTML += `<p>Generated Quiz ID: <strong>${quizId}</strong></p>`;
+            
+            // Store it in sessionStorage
+            sessionStorage.setItem('quiz_id', quizId);
+            output.innerHTML += `<p>Stored in sessionStorage: <strong>${sessionStorage.getItem('quiz_id')}</strong></p>`;
+            
+            // Test retrieval
+            const retrieved = sessionStorage.getItem('quiz_id');
+            output.innerHTML += `<p>Retrieved from sessionStorage: <strong>${retrieved}</strong></p>`;
+            
+            // Check if they match
+            if (quizId === retrieved) {
+                output.innerHTML += '<p style="color: green;">✅ Quiz ID storage/retrieval works correctly!</p>';
+            } else {
+                output.innerHTML += '<p style="color: red;">❌ Quiz ID storage/retrieval failed!</p>';
+            }
+        }
+        
+        function testEngagementTracker() {
+            const output = document.getElementById('debug-output');
+            output.innerHTML = '<h3>Testing EngagementTracker</h3>';
+            
+            // Create EngagementTracker instance
+            const tracker = new EngagementTracker();
+            output.innerHTML += `<p>Created EngagementTracker with session ID: <strong>${tracker.sessionId}</strong></p>`;
+            
+            // Test getQuizId method
+            const quizId = tracker.getQuizId();
+            output.innerHTML += `<p>tracker.getQuizId(): <strong>${quizId}</strong></p>`;
+            
+            if (quizId) {
+                output.innerHTML += '<p style="color: green;">✅ EngagementTracker can retrieve quiz_id!</p>';
+                
+                // Test trackPageView
+                tracker.trackPageView('test_page', { test: true }).then(data => {
+                    output.innerHTML += `<p>trackPageView data:</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    
+                    if (data.quiz_id === quizId) {
+                        output.innerHTML += '<p style="color: green;">✅ trackPageView includes correct quiz_id!</p>';
+                    } else {
+                        output.innerHTML += '<p style="color: red;">❌ trackPageView has wrong quiz_id!</p>';
+                    }
+                });
+            } else {
+                output.innerHTML += '<p style="color: red;">❌ EngagementTracker cannot retrieve quiz_id!</p>';
+                output.innerHTML += '<p>Make sure to run "Test Quiz ID Storage" first to store a quiz_id.</p>';
+            }
+        }
+        
+        function clearStorage() {
+            sessionStorage.clear();
+            document.getElementById('debug-output').innerHTML = '<p>Storage cleared!</p>';
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('debug-output').innerHTML = '<p>Page loaded. Click "Test Quiz ID Storage" to begin testing.</p>';
+        });
+    </script>
+</body>
+</html> 

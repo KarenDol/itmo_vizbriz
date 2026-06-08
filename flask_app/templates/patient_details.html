@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Patient Details - {{ patient.name }}
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: none !important; padding: 5px !important; margin: 0 !important; width: 100% !important;">
+    <!-- Tabs Navigation with Enhanced Left and Right Arrows -->
+    <div class="row" style="position: relative; display: flex; align-items: center;">
+        <div class="arrow left-arrow" style="position: absolute; left: -25px; z-index: 1; cursor: pointer; display: none;">
+            <i class="material-icons" style="color: #fff; font-size: 24px;">chevron_left</i>
+        </div>
+        <div class="col s12" style="overflow: hidden; padding: 0;">
+            <div class="tabs-wrapper" style="position: relative;">
+                <div class="tabs-arrow-indicator left" id="tabs-arrow-left" style="display: none;">
+                    <i class="material-icons">chevron_left</i>
+                </div>
+                <ul class="tabs custom-tabs">
+                    <li class="tab"><a href="#patient-info" class="active">Patient Info</a></li>
+                    {# <li class="tab"><a href="#patient-status">Patient Status</a></li> #}
+                    <li class="tab"><a href="#reports">Analysis</a></li>
+                    <li class="tab"><a href="#patient-files">Patient Files</a></li>
+                    <li class="tab"><a href="#file-uploads">Upload Files</a></li>
+                </ul>
+                <div class="tabs-arrow-indicator" id="tabs-arrow-right" style="display: none;">
+                    <i class="material-icons">chevron_right</i>
+                </div>
+            </div>
+        </div>
+        <div class="arrow right-arrow" style="position: absolute; right: -25px; z-index: 1; cursor: pointer; display: none;">
+            <i class="material-icons" style="color: #fff; font-size: 24px;">chevron_right</i>
+        </div>
+    </div>
+
+    <!-- Patient Name Beneath Tabs -->
+    <h5 style="color: white; text-align: center; margin: 20px 0 0; border: none;">{{ patient.name }} (ID: {{ patient.id }})</h5>
+
+    <!-- Tab Contents -->
+    <div id="patient-info" class="col s12 tab-content">
+        {% include 'tabs/_patient_info_tab.html' %}
+    </div>
+    <div id="patient-files" class="col s12 tab-content">
+        {% include 'tabs/_patient_files_list.html' %}
+    </div>
+    {# Patient Status tab disabled: HTML comments cannot wrap this include (nested <!-- in the
+       partial ends the comment early and leaks text like --> on the page). #}
+    {#
+    <div id="patient-status" class="col s12 tab-content">
+        {% include 'tabs/_patient_status.html' %}
+    </div>
+    #}
+    <div id="reports" class="col s12 tab-content">
+        {% include 'tabs/_reports_tab.html' %}
+    </div>
+    {% include 'tabs/_unified_upload_tab.html' %}
+</div>
+{% endblock %}
+
+{% block script %}
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabsContainer = document.querySelector('.custom-tabs');
+        const leftArrow = document.querySelector('.left-arrow');
+        const rightArrow = document.querySelector('.right-arrow');
+        const tabElems = document.querySelectorAll('.tabs');
+
+        // Restore active tab from sessionStorage (legacy upload tabs → unified Upload Files)
+        const legacyUploadTabs = {
+            billing: 'file-uploads',
+            'imaging-triad': 'file-uploads',
+            'medical-triad': 'file-uploads',
+            'admin-files-tab': 'file-uploads',
+        };
+        let activeTabId = sessionStorage.getItem('activeTab');
+        if (activeTabId && legacyUploadTabs[activeTabId]) {
+            activeTabId = legacyUploadTabs[activeTabId];
+            sessionStorage.setItem('activeTab', activeTabId);
+        }
+        if (activeTabId) {
+            const activeTabAnchor = document.querySelector(`.tabs .tab a[href="#${activeTabId}"]`);
+            if (activeTabAnchor) {
+                activeTabAnchor.click(); // Trigger Materialize's tab switching
+            }
+        }
+
+        // Initialize Materialize tabs
+        if (tabElems.length > 0) {
+            M.Tabs.init(tabElems, {
+                onShow: function (content) {
+                    // Update sessionStorage when a new tab is shown
+                    const newActiveTabId = content.id;
+                    sessionStorage.setItem('activeTab', newActiveTabId);
+
+                    // Notify the active tab change
+                    const activeTabAnchor = document.querySelector(`.tabs .tab a[href="#${newActiveTabId}"]`);
+                    if (activeTabAnchor) {
+                        console.log(`Active tab changed to: ${activeTabAnchor.textContent.trim()}`);
+                    }
+                },
+            });
+        } else {
+            console.warn("No tabs elements found on the page.");
+        }
+
+        // Arrow scrolling logic for tabs
+        function updateArrowVisibility() {
+            if (tabsContainer && tabsContainer.scrollWidth > tabsContainer.clientWidth) {
+                leftArrow.style.display = 'flex';
+                rightArrow.style.display = 'flex';
+            } else {
+                leftArrow.style.display = 'none';
+                rightArrow.style.display = 'none';
+            }
+        }
+
+        function scrollTabs(direction) {
+            const scrollAmount = 150; // Adjust scroll distance
+            if (tabsContainer) {
+                tabsContainer.scrollBy({
+                    left: direction === 'left' ? -scrollAmount : scrollAmount,
+                    behavior: 'smooth',
+                });
+            }
+        }
+
+        // Event listeners for tab scrolling arrows
+        if (leftArrow) {
+            leftArrow.addEventListener('click', function () {
+                scrollTabs('left');
+            });
+        }
+
+        if (rightArrow) {
+            rightArrow.addEventListener('click', function () {
+                scrollTabs('right');
+            });
+        }
+
+        // Update arrow visibility on page load and window resize
+        if (tabsContainer) {
+            updateArrowVisibility();
+            window.addEventListener('resize', updateArrowVisibility);
+        }
+
+        // Function to handle upload success
+        async function handleUploadSuccess() {
+            const activeTabAnchor = document.querySelector('.tabs .tab a.active');
+            if (activeTabAnchor) {
+                const activeTabId = activeTabAnchor.getAttribute('href').replace('#', '');
+                sessionStorage.setItem('activeTab', activeTabId);
+            }
+            window.location.reload();
+        }
+
+        // Log for debugging purposes
+        console.log("Tabs script initialized successfully.");
+
+        // Load patient comments when the page loads
+        loadPatientComments();
+
+        // Add event listener for the add comment button
+        const addCommentBtn = document.getElementById('add-admin-comment');
+        console.log('Looking for add comment button:', addCommentBtn);
+        if (addCommentBtn) {
+            console.log('Found add comment button, adding event listener');
+            addCommentBtn.addEventListener('click', addPatientComment);
+        } else {
+            console.error('Add comment button not found! Check if element exists in DOM');
+        }
+
+        // Also check if the comments section exists
+        const commentsSection = document.getElementById('comments-list-view');
+        console.log('Comments section found:', commentsSection);
+        const commentTextarea = document.getElementById('new-admin-comment');
+        console.log('Comment textarea found:', commentTextarea);
+    });
+
+    // Function to format date in the required format: "July 22,2025:04:30p"
+    function formatCommentDate(dateString) {
+        const date = new Date(dateString);
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+        
+        const month = monthNames[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        
+        let hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'p' : 'a';
+        
+        // Convert to 12-hour format
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        
+        return `${month} ${day},${year}:${hours.toString().padStart(2, '0')}:${minutes}${ampm}`;
+    }
+
+    // Function to load and display patient comments
+    function loadPatientComments() {
+        const patientId = parseInt(document.querySelector('h5').textContent.match(/ID: (\d+)/)[1]);
+        const commentsList = document.getElementById('comments-list-view');
+        const noCommentsMsg = document.getElementById('no-comments-message');
+
+        fetch(`/api/patients/${patientId}/comments`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error fetching comments: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (noCommentsMsg) noCommentsMsg.style.display = 'none';
+                
+                if (!data.success || data.comments.length === 0) {
+                    commentsList.innerHTML = '<div style="color: #999; font-style: italic;">No admin comments yet.</div>';
+                } else {
+                    commentsList.innerHTML = '';
+                    data.comments.forEach(comment => {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.style.cssText = 'border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px 0; margin-bottom: 10px;';
+                        
+                        const formattedDate = formatCommentDate(comment.created_date);
+                        
+                        commentDiv.innerHTML = `
+                            <div style="color: #4CAF50; font-weight: bold; font-size: 0.9rem; margin-bottom: 5px;">
+                                ${formattedDate} - ${comment.dentist}
+                            </div>
+                            <div style="color: #e0e0e0; line-height: 1.4;">
+                                ${comment.content}
+                            </div>
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching comments:", error);
+                if (noCommentsMsg) {
+                    noCommentsMsg.textContent = 'Error loading comments.';
+                    noCommentsMsg.style.color = '#f44336';
+                }
+            });
+    }
+
+    // Function to add a new patient comment
+    function addPatientComment() {
+        const patientId = parseInt(document.querySelector('h5').textContent.match(/ID: (\d+)/)[1]);
+        const commentInput = document.getElementById('new-admin-comment');
+        const commentText = commentInput.value.trim();
+
+        if (!commentText) {
+            M.toast({ html: 'Please enter a comment before adding.', displayLength: 3000 });
+            return;
+        }
+
+        fetch(`/api/patients/${patientId}/comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: commentText })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error adding comment: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || "Error adding comment.");
+            }
+            
+            M.toast({ html: 'Admin comment added successfully!', displayLength: 3000 });
+            commentInput.value = ''; // Clear the input
+            loadPatientComments(); // Reload comments to show the new one
+        })
+        .catch(error => {
+            console.error("Error adding comment:", error);
+            M.toast({
+                html: `Error adding comment: ${error.message}`,
+                displayLength: 4000
+            });
+        });
+    }
+</script>
+
+{% endblock %}

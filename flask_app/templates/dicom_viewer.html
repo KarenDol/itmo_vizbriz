@@ -1,0 +1,24 @@
+{% extends "viewer_base.html" %}
+
+{% block title %}DICOM Viewer{% endblock %}
+
+{% block content %}
+<div id="file-list">
+    <h2>Available Files</h2>
+    <ul id="files"></ul>
+</div>
+<div id="viewer">
+    <div id="dicom-container">
+        <div id="metadata-overlay"></div>
+    </div>
+    <div id="ruler">
+        <input id="file-slider" type="range" min="0" max="0" value="0">
+    </div>
+    <div id="controls">
+        <button id="zoom-in">+ Zoom</button>
+        <button id="zoom-out">- Zoom</button>
+    </div>
+</div>
+<!-- Include viewer-specific script -->
+<script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
+{% endblock %}

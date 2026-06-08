@@ -1,0 +1,1086 @@
+{% extends "base.html" %}
+
+{% block title %}Level-4 Report Lab (Knowledge Base){% endblock %}
+
+{% block extra_css %}
+<style>
+    .level4-wrapper {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        margin-top: 32px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        color: #1a1a1a;
+    }
+    .level4-wrapper h4 {
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+    }
+    .level4-wrapper p {
+        color: #333333;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 24px 0 12px;
+        color: #1a1a1a;
+    }
+    .flex-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .flex-row > div {
+        flex: 1 1 280px;
+    }
+    .level4-wrapper label {
+        font-weight: 600;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .level4-wrapper input[type="text"] {
+        font-weight: 500;
+        color: #1a1a1a;
+        font-size: 1rem;
+        border: 2px solid #ccc;
+        padding: 10px 12px;
+    }
+    .level4-wrapper input[type="text"]:focus {
+        border-color: #26a69a;
+        box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.2);
+    }
+    .level4-wrapper input[type="radio"] + span {
+        font-weight: 500;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+    }
+    .patient-autocomplete {
+        position: relative;
+    }
+    .suggestion-box {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 2px solid #26a69a;
+        border-top: none;
+        z-index: 15;
+        max-height: 240px;
+        overflow-y: auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .suggestion-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #eee;
+    }
+    .suggestion-item:hover {
+        background: #e0f2f1;
+        font-weight: 600;
+    }
+    pre {
+        background: #1a1a1a;
+        color: #f0f0f0;
+        padding: 16px;
+        border-radius: 8px;
+        max-height: 360px;
+        overflow-y: auto;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.6;
+        border: 2px solid #333;
+    }
+    .prompt-editor {
+        width: 100%;
+        min-height: 300px;
+        max-height: 600px;
+        background: #1a1a1a;
+        color: #f0f0f0;
+        padding: 16px;
+        border-radius: 8px;
+        font-family: "Source Code Pro", "Courier New", monospace;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.6;
+        border: 2px solid #333;
+        resize: vertical;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    .prompt-editor:focus {
+        outline: none;
+        border-color: #26a69a;
+        box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.2);
+    }
+    .prompt-editor::placeholder {
+        color: #888;
+    }
+    .response-box {
+        background: #ffffff;
+        border: 2px solid #26a69a;
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 180px;
+        white-space: pre-wrap;
+        font-family: "Source Code Pro", "Courier New", monospace;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1a1a1a;
+        line-height: 1.6;
+    }
+    .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 12px;
+        background: #26a69a;
+        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    #generate-btn {
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+    .copy-btn {
+        display: inline-block;
+        padding: 6px 14px;
+        background: #26a69a;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 12px;
+        transition: background 0.2s;
+    }
+    .copy-btn:hover {
+        background: #1e8e82;
+    }
+    .copy-btn:active {
+        background: #1a7a70;
+    }
+    .copy-btn.copied {
+        background: #10a37f;
+    }
+    .prompt-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .prompt-tab {
+        padding: 10px 20px;
+        background: #f5f5f5;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.2s;
+        margin-bottom: -2px;
+    }
+    .prompt-tab:hover {
+        background: #e8e8e8;
+        color: #1a1a1a;
+    }
+    .prompt-tab.active {
+        background: #ffffff;
+        color: #26a69a;
+        border-bottom-color: #26a69a;
+    }
+    }
+    .history-section {
+        margin-top: 32px;
+    }
+    .history-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .history-item:hover {
+        border-color: #26a69a;
+        box-shadow: 0 2px 8px rgba(38, 166, 154, 0.15);
+    }
+    .history-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    .history-item-meta {
+        font-size: 0.85rem;
+        color: #666;
+        font-weight: 500;
+    }
+    .history-item-preview {
+        font-size: 0.9rem;
+        color: #333;
+        max-height: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: pre-wrap;
+    }
+    .history-item.expanded {
+        border-color: #26a69a;
+    }
+    .history-item-content {
+        display: none;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #dee2e6;
+    }
+    .history-item.expanded .history-item-content {
+        display: block;
+    }
+    .history-toggle {
+        color: #26a69a;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="level4-wrapper">
+    <h4>Dr. BRIZ Level-4 Report Lab (Knowledge Base)</h4>
+    <p class="grey-text text-darken-1">
+        Generate Level-4 reports using examples retrieved from the Bedrock Knowledge Base. Examples are used for formatting/style only - all clinical data comes from the patient JSON.
+    </p>
+
+    <div class="section-title">1. Patient Selection</div>
+    <div class="flex-row">
+        <div class="patient-autocomplete">
+            <label>Search Patient</label>
+            <input id="patient-input" type="text" placeholder="Type patient name..." autocomplete="off" />
+            <input id="patient-id" type="hidden" />
+            <div id="patient-suggestions" class="suggestion-box" style="display:none;"></div>
+        </div>
+        <div style="align-self:flex-end; display: flex; gap: 8px;">
+            <button id="generate-btn" class="btn waves-effect waves-light">
+                <i class="material-icons left">play_arrow</i>Generate Report with KB
+            </button>
+            <button id="generate-micro-btn" class="btn waves-effect waves-light" style="background: #7c3aed;">
+                <i class="material-icons left">view_module</i>Generate (Micro-Section)
+            </button>
+        </div>
+    </div>
+    <div style="margin-top: 12px; padding: 10px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px; font-size: 0.9rem; color: #1565c0;">
+        <strong>Note:</strong> This version uses Bedrock with Knowledge Base retrieval for example reports. 
+        <span style="color: #7c3aed; font-weight: 600;">Purple button</span> uses micro-section architecture (14 separate LLM calls).
+    </div>
+
+    <div class="section-title">
+        2. Knowledge Base Retrieval
+    </div>
+    <div id="kb-status" style="margin-bottom: 16px; padding: 12px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; color: #666;">
+        Select a patient to see KB retrieval query...
+    </div>
+    <div style="margin-bottom: 16px;">
+        <label style="font-weight: 600; color: #1a1a1a; margin-bottom: 8px; display: block;">Retrieval Queries:</label>
+        <div>
+            <strong style="color: #1976d2; font-size: 0.9rem;">KB_Level4_Style Query (Required, top_k=6-8):</strong>
+            <pre id="retrieval-query-a" style="background: #e3f2fd; color: #333; padding: 12px; border-radius: 4px; font-size: 0.85rem; max-height: 100px; overflow-y: auto; margin-top: 4px; white-space: pre-wrap;">Not generated yet...</pre>
+        </div>
+        <div style="margin-top: 12px;">
+            <strong style="color: #1976d2; font-size: 0.9rem;">KB_Level4_Clinic Query (Optional, top_k=1-3):</strong>
+            <pre id="retrieval-query-b" style="background: #fff3e0; color: #333; padding: 12px; border-radius: 4px; font-size: 0.85rem; max-height: 100px; overflow-y: auto; margin-top: 4px; white-space: pre-wrap;">Not generated yet...</pre>
+        </div>
+    </div>
+    <div style="margin-bottom: 16px;">
+        <label style="font-weight: 600; color: #1a1a1a; margin-bottom: 8px; display: block;">Retrieved Documents (Examples):</label>
+        <pre id="retrieved-docs" style="background: #f9f9f9; color: #333; padding: 12px; border-radius: 4px; font-size: 0.85rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap;">Not retrieved yet...</pre>
+    </div>
+
+    <div class="section-title">
+        3. Prompt Preview & Editor
+        <button id="copy-prompt-btn" class="copy-btn" style="display:none;" title="Copy active prompt tab to clipboard">
+            📋 Copy Active Tab
+        </button>
+        <button id="use-modified-btn" class="copy-btn" style="display:none; background: #ff9800;" title="Use modified prompts for next generation">
+            ✏️ Use Modified Prompts
+        </button>
+        <button id="reset-prompts-btn" class="copy-btn" style="display:none; background: #666;" title="Reset to original prompts">
+            ↺ Reset to Original
+        </button>
+    </div>
+    <div class="prompt-tabs">
+        <button class="prompt-tab active" data-tab="system">System Prompt</button>
+        <button class="prompt-tab" data-tab="user">User Prompt</button>
+    </div>
+    <textarea id="prompt-preview" class="prompt-editor" data-tab-content="system" placeholder="Select a patient to load the prompt..."></textarea>
+    <textarea id="prompt-preview-user" class="prompt-editor" data-tab-content="user" style="display:none;" placeholder="Select a patient to load the prompt..."></textarea>
+
+    <div class="section-title">
+        4. LLM Response 
+        <span id="response-model" class="badge" style="display:none;"></span>
+        <a id="view-formatted-btn" href="#" style="display:none; margin-left: 12px; color: #26a69a; font-weight: 600; text-decoration: none; font-size: 0.9rem;">View Formatted Report →</a>
+        <button id="copy-response-btn" class="copy-btn" style="display:none;" title="Copy response to clipboard">
+            📋 Copy Response
+        </button>
+    </div>
+    <div style="position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="font-weight: 600; color: #1a1a1a; font-size: 0.95rem;">Report Content (Editable)</label>
+            <button id="save-report-btn" class="btn" style="display:none; background: #26a69a; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; border: none;" title="Save edited report and upload as PDF">
+                💾 Save & Upload Report
+            </button>
+        </div>
+        <textarea id="response-area" class="response-box" style="width: 100%; min-height: 400px; font-family: 'Courier New', monospace; font-size: 0.9rem; padding: 12px; border: 2px solid #ccc; border-radius: 4px; resize: vertical; white-space: pre-wrap; word-wrap: break-word;" readonly>Awaiting generation...</textarea>
+        <div id="save-status" style="margin-top: 8px; font-size: 0.85rem; font-weight: 500; display: none;"></div>
+    </div>
+
+    <div class="section-title history-section">5. Previous Reports History</div>
+    <div style="margin-bottom: 16px;">
+        <label style="font-weight: 600; color: #1a1a1a; margin-right: 12px;">Filter by LLM:</label>
+        <select id="history-filter" style="padding: 6px 12px; border: 2px solid #ccc; border-radius: 4px; font-size: 0.9rem; font-weight: 500;">
+            <option value="all">All Providers</option>
+            <option value="bedrock">Bedrock</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+        </select>
+    </div>
+    <div id="history-container">
+        <p style="color: #666; font-weight: 500;">Select a patient to view previous report generations...</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const patientInput = document.getElementById('patient-input');
+    const patientIdField = document.getElementById('patient-id');
+    const suggestionBox = document.getElementById('patient-suggestions');
+    const promptPreview = document.getElementById('prompt-preview');
+    const promptPreviewUser = document.getElementById('prompt-preview-user');
+    const responseArea = document.getElementById('response-area');
+    const responseModel = document.getElementById('response-model');
+    const generateBtn = document.getElementById('generate-btn');
+    const generateMicroBtn = document.getElementById('generate-micro-btn');
+    const historyContainer = document.getElementById('history-container');
+    const viewFormattedBtn = document.getElementById('view-formatted-btn');
+    const historyFilter = document.getElementById('history-filter');
+    const copyPromptBtn = document.getElementById('copy-prompt-btn');
+    const copyResponseBtn = document.getElementById('copy-response-btn');
+    const useModifiedBtn = document.getElementById('use-modified-btn');
+    const resetPromptsBtn = document.getElementById('reset-prompts-btn');
+    const promptTabs = document.querySelectorAll('.prompt-tab');
+
+    let suggestions = [];
+    let debounce;
+    let currentPatientId = null;
+    let currentHistoryId = null;
+    let allHistoryData = [];
+    let currentSystemPrompt = '';
+    let currentUserPrompt = '';
+    let originalSystemPrompt = '';  // Store original for reset
+    let originalUserPrompt = '';    // Store original for reset
+    let useModifiedPrompts = false; // Flag to use modified prompts
+    let currentResponseText = '';
+    let activePromptTab = 'system';
+
+    function hideSuggestions() {
+        suggestionBox.style.display = 'none';
+        suggestionBox.innerHTML = '';
+    }
+
+    function renderSuggestions() {
+        if (!suggestions.length) {
+            hideSuggestions();
+            return;
+        }
+        suggestionBox.innerHTML = '';
+        suggestions.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = `${item.name} (#${item.id})`;
+            div.addEventListener('click', () => {
+                patientInput.value = item.name;
+                patientIdField.value = item.id;
+                currentPatientId = item.id;
+                hideSuggestions();
+                promptPreview.value = `Select a patient and click "Build & Submit Prompt" to view prompts.`;
+                promptPreviewUser.value = `Select a patient and click "Build & Submit Prompt" to view prompts.`;
+                loadHistory(item.id);
+            });
+            suggestionBox.appendChild(div);
+        });
+        suggestionBox.style.display = 'block';
+    }
+
+    async function fetchPatients(query) {
+        if (!query || query.length < 2) {
+            suggestions = [];
+            hideSuggestions();
+            return;
+        }
+        try {
+            const resp = await fetch(`/reports/api/level4_report/patient_search?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            suggestions = data.patients || [];
+            renderSuggestions();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    patientInput.addEventListener('input', (event) => {
+        patientIdField.value = '';
+        clearTimeout(debounce);
+        debounce = setTimeout(() => fetchPatients(event.target.value.trim()), 250);
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!suggestionBox.contains(event.target) && event.target !== patientInput) {
+            hideSuggestions();
+        }
+    });
+
+    generateBtn.addEventListener('click', async () => {
+        const patientId = patientIdField.value;
+        if (!patientId) {
+            M.toast({html: 'Please select a patient first.'});
+            return;
+        }
+        generateBtn.classList.add('disabled');
+        responseArea.value = 'Retrieving from Knowledge Base and generating report...';
+        responseArea.setAttribute('readonly', 'readonly');
+        responseModel.style.display = 'none';
+
+        try {
+            // Use modified prompts if set, otherwise use defaults
+            // Provider is always bedrock for KB version
+            const requestBody = {
+                patient_id: Number(patientId),
+                provider: 'bedrock'
+            };
+            
+            if (useModifiedPrompts) {
+                requestBody.custom_system_prompt = promptPreview.value.trim();
+                requestBody.custom_user_prompt = promptPreviewUser.value.trim();
+            }
+            
+            const resp = await fetch('/reports/api/level4_kb_report/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+            
+            if (!resp.ok) {
+                const errorText = await resp.text();
+                throw new Error(`HTTP ${resp.status}: ${errorText || 'Request failed'}`);
+            }
+            
+            const data = await resp.json();
+            if (!data.success) throw new Error(data.error || 'Generation failed');
+            
+            // Store text for copying
+            currentSystemPrompt = data.system_prompt || '';
+            currentUserPrompt = data.user_prompt || data.prompt || '';
+            originalSystemPrompt = currentSystemPrompt;  // Store original
+            originalUserPrompt = currentUserPrompt;      // Store original
+            currentResponseText = data.response || '';
+            
+            // Update KB sections
+            const retrievalQueryStyleEl = document.getElementById('retrieval-query-a');
+            const retrievalQueryClinicEl = document.getElementById('retrieval-query-b');
+            const retrievedDocsEl = document.getElementById('retrieved-docs');
+            const kbStatusEl = document.getElementById('kb-status');
+            
+            // Display retrieval queries
+            if (data.retrieval_query_a || data.retrieval_query) {
+                retrievalQueryStyleEl.textContent = data.retrieval_query_a || data.retrieval_query;
+            }
+            if (data.retrieval_query_b) {
+                retrievalQueryClinicEl.textContent = data.retrieval_query_b;
+            }
+            
+            // Display style and clinic documents separately
+            let retrievedContent = '';
+            
+            // Style documents (from KB_Level4_Style)
+            if (data.style_docs && data.style_docs.length > 0) {
+                retrievedContent += '=== STYLE_EXAMPLES (from KB_Level4_Style) ===\n\n' + 
+                    data.style_docs.substring(0, 3000) + 
+                    (data.style_docs.length > 3000 ? '\n\n... (truncated)' : '') + '\n\n';
+            } else if (data.structural_templates && data.structural_templates.length > 0) {
+                // Fallback to old field name for backward compatibility
+                retrievedContent += '=== STYLE_EXAMPLES (from KB_Level4_Style) ===\n\n' + 
+                    data.structural_templates.substring(0, 3000) + 
+                    (data.structural_templates.length > 3000 ? '\n\n... (truncated)' : '') + '\n\n';
+            }
+            
+            // Clinic documents (from KB_Level4_Clinic)
+            if (data.clinic_docs && data.clinic_docs.length > 0) {
+                retrievedContent += '=== CLINICAL_EXAMPLES (from KB_Level4_Clinic) ===\n\n' + 
+                    data.clinic_docs.substring(0, 3000) + 
+                    (data.clinic_docs.length > 3000 ? '\n\n... (truncated)' : '');
+            } else if (data.style_references && data.style_references.length > 0) {
+                // Fallback to old field name for backward compatibility
+                retrievedContent += '=== CLINICAL_EXAMPLES (from KB_Level4_Clinic) ===\n\n' + 
+                    data.style_references.substring(0, 3000) + 
+                    (data.style_references.length > 3000 ? '\n\n... (truncated)' : '');
+            }
+            
+            if (retrievedContent) {
+                retrievedDocsEl.textContent = retrievedContent;
+            } else {
+                // Show error or empty message
+                if (data.kb_error) {
+                    retrievedDocsEl.textContent = `KB Retrieval Error: ${data.kb_error}\n\nNo documents retrieved.`;
+                } else {
+                    retrievedDocsEl.textContent = 'No documents retrieved from Knowledge Base. This may be because:\n- No Level-4 reports are indexed in the KBs\n- The queries did not match any documents\n- KB_Level4_Style or KB_Level4_Clinic are not configured';
+                }
+            }
+            
+            // Update KB status
+            if (data.kb_error) {
+                kbStatusEl.innerHTML = `<span style="color: #d32f2f;">⚠️ KB Retrieval Error: ${data.kb_error}</span>`;
+            } else if (data.style_docs && data.style_docs.length > 0) {
+                const styleCount = data.style_docs.length;
+                const clinicCount = (data.clinic_docs && data.clinic_docs.length) || 0;
+                let statusMsg = '';
+                if (clinicCount > 0) {
+                    statusMsg = `<span style="color: #10a37f;">✓ KB Retrieval Successful (Style: ${styleCount} chars, Clinic: ${clinicCount} chars)</span>`;
+                } else {
+                    if (data.clinic_error) {
+                        statusMsg = `<span style="color: #10a37f;">✓ Style KB: ${styleCount} chars</span><br/><span style="color: #ff9800;">⚠️ Clinic KB: ${data.clinic_error}</span>`;
+                    } else {
+                        statusMsg = `<span style="color: #10a37f;">✓ KB Retrieval Successful (Style: ${styleCount} chars, Clinic: none retrieved - optional)</span>`;
+                    }
+                }
+                kbStatusEl.innerHTML = statusMsg;
+            } else if (data.structural_templates && data.structural_templates.length > 0) {
+                // Fallback for backward compatibility
+                const structCount = data.structural_templates_length || 0;
+                const styleCount = data.style_references_length || 0;
+                kbStatusEl.innerHTML = `<span style="color: #10a37f;">✓ KB Retrieval Successful (${structCount} chars style, ${styleCount} chars clinic)</span>`;
+            } else {
+                kbStatusEl.innerHTML = `<span style="color: #ff9800;">⚠️ KB Retrieval returned no documents. Check logs for details.</span>`;
+            }
+            
+            promptPreview.value = currentSystemPrompt || 'System prompt unavailable.';
+            promptPreviewUser.value = currentUserPrompt || 'User prompt unavailable.';
+            responseArea.value = currentResponseText || 'No response returned.';
+            responseArea.removeAttribute('readonly'); // Make editable
+            
+            // Reset modified prompts flag
+            useModifiedPrompts = false;
+            
+            // Show copy buttons if content is available
+            if (currentSystemPrompt || currentUserPrompt) {
+                copyPromptBtn.style.display = 'inline-block';
+                useModifiedBtn.style.display = 'inline-block';
+                resetPromptsBtn.style.display = 'inline-block';
+            }
+            if (currentResponseText) {
+                copyResponseBtn.style.display = 'inline-block';
+                document.getElementById('save-report-btn').style.display = 'inline-block';
+            }
+            
+            if (data.model_used) {
+                responseModel.textContent = data.model_used;
+                responseModel.style.display = 'inline-block';
+            }
+            // Show formatted view button - use history_id if available, otherwise use preview route
+            if (data.history_id) {
+                currentHistoryId = data.history_id;
+                viewFormattedBtn.href = `/reports/level4-report/view/${data.history_id}`;
+                viewFormattedBtn.onclick = null; // Clear any previous onclick
+                viewFormattedBtn.style.display = 'inline-block';
+            } else if (data.response) {
+                // Store response data for preview
+                currentHistoryId = null;
+                viewFormattedBtn.href = '#';
+                viewFormattedBtn.onclick = (e) => {
+                    e.preventDefault();
+                    // Create and submit form to preview route
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/reports/level4-report/preview';
+                    form.target = '_blank';
+                    form.style.display = 'none';
+                    
+                    const responseInput = document.createElement('input');
+                    responseInput.type = 'hidden';
+                    responseInput.name = 'response';
+                    responseInput.value = data.response;
+                    
+                    const patientInput = document.createElement('input');
+                    patientInput.type = 'hidden';
+                    patientInput.name = 'patient_id';
+                    patientInput.value = patientId;
+                    
+                    const providerInput = document.createElement('input');
+                    providerInput.type = 'hidden';
+                    providerInput.name = 'provider';
+                    providerInput.value = 'bedrock';  // KB version always uses Bedrock
+                    
+                    const modelInput = document.createElement('input');
+                    modelInput.type = 'hidden';
+                    modelInput.name = 'model_used';
+                    modelInput.value = data.model_used || '';
+                    
+                    form.appendChild(responseInput);
+                    form.appendChild(patientInput);
+                    form.appendChild(providerInput);
+                    form.appendChild(modelInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                    setTimeout(() => document.body.removeChild(form), 100);
+                };
+                viewFormattedBtn.style.display = 'inline-block';
+            } else {
+                viewFormattedBtn.style.display = 'none';
+            }
+            // Reload history after generation
+            if (currentPatientId) {
+                loadHistory(currentPatientId);
+            }
+        } catch (err) {
+            console.error(err);
+            M.toast({html: `Error: ${err.message}`});
+            responseArea.value = err.message;
+        } finally {
+            generateBtn.classList.remove('disabled');
+        }
+    });
+
+    // =====================================================================
+    // MICRO-SECTION GENERATION (14 independent LLM calls)
+    // =====================================================================
+    generateMicroBtn.addEventListener('click', async () => {
+        const patientId = patientIdField.value;
+        if (!patientId) {
+            M.toast({html: 'Please select a patient first.'});
+            return;
+        }
+        
+        generateMicroBtn.classList.add('disabled');
+        generateMicroBtn.innerHTML = '<i class="material-icons left">hourglass_empty</i>Generating (14 sections)...';
+        responseArea.value = '🔄 Micro-Section Generation Started...\n\nThis approach generates each section independently:\n\n';
+        responseArea.setAttribute('readonly', 'readonly');
+        
+        // First, get the canonical JSON for this patient
+        try {
+            responseArea.value += '1️⃣ Fetching patient canonical JSON...\n';
+            
+            // Get canonical data from the existing endpoint
+            const canonicalResp = await fetch(`/reports/api/level4_report/patient/${patientId}/canonical`);
+            if (!canonicalResp.ok) {
+                throw new Error(`Failed to fetch canonical JSON: HTTP ${canonicalResp.status}`);
+            }
+            const canonicalData = await canonicalResp.json();
+            if (!canonicalData.success) {
+                throw new Error(canonicalData.error || 'Failed to get canonical data');
+            }
+            
+            responseArea.value += '✅ Canonical JSON loaded\n\n';
+            responseArea.value += '2️⃣ Calling micro-section generation API...\n';
+            responseArea.value += '   (14 separate LLM calls - may take 15-30 seconds)\n\n';
+            
+            // Call micro-section generation API
+            const microResp = await fetch('/api/level4-micro/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(patientId),
+                    canonical_json: canonicalData.canonical_json || canonicalData.data || canonicalData
+                })
+            });
+            
+            if (!microResp.ok) {
+                const errorText = await microResp.text();
+                throw new Error(`Micro-section API error: HTTP ${microResp.status}: ${errorText}`);
+            }
+            
+            const microData = await microResp.json();
+            if (!microData.success) {
+                throw new Error(microData.error || 'Micro-section generation failed');
+            }
+            
+            // Success!
+            responseArea.value += '✅ Micro-Section Report Generated Successfully!\n\n';
+            responseArea.value += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            responseArea.value += '📄 PDF Filename: ' + microData.pdf_filename + '\n';
+            responseArea.value += '📁 S3 Key: ' + microData.pdf_s3_key + '\n';
+            responseArea.value += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+            responseArea.value += 'Sections Generated:\n';
+            (microData.sections_generated || []).forEach((section, i) => {
+                responseArea.value += `  ${i+1}. ${section}\n`;
+            });
+            responseArea.value += '\n🎉 Check the Reports & Files tab to view/compare the PDF!\n';
+            responseArea.value += '   (Look for "Level_4_Micro_Report_Patient_..." file)\n';
+            
+            M.toast({html: '✅ Micro-section report generated!', classes: 'green'});
+            
+            // Reload history
+            if (currentPatientId) {
+                loadHistory(currentPatientId);
+            }
+            
+        } catch (err) {
+            console.error('Micro-section generation error:', err);
+            responseArea.value += '\n❌ ERROR: ' + err.message + '\n';
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            generateMicroBtn.classList.remove('disabled');
+            generateMicroBtn.innerHTML = '<i class="material-icons left">view_module</i>Generate (Micro-Section)';
+            responseArea.removeAttribute('readonly');
+        }
+    });
+
+    async function loadHistory(patientId) {
+        if (!patientId) {
+            historyContainer.innerHTML = '<p style="color: #666; font-weight: 500;">Select a patient to view previous report generations...</p>';
+            return;
+        }
+        try {
+            const resp = await fetch(`/reports/api/level4_report/history?patient_id=${patientId}`);
+            if (!resp.ok) {
+                const errorText = await resp.text();
+                let errorMsg = 'Failed to load history';
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMsg = errorData.error || errorMsg;
+                } catch (e) {
+                    errorMsg = `HTTP ${resp.status}: ${errorText.substring(0, 100)}`;
+                }
+                historyContainer.innerHTML = `<p style="color: #d32f2f; font-weight: 500;">Error loading history: ${errorMsg}</p>`;
+                return;
+            }
+            const data = await resp.json();
+            if (!data.success) {
+                historyContainer.innerHTML = `<p style="color: #d32f2f; font-weight: 500;">Error loading history: ${data.error || 'Unknown error'}</p>`;
+                return;
+            }
+            allHistoryData = data.history || [];
+            // Debug: log first entry to see what we're getting
+            if (allHistoryData.length > 0) {
+                console.log('First history entry:', {
+                    id: allHistoryData[0].id,
+                    hasPrompt: !!allHistoryData[0].prompt,
+                    promptLength: allHistoryData[0].prompt ? allHistoryData[0].prompt.length : 0,
+                    promptPreview: allHistoryData[0].prompt ? allHistoryData[0].prompt.substring(0, 100) : 'NO PROMPT'
+                });
+            }
+            renderHistory(allHistoryData);
+        } catch (err) {
+            console.error('Failed to load history:', err);
+            historyContainer.innerHTML = `<p style="color: #d32f2f; font-weight: 500;">Failed to load history: ${err.message || 'Network error'}</p>`;
+        }
+    }
+
+    // Filter history by LLM provider
+    if (historyFilter) {
+        historyFilter.addEventListener('change', (e) => {
+            const filterValue = e.target.value;
+            if (filterValue === 'all') {
+                renderHistory(allHistoryData);
+            } else {
+                const filtered = allHistoryData.filter(item => 
+                    item.llm_provider && item.llm_provider.toLowerCase() === filterValue.toLowerCase()
+                );
+                renderHistory(filtered);
+            }
+        });
+    }
+
+    function renderHistory(history) {
+        if (!history || history.length === 0) {
+            historyContainer.innerHTML = '<p style="color: #666; font-weight: 500;">No previous reports found for this patient.</p>';
+            return;
+        }
+        historyContainer.innerHTML = history.map((item, idx) => {
+            const date = new Date(item.created_at);
+            const dateStr = date.toLocaleString();
+            const preview = (item.response || '').substring(0, 200) + ((item.response || '').length > 200 ? '...' : '');
+            const providerColor = item.llm_provider === 'bedrock' ? '#26a69a' : item.llm_provider === 'openai' ? '#10a37f' : item.llm_provider === 'claude' ? '#d97706' : '#666';
+            const providerName = item.llm_provider ? item.llm_provider.toUpperCase() : 'UNKNOWN';
+            const modelInfo = item.model_used ? ` • ${item.model_used}` : '';
+            // Ensure prompt is properly extracted - handle null, undefined, or empty string
+            const promptText = (item.prompt && item.prompt.trim()) ? item.prompt : 'Prompt not available in database';
+            
+            // Debug log for each item
+            if (!item.prompt || !item.prompt.trim()) {
+                console.warn(`History item ${item.id} has no prompt:`, {
+                    prompt: item.prompt,
+                    promptType: typeof item.prompt,
+                    promptLength: item.prompt ? item.prompt.length : 0
+                });
+            }
+            
+            return `
+                <div class="history-item" data-id="${item.id}">
+                    <div class="history-item-header">
+                        <div>
+                            <span style="font-weight: 700; color: #1a1a1a; font-size: 1.1rem;">Report #${history.length - idx}</span>
+                            <span style="margin-left: 12px; font-size: 0.9rem; color: ${providerColor}; font-weight: 600;">
+                                ${providerName}${modelInfo}
+                            </span>
+                        </div>
+                        <div class="history-item-meta" style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">${dateStr}</div>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                <span style="color: ${providerColor}; font-weight: 600;">${providerName}</span>
+                                ${item.model_used ? `<span style="color: #6366f1; font-weight: 500;"> • ${item.model_used}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="history-item-preview">${preview}</div>
+                    <div style="margin-top: 8px;">
+                        <a href="/reports/level4-report/view/${item.id}" style="color: #26a69a; font-weight: 600; text-decoration: none; font-size: 0.9rem; margin-right: 16px;">View Formatted Report →</a>
+                    </div>
+                    <div class="history-item-content">
+                        <div style="margin-bottom: 16px;">
+                            <strong style="color: #1a1a1a; font-weight: 700; font-size: 1rem;">Prompt:</strong>
+                            <pre style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 8px; font-size: 0.85rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-family: 'Courier New', monospace; border: 1px solid #ddd; color: #1a1a1a;">${escapeHtml(promptText)}</pre>
+                        </div>
+                        <div>
+                            <strong style="color: #1a1a1a; font-weight: 700; font-size: 1rem;">Response:</strong>
+                            <div style="background: #f5f5f5; padding: 12px; border-radius: 4px; margin-top: 8px; font-size: 0.85rem; max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: 'Courier New', monospace; border: 1px solid #ddd; color: #1a1a1a;">${escapeHtml(item.response || 'Response not available')}</div>
+                        </div>
+                    </div>
+                    <div class="history-toggle" onclick="window.toggleHistoryItem(this)">Show Details</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.toggleHistoryItem = function(element) {
+        const item = element.closest('.history-item');
+        const isExpanded = item.classList.contains('expanded');
+        if (isExpanded) {
+            item.classList.remove('expanded');
+            element.textContent = 'Show Details';
+        } else {
+            item.classList.add('expanded');
+            element.textContent = 'Hide Details';
+        }
+    };
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Save report button handler
+    const saveReportBtn = document.getElementById('save-report-btn');
+    const saveStatus = document.getElementById('save-status');
+    
+    if (saveReportBtn) {
+        saveReportBtn.addEventListener('click', async () => {
+            const patientId = patientIdField.value;
+            if (!patientId) {
+                M.toast({html: 'Please select a patient first.'});
+                return;
+            }
+            
+            const editedReport = responseArea.value.trim();
+            if (!editedReport) {
+                M.toast({html: 'Report content is empty. Nothing to save.'});
+                return;
+            }
+            
+            saveReportBtn.classList.add('disabled');
+            saveReportBtn.textContent = '💾 Saving...';
+            saveStatus.style.display = 'block';
+            saveStatus.textContent = 'Saving report and generating PDF...';
+            saveStatus.style.color = '#666';
+            
+            try {
+                const resp = await fetch('/reports/api/level4_kb_report/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        patient_id: Number(patientId),
+                        report_content: editedReport,
+                        history_id: currentHistoryId,
+                        original_response: currentResponseText
+                    })
+                });
+                
+                if (!resp.ok) {
+                    const errorData = await resp.json();
+                    throw new Error(errorData.error || 'Failed to save report');
+                }
+                
+                const data = await resp.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to save report');
+                }
+                
+                saveStatus.textContent = `✓ Report saved successfully! ${data.message || ''}`;
+                saveStatus.style.color = '#10a37f';
+                M.toast({html: 'Report saved and uploaded successfully!'});
+                
+                // Update current response text
+                currentResponseText = editedReport;
+                
+                // Reload history to show updated report
+                if (currentPatientId) {
+                    loadHistory(currentPatientId);
+                }
+                
+            } catch (err) {
+                console.error('Save error:', err);
+                saveStatus.textContent = `✗ Error: ${err.message}`;
+                saveStatus.style.color = '#d32f2f';
+                M.toast({html: `Error saving report: ${err.message}`});
+            } finally {
+                saveReportBtn.classList.remove('disabled');
+                saveReportBtn.textContent = '💾 Save & Upload Report';
+            }
+        });
+    }
+    
+    // Copy to clipboard functionality
+    async function copyToClipboard(text, buttonElement, buttonText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = '✓ Copied!';
+            buttonElement.classList.add('copied');
+            setTimeout(() => {
+                buttonElement.textContent = originalText;
+                buttonElement.classList.remove('copied');
+            }, 2000);
+            M.toast({html: `${buttonText} copied to clipboard!`});
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                M.toast({html: `${buttonText} copied to clipboard!`});
+            } catch (e) {
+                M.toast({html: `Failed to copy. Please select and copy manually.`});
+            }
+            document.body.removeChild(textarea);
+        }
+    }
+
+    // Tab switching functionality
+    promptTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+            activePromptTab = tabName;
+            
+            // Update tab active state
+            promptTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Show/hide corresponding pre elements
+            if (tabName === 'system') {
+                promptPreview.style.display = 'block';
+                promptPreviewUser.style.display = 'none';
+            } else {
+                promptPreview.style.display = 'none';
+                promptPreviewUser.style.display = 'block';
+            }
+        });
+    });
+
+    // Copy prompt button - copies active tab
+    if (copyPromptBtn) {
+        copyPromptBtn.addEventListener('click', () => {
+            let textToCopy = '';
+            if (activePromptTab === 'system') {
+                textToCopy = promptPreview.value || currentSystemPrompt;
+            } else {
+                textToCopy = promptPreviewUser.value || currentUserPrompt;
+            }
+            
+            if (textToCopy && textToCopy !== 'Select a patient to load the prompt...' && 
+                textToCopy !== 'Select a patient and click "Build & Submit Prompt" to view prompts.' &&
+                textToCopy !== 'System prompt unavailable.' && 
+                textToCopy !== 'User prompt unavailable.') {
+                const tabName = activePromptTab === 'system' ? 'System Prompt' : 'User Prompt';
+                copyToClipboard(textToCopy, copyPromptBtn, tabName);
+            } else {
+                M.toast({html: 'No prompt available to copy.'});
+            }
+        });
+    }
+
+    // Use Modified Prompts button
+    if (useModifiedBtn) {
+        useModifiedBtn.addEventListener('click', () => {
+            const modifiedSystem = promptPreview.value.trim();
+            const modifiedUser = promptPreviewUser.value.trim();
+            
+            if (!modifiedSystem || !modifiedUser) {
+                M.toast({html: 'Please edit both prompts before using modified versions.'});
+                return;
+            }
+            
+            currentSystemPrompt = modifiedSystem;
+            currentUserPrompt = modifiedUser;
+            useModifiedPrompts = true;
+            
+            M.toast({html: 'Modified prompts will be used for next generation. Click "Build & Submit Prompt" to test.'});
+            useModifiedBtn.style.background = '#10a37f'; // Green to indicate active
+            useModifiedBtn.textContent = '✓ Using Modified Prompts';
+        });
+    }
+
+    // Reset Prompts button
+    if (resetPromptsBtn) {
+        resetPromptsBtn.addEventListener('click', () => {
+            if (!originalSystemPrompt || !originalUserPrompt) {
+                M.toast({html: 'No original prompts to reset to.'});
+                return;
+            }
+            
+            promptPreview.value = originalSystemPrompt;
+            promptPreviewUser.value = originalUserPrompt;
+            currentSystemPrompt = originalSystemPrompt;
+            currentUserPrompt = originalUserPrompt;
+            useModifiedPrompts = false;
+            
+            useModifiedBtn.style.background = '#ff9800';
+            useModifiedBtn.textContent = '✏️ Use Modified Prompts';
+            
+            M.toast({html: 'Prompts reset to original.'});
+        });
+    }
+
+    // Copy response button
+    if (copyResponseBtn) {
+        copyResponseBtn.addEventListener('click', () => {
+            const responseText = responseArea.value || currentResponseText;
+            if (responseText && responseText !== 'Awaiting generation...' && responseText.trim()) {
+                copyToClipboard(responseText, copyResponseBtn, 'Response');
+            } else {
+                M.toast({html: 'No response available to copy.'});
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,733 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vizbriz Complete Patient Data Schema",
+  "description": "Enhanced schema incorporating all patient data elements including rich phenotype information and operational data",
+  "type": "object",
+  "required": [
+    "patient",
+    "policy_context",
+    "sleep_study",
+    "phenotype_highlights",
+    "policy_features",
+    "stage_context",
+    "operational_data",
+    "meta"
+  ],
+  "properties": {
+    "patient": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique patient identifier"
+        },
+        "sex": {
+          "type": "string",
+          "enum": ["male", "female", "other"]
+        },
+        "age": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 120
+        },
+        "demographics": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Patient full name"
+            },
+            "date_of_birth": {
+              "type": "string",
+              "format": "date"
+            },
+            "address": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_context": {
+      "type": "object",
+      "required": ["policy_version"],
+      "properties": {
+        "policy_version": {
+          "type": "string"
+        },
+        "base_policy": {
+          "type": "string",
+          "default": "osa_policy_base_v2"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sleep_study": {
+      "type": "object",
+      "required": ["type", "date", "AHI", "SpO2_nadir", "severity"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["HST", "PSG", "unknown"]
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "AHI": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 200,
+          "description": "Apnea-Hypopnea Index"
+        },
+        "SpO2_nadir": {
+          "type": ["integer", "null"],
+          "minimum": 50,
+          "maximum": 100,
+          "description": "Lowest oxygen saturation percentage"
+        },
+        "ODI": {
+          "type": ["number", "null"],
+          "description": "Oxygen Desaturation Index"
+        },
+        "RERA_index": {
+          "type": ["number", "null"],
+          "description": "Respiratory Effort Related Arousal index"
+        },
+        "sleep_efficiency": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "sleep_duration_hours": {
+          "type": ["number", "null"]
+        },
+        "snoring_avg_db": {
+          "type": ["number", "null"]
+        },
+        "snoring_max_db": {
+          "type": ["number", "null"]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["normal", "mild", "moderate", "severe", "unknown"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "phenotype_highlights": {
+      "type": "object",
+      "description": "Rich phenotype data extracted from clinical assessments",
+      "properties": {
+        "applies_to": {
+          "type": "object",
+          "properties": {
+            "patient_id": {
+              "type": "string"
+            },
+            "phenotype_summary": {
+              "type": "object",
+              "properties": {
+                "anatomical_findings": {
+                  "type": "object",
+                  "properties": {
+                    "nasal_obstruction": {
+                      "type": "object",
+                      "properties": {
+                        "present": {
+                          "type": "boolean"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "tmj_findings": {
+                      "type": "object",
+                      "properties": {
+                        "present": {
+                          "type": "boolean"
+                        },
+                        "left_condylar_head": {
+                          "type": "string"
+                        },
+                        "right_condylar_head": {
+                          "type": "string"
+                        },
+                        "jaw_pain_clicking": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "dental_findings": {
+                      "type": "object",
+                      "properties": {
+                        "overjet": {
+                          "type": "string"
+                        },
+                        "overbite": {
+                          "type": "string"
+                        },
+                        "palate_type": {
+                          "type": "string"
+                        },
+                        "arch_width": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "airway_findings": {
+                      "type": "object",
+                      "properties": {
+                        "tongue_position": {
+                          "type": "string"
+                        },
+                        "soft_palate": {
+                          "type": "string"
+                        },
+                        "uvula": {
+                          "type": "string"
+                        },
+                        "primary_obstruction_level": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "clinical_findings": {
+                  "type": "object",
+                  "patternProperties": {
+                    ".*": {
+                      "type": "object",
+                      "properties": {
+                        "confidence": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "evidence": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "comorbidities": {
+                  "type": "object",
+                  "properties": {
+                    "hypertension": {
+                      "type": "boolean"
+                    },
+                    "diabetes": {
+                      "type": "boolean"
+                    },
+                    "acid_reflux": {
+                      "type": "boolean"
+                    },
+                    "tmj_disorder": {
+                      "type": "boolean"
+                    },
+                    "bruxism": {
+                      "type": "boolean"
+                    },
+                    "allergies": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "BMI": {
+                      "type": ["number", "null"]
+                    }
+                  }
+                },
+                "symptom_assessment": {
+                  "type": "object",
+                  "properties": {
+                    "daytime_sleepiness": {
+                      "type": "boolean"
+                    },
+                    "fatigue": {
+                      "type": "boolean"
+                    },
+                    "snoring": {
+                      "type": "boolean"
+                    },
+                    "witnessed_apneas": {
+                      "type": "boolean"
+                    },
+                    "morning_headaches": {
+                      "type": "boolean"
+                    },
+                    "dry_mouth": {
+                      "type": "boolean"
+                    },
+                    "nocturia": {
+                      "type": "boolean"
+                    },
+                    "difficulty_concentrating": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "treatment_history": {
+                  "type": "object",
+                  "properties": {
+                    "cpap_experience": {
+                      "type": "boolean"
+                    },
+                    "cpap_intolerance": {
+                      "type": "boolean"
+                    },
+                    "cpap_intolerance_evidence": {
+                      "type": "string"
+                    },
+                    "oral_appliance_experience": {
+                      "type": "boolean"
+                    },
+                    "previous_sleep_surgery": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "lifestyle_factors": {
+                  "type": "object",
+                  "properties": {
+                    "smoking_status": {
+                      "type": "string",
+                      "enum": ["never", "former", "current"]
+                    },
+                    "alcohol_use": {
+                      "type": "string",
+                      "enum": ["none", "moderate", "heavy"]
+                    },
+                    "exercise_frequency": {
+                      "type": "string"
+                    },
+                    "sleep_position": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "treatment_goals": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "policy_eligibility": {
+                  "type": "object",
+                  "properties": {
+                    "osa_confirmed": {
+                      "type": "boolean"
+                    },
+                    "oral_appliance_candidate": {
+                      "type": "boolean"
+                    },
+                    "treatment_eligible": {
+                      "type": "boolean"
+                    },
+                    "requires_specialist_referral": {
+                      "type": "boolean"
+                    },
+                    "risk_level": {
+                      "type": "string",
+                      "enum": ["low", "moderate", "high"]
+                    },
+                    "recommended_pathway": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "policy_features": {
+      "type": "object",
+      "description": "Policy-specific features and workflow state",
+      "properties": {
+        "workflow_state": {
+          "type": "object",
+          "properties": {
+            "current_stage": {
+              "type": "string"
+            },
+            "completed_stages": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "pending_actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string"
+                  },
+                  "due_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": ["low", "normal", "high", "urgent"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "clinical_flags": {
+          "type": "object",
+          "properties": {
+            "contraindications": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "risk_factors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "special_considerations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "stage_context": {
+      "type": "object",
+      "required": ["stage", "completion_pct"],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "description": "Current workflow stage"
+        },
+        "completion_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "stage_details": {
+          "type": "object",
+          "properties": {
+            "started_date": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expected_completion": {
+              "type": "string",
+              "format": "date"
+            },
+            "blocking_factors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requirements_met": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requirements_pending": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "operational_data": {
+      "type": "object",
+      "description": "Operational workflow data and tracking information",
+      "properties": {
+        "workflow_progress": {
+          "type": "object",
+          "properties": {
+            "current_stage": {
+              "type": "string"
+            },
+            "completion_pct": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "total_stages": {
+              "type": "integer"
+            },
+            "current_stage_index": {
+              "type": "integer"
+            }
+          }
+        },
+        "pending_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string"
+              },
+              "due_in_days": {
+                "type": "integer"
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["low", "normal", "high", "urgent"]
+              },
+              "blocking": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "device_tracking": {
+          "type": "object",
+          "properties": {
+            "last_device_event": {
+              "type": "string"
+            },
+            "device_status": {
+              "type": "string"
+            },
+            "delivery_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "fitting_date": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "alerts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "consultations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "consult_type": {
+                "type": "string"
+              },
+              "scheduled_datetime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "status": {
+                "type": "string"
+              },
+              "doctor_name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "clinical_data": {
+      "type": "object",
+      "description": "Additional clinical assessments and measurements",
+      "properties": {
+        "vitals": {
+          "type": "object",
+          "properties": {
+            "blood_pressure_systolic": {
+              "type": "integer"
+            },
+            "blood_pressure_diastolic": {
+              "type": "integer"
+            },
+            "heart_rate": {
+              "type": "integer"
+            },
+            "weight_kg": {
+              "type": "number"
+            },
+            "height_cm": {
+              "type": "number"
+            },
+            "BMI": {
+              "type": "number"
+            }
+          }
+        },
+        "questionnaire_scores": {
+          "type": "object",
+          "properties": {
+            "ESS_score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 24,
+              "description": "Epworth Sleepiness Scale"
+            },
+            "ISI_score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 28,
+              "description": "Insomnia Severity Index"
+            },
+            "LQ_score": {
+              "type": "number",
+              "description": "Lamberg Questionnaire score"
+            }
+          }
+        },
+        "imaging_data": {
+          "type": "object",
+          "properties": {
+            "cbct_available": {
+              "type": "boolean"
+            },
+            "cbct_findings": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "intraoral_scans_available": {
+              "type": "boolean"
+            },
+            "clinical_photos_available": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "protocols": {
+      "type": "object",
+      "description": "Available protocols and their configurations",
+      "properties": {
+        "Lamberg_Protocol": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "treatment_targets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "decision_flow": {
+              "type": "array"
+            },
+            "eligibility_rules_additions": {
+              "type": "object"
+            }
+          }
+        },
+        "sOSA_Protocol": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "follow_up_protocol": {
+              "type": "object",
+              "properties": {
+                "timelines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "timepoint": {
+                        "type": "string"
+                      },
+                      "activity": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Vizbriz_Workflow": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "required": ["schema_version", "packet_hash"],
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 2
+        },
+        "packet_hash": {
+          "type": "string",
+          "description": "SHA256 hash of packet contents"
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "data_sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sources of data in this packet"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

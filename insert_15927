@@ -1,0 +1,14 @@
+INSERT INTO patient_manifest (patient_id, stage_key, stage_number, stage_name, is_completed, status_message) VALUES
+(15927pleted,1 Completed', FALSE,Not started),
+(15927 initial_consult_scheduled', 2, 'Initial Consult Scheduled', FALSE,Not started'),
+(15927, 'initial_consult_completed', 3, 'Initial Consult Completed', FALSE,Not started),
+(15927ep_study_scheduled, 4, ep Study Scheduled', FALSE,Not started),
+(15927, 'sleep_study_completed, 5, ep Study Completed', FALSE,Not started),
+(15927s_review_scheduled', 6s Review Scheduled', FALSE,Not started'),
+(15927results_review_completed', 7s Review Completed', FALSE,Not started'),
+(15927, 'treatment_plan_created', 8tment Plan Created', FALSE,Not started'),
+(15927, cpap_ordered', 9AP Ordered', FALSE,Not started'),
+(15927 cpap_delivered', 10 Delivered', FALSE,Not started),(15927ap_setup_completed, 11, AP Setup Completed', FALSE,Not started),
+(15927ollow_up_scheduled', 12, 'Follow-up Scheduled', FALSE,Not started),(15927ollow_up_completed', 13, 'Follow-up Completed', FALSE,Not started'),
+(15927, 'treatment_optimized', 14, 'Treatment Optimized', FALSE,Not started'),
+(15927 maintenance_plan_created', 15nance Plan Created', FALSE, 'Not started'); 

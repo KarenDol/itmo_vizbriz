@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Download File</title>
+</head>
+<body>
+  <h1>File Download</h1>
+  <form id="download-form">
+    <label for="link">Enter link:</label>
+    <input type="text" id="link" name="link" required>
+    <button type="button" onclick="handleDownload()">Download</button>
+  </form>
+  <script>
+    function handleDownload() {
+      const link = document.getElementById('link').value;
+      fetch('/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ link }),
+      })
+      .then(response => response.json())
+      .then(data => alert(data.result))
+      .catch(error => console.error(error));
+    }
+  </script>
+</body>
+</html>

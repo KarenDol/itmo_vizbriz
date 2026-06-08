@@ -1,0 +1,6 @@
+# Requirements for Case-Card Generator
+# Simple one-time processing script
+
+boto3>=1.26.0
+mysql-connector-python>=8.0.0
+botocore>=1.29.0

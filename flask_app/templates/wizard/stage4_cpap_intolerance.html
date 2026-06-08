@@ -1,0 +1,234 @@
+{% extends "wizard_base.html" %}
+{% block content %}
+<div class="container">
+    <h2>CPAP Intolerance</h2>
+    <form id="stage4-form" action="/wizard/stage4_cpap_intolerance" method="POST" enctype="multipart/form-data">
+        <p>Please indicate any issues you have encountered with CPAP therapy by selecting the applicable checkboxes:</p>
+
+        <!-- Checkbox items -->
+        <div class="mb-3">
+            <label class="form-label"><strong>CPAP Intolerance Issues:</strong></label>
+            {% for issue, description in [
+                ("Mask Leaks", "Mask Leaks (attempts to repair or replace the mask have been made without improvement)"),
+                ("Improper Mask Fit", "An inability to get the mask to fit properly (attempts to repair or replace the mask have been made without improvement)"),
+                ("Skin Irritation", "Allergy, significant discomfort or skin irritation caused by the straps and/or headgear"),
+                ("Disturbed Sleep", "Disturbed or interrupted sleep caused by the presence of the device"),
+                ("Noise Disturbance", "Noise from the device significantly disturbing sleep or bed partner’s sleep"),
+                ("Movement Restriction", "Machine significantly restricted movements during sleep"),
+                ("Ineffective CPAP", "CPAP has been ineffective relieving symptoms"),
+                ("Upper Lip Pressure", "Pressure on the upper lip causes tooth related problems"),
+                ("Claustrophobic Associations", "The use of the machine or the very thought of using the machine caused claustrophobic associations"),
+                ("Unconscious Removal", "An unconscious need to remove the apparatus at night"),
+                ("Pressure Intolerance", "Unable to tolerate the prescribed level of pressure (multiple levels/attempts were unsuccessful)"),
+                ("Respiratory Infections", "Repeated upper respiratory infections caused by use of the machine")
+            ] %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="issues[]" value="{{ issue }}" id="issue{{ loop.index }}">
+                <label class="form-check-label" for="issue{{ loop.index }}">
+                    {{ description }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Section for "Other reasons for CPAP intolerance" -->
+        <div class="mb-3">
+            <label for="other-reasons-cpap" class="form-label"><strong>Other reasons for CPAP intolerance:</strong></label>
+            <textarea class="form-control" id="other-reasons-cpap" name="other_reasons_cpap" rows="3" placeholder="Enter other reasons..."></textarea>
+        </div>
+
+        <!-- Section for "I have not attempted CPAP therapy for my OSA" -->
+        <div class="mb-3">
+            <label class="form-label"><strong>I have not attempted CPAP therapy for my OSA:</strong></label>
+            {% for value, description in [
+                ("Oral Appliance Recommended", "An oral appliance has been recommended or prescribed by a medical provider as a first-line treatment for mild-moderate OSA"),
+                ("Unable to Wear CPAP", "I am unable to use/wear CPAP due to an underlying medical condition")
+            ] %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="no_attempt[]" value="{{ value }}" id="no_attempt{{ loop.index }}">
+                <label class="form-check-label" for="no_attempt{{ loop.index }}">
+                    {{ description }}
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Section for "Other reasons for attempting oral appliance" -->
+        <div class="mb-3">
+            <label for="other-reasons-oral-appliance" class="form-label"><strong>Other reasons for attempting oral appliance:</strong></label>
+            <textarea class="form-control" id="other-reasons-oral-appliance" name="other_reasons_oral_appliance" rows="3" placeholder="Enter other reasons..."></textarea>
+        </div>
+
+        <!-- Signature section -->
+        <div class="mb-3">
+            <label for="signature" class="form-label"><strong>Signature:</strong></label>
+            <canvas id="signature-pad" class="signature-canvas border border-dark"></canvas>
+            <input type="hidden" name="signature" id="signature-input">
+            <small class="text-danger" id="signature-error" style="display: none;">Signature is required when submitting the form.</small>
+            <button type="button" id="clear-signature" class="btn btn-secondary mt-2">Clear Signature</button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress my-3">
+            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 66%;" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100">66%</div>
+        </div>
+
+        <!-- Buttons aligned to the bottom right -->
+        <div class="d-flex justify-content-end">
+            <div>
+                <a href="/wizard/stage5_informed_consent" class="btn btn-link">Skip</a>
+                <button type="button" id="next-button" class="btn btn-primary">Next</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Responsive CSS -->
+<style>
+    .signature-canvas {
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+    }
+    @media (max-width: 768px) {
+        .signature-canvas {
+            max-height: 150px;
+        }
+    }
+</style>
+
+<!-- Include html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const canvas = document.getElementById('signature-pad');
+        const signatureInput = document.getElementById('signature-input');
+        const signatureError = document.getElementById('signature-error');
+        const clearButton = document.getElementById('clear-signature');
+        const progressBar = document.getElementById('progress-bar');
+        const nextButton = document.getElementById('next-button');
+        const form = document.getElementById('stage4-form');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        // Resize the canvas for responsiveness
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Set progress bar value
+        function updateProgressBar(percentage) {
+            progressBar.style.width = `${percentage}%`;
+            progressBar.setAttribute('aria-valuenow', percentage);
+            progressBar.textContent = `${percentage}%`;
+        }
+
+        resizeCanvas();
+        updateProgressBar(66); // Set initial progress
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Event listeners for signature drawing
+        function getPosition(event) {
+            const rect = canvas.getBoundingClientRect();
+            if (event.touches && event.touches.length > 0) {
+                return {
+                    x: event.touches[0].clientX - rect.left,
+                    y: event.touches[0].clientY - rect.top,
+                };
+            } else if (event.changedTouches && event.changedTouches.length > 0) {
+                return {
+                    x: event.changedTouches[0].clientX - rect.left,
+                    y: event.changedTouches[0].clientY - rect.top,
+                };
+            } else {
+                return {
+                    x: event.offsetX,
+                    y: event.offsetY,
+                };
+            }
+        }
+
+        function startDrawing(event) {
+            drawing = true;
+            const pos = getPosition(event);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            event.preventDefault();
+        }
+
+        function draw(event) {
+            if (drawing) {
+                const pos = getPosition(event);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                event.preventDefault();
+            }
+        }
+
+        function endDrawing(event) {
+            if (drawing) {
+                drawing = false;
+                signatureInput.value = canvas.toDataURL();
+                signatureError.style.display = 'none';
+                event.preventDefault();
+            }
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', endDrawing);
+        canvas.addEventListener('mouseout', endDrawing);
+
+        // Touch events
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', endDrawing);
+
+        clearButton.addEventListener('click', function () {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            signatureInput.value = '';
+            signatureError.style.display = 'none';
+        });
+
+        nextButton.addEventListener('click', function (event) {
+            // Validate signature input
+            if (!signatureInput.value) {
+                signatureError.style.display = 'block';
+                alert('Please provide your signature before submitting.');
+                return;
+            }
+
+            // Signature is provided, proceed to capture screenshot and submit form
+
+            // Disable the button to prevent multiple clicks
+            nextButton.disabled = true;
+
+            // Capture screenshot with increased scale, width, and height
+            html2canvas(document.querySelector('.container'), {
+                width: 1024, // Desired width for the screenshot (e.g., desktop width)
+            }).then(function (canvas) {
+                // Create a hidden input for the screenshot
+                const screenshotInput = document.createElement('input');
+                screenshotInput.type = 'hidden';
+                screenshotInput.name = 'form_screenshot';
+                screenshotInput.value = canvas.toDataURL('image/png');
+                form.appendChild(screenshotInput);
+
+                // Submit the form
+                form.submit();
+            }).catch(function (error) {
+                console.error('Screenshot capture failed:', error);
+                alert('An error occurred while capturing the form. Please try again.');
+                nextButton.disabled = false; // Re-enable the button
+            });
+        });
+    });
+</script>
+{% endblock %}

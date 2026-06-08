@@ -1,0 +1,1018 @@
+body {
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text for readability */
+    margin: 0;
+    font-family: 'Roboto', sans-serif; /* Material Design recommended font */
+}
+
+.container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+.nav-wrapper {
+    background-color: #1e1e1e;
+}
+
+.nav-wrapper .brand-logo img {
+    width: 40px;
+    height: auto;
+    vertical-align: middle;
+}
+
+.sidenav {
+    width: 200px;
+    background-color: #1e1e1e;
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media only screen and (max-width: 992px) {
+    .sidenav {
+        top: 56px;
+        max-height: calc(100vh - 56px);
+        padding-bottom: 60px;
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media only screen and (min-width: 993px) {
+    .sidenav {
+        top: 64px;
+        max-height: calc(100vh - 64px);
+        overflow-y: auto;
+    }
+}
+
+.sidenav li > a {
+    color: #e0e0e0;
+    padding: 8px 10px;
+}
+
+.sidenav li.active > a {
+    background-color: rgba(0, 186, 255, 0.15); /* Light blue highlight */
+    border-left: 4px solid #00BAFF;            /* Light blue border */
+    color: #00BAFF;
+    font-weight: 500;
+}
+
+.sidenav li > a:hover {
+    background-color: rgba(0, 186, 255, 0.10);
+    border-left: 4px solid rgba(0, 186, 255, 0.5);
+}
+
+.sidenav li.active > a i.material-icons {
+    color: #00BAFF;
+}
+
+.sidenav li > a > i.material-icons {
+    color: #00BAFF;
+}
+
+.sidenav li:not(.active) > a:hover {
+    background-color: rgba(0, 186, 255, 0.10);
+    border-left: 4px solid rgba(0, 186, 255, 0.5);
+}
+
+@media only screen and (min-width: 993px) {
+    main, footer {
+        padding-left: 180px;
+    }
+
+    .sidenav-trigger {
+        display: none;
+    }
+}
+
+.search-wrapper {
+    position: relative;
+    margin-right: 15px;
+}
+
+.search-wrapper input[type="search"] {
+    padding-right: 40px;
+    width: 250px; /* Slightly wider for better usability */
+    height: 36px;
+    border-radius: 18px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.1); /* Slight transparency */
+    color: #e0e0e0;
+}
+
+.search-wrapper i {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    color: #bb86fc;
+}
+
+/* Dropdown Menu */
+.dropdown-content {
+    background-color: #2a2a2a;
+    min-width: 150px;
+}
+
+.dropdown-content li > a {
+    color: #e0e0e0;
+}
+
+.dropdown-content li > a:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+}
+
+/* Dropdown Indicator Styling */
+.input-field select {
+    color: #e0e0e0; /* Light text for dropdown items */
+}
+
+/* Style dropdown caret */
+.input-field select + .caret {
+    color: #ffffff !important; /* Force white dropdown caret */
+}
+
+.input-field select:hover + .caret {
+    color: #bb86fc !important; /* Subtle purple on hover */
+}
+
+.input-field .dropdown-trigger {
+    color: #ffffff; /* White dropdown indicator */
+}
+
+.input-field .dropdown-trigger:hover {
+    color: #bb86fc; /* Subtle purple hover effect */
+}
+
+/* Flash Messages */
+.flash-message {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.flash-message.success {
+    background-color: #388E3C; /* Green */
+    color: white;
+}
+
+.flash-message.error {
+    background-color: #D32F2F; /* Red */
+    color: white;
+}
+
+.flash-message.info {
+    background-color: #1976D2; /* Blue */
+    color: white;
+}
+
+.flash-message.warning {
+    background-color: #FBC02D; /* Yellow */
+    color: black;
+}
+
+/* General Tab Styles */
+.tabs .tab a {
+    color: #0066CC !important; /* Keep the blue text */
+    font-size: 1.1rem;
+    padding: 10px 14px;
+    text-transform: none;
+    text-decoration: none;
+    background-color: transparent;
+    border: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s ease;
+}
+
+/* Hover State */
+.tabs .tab a:hover {
+    background-color: #f5f5f5; /* Very light grey on hover */
+    color: #0066CC !important;
+    box-shadow: 0 2px 5px rgba(0, 102, 204, 0.1);
+}
+
+/* Active Tab Style */
+.tabs .tab a.active {
+    color: #0066CC !important;
+    font-weight: bold;
+    background-color: #f5f5f5 !important; /* Very light grey background for active tab */
+}
+
+/* Tab Indicator Styles */
+.tabs .indicator {
+    background-color: #0066CC !important;
+    height: 4px;
+    border-radius: 0px;
+    transition: width 0.3s ease, left 0.3s ease;
+}
+
+/* Non-active Indicator */
+.tabs .indicator:not(.active) {
+    background-color: #0066CC; /* Brighter blue color */
+    opacity: 0.5;
+}
+
+/* Tabs Container */
+.tabs-container {
+    background-color: #f5f5f5; /* Light gray background */
+    padding: 10px 0; /* Add space above and below */
+    border-bottom: 2px solid #ccc; /* Subtle border */
+}
+
+
+/* Card Styles */
+.dark-card {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 51, 153, 0.10);
+    margin-bottom: 20px;
+}
+
+/* Patient Info Sections */
+.card-content p, .card-content strong {
+    color: #e0e0e0; /* Light text */
+    font-size: 1rem;
+}
+
+/* Section Title */
+h5 {
+    color: #0066CC; /* Darker blue for all h5 headers globally */
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+/* Buttons */
+button, .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    text-align: center;
+    height: 36px;
+    line-height: 36px;
+    background-color: #0066CC !important; /* Darker blue */
+    color: #fff !important;
+    border-radius: 5px;
+    border: none;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+button:hover, .btn:hover, .button-group button:hover {
+    background-color: #e0e0e0;
+    color: #1e1e1e;
+}
+
+.btn.green {
+    background-color: #00BAFF;
+    color: #1e1e1e;
+}
+
+.btn.green:hover {
+    background-color: #e0e0e0;
+    color: #1e1e1e;
+}
+
+.btn.grey {
+    background-color: #444;
+    color: #e0e0e0;
+}
+
+.btn-floating {
+    background-color: #00BAFF;
+    color: #1e1e1e;
+}
+
+/* Highlighted/Active States */
+.sidenav li.active > a,
+.tabs .tab a.active,
+.btn.green,
+.btn-floating {
+    box-shadow: 0 2px 8px rgba(0, 186, 255, 0.10);
+}
+
+/* Loader Overlay */
+.overlay, .loader-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #03dac6;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Form Fields */
+.input-field input[type="text"],
+.input-field input[type="email"],
+.input-field input[type="date"] {
+    color: #e0e0e0;
+    border-bottom: 1px solid #03dac6;
+}
+
+.input-field input[type="text"]:focus,
+.input-field input[type="email"]:focus,
+.input-field input[type="date"]:focus {
+    border-bottom: 1px solid #03dac6;
+    box-shadow: 0 1px 0 0 #03dac6;
+    outline: none;
+}
+
+input:focus {
+    outline: 2px solid #03dac6;
+}
+
+/* Calendar Icon Styling */
+.input-field .datepicker-icon {
+    color: #ffffff; /* White calendar icon for better visibility */
+    font-size: 24px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+}
+
+.input-field .datepicker-icon:hover {
+    color: #bb86fc; /* Subtle purple hover effect */
+}
+
+
+
+/* File List */
+.file-list {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-radius: 5px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.file-list {
+    scrollbar-width: thin;
+    scrollbar-color: #00BAFF #1e1e1e;
+}
+
+.file-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.file-list::-webkit-scrollbar-thumb {
+    background-color: #00BAFF;
+    border-radius: 10px;
+}
+
+/* Collapsible Styles */
+.collapsible-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #1f1f1f;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    color: white;
+}
+
+.collapsible-body {
+    display: none;
+    padding: 15px;
+    background-color: #303030;
+    border-bottom: 1px solid #333;
+    color: white;
+}
+
+.collapsible-body.active {
+    display: block;
+}
+
+.material-icons {
+    color: white;
+}
+
+.collapsible-header i.material-icons {
+    font-size: 24px;
+}
+
+/* Table Styles */
+table {
+    color: white;
+    width: 100%;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+thead {
+    background-color: #333;
+}
+
+tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Tables */
+.table-responsive {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Status Badges */
+.new-status {
+    background-color: #03a9f4;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.claim-received-status {
+    background-color: #ffc107;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.completed-status {
+    background-color: #4caf50;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* Accessibility */
+button:focus, a:focus {
+    outline: 2px solid #03dac6;
+}
+
+/* Flex Alignments */
+.center-align {
+    text-align: center;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Row Layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col.s6, .col.s12 {
+    margin-bottom: 10px;
+}
+
+/* Text Elements */
+p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+strong {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* Edit Button */
+#edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #4CAF50 !important;
+    color: white !important;
+}
+
+#edit-btn i.material-icons {
+    color: white !important;
+}
+
+/* Save Button */
+.btn.green {
+    background-color: #4CAF50 !important;
+    color: white !important;
+}
+
+.btn.green:hover {
+    background-color: #388E3C !important;
+}
+
+/* Upload Button Styling */
+.button-group .btn {
+    background-color: #03dac6;
+    color: white;
+    border-radius: 5px;
+}
+
+/* Enlarge the drag-and-drop area */
+.dark-upload-area {
+    background-color: #1e1e1e;
+    border: 2px dashed #03dac6;
+    padding: 50px;
+    text-align: center;
+    border-radius: 10px;
+    margin-top: 20px;
+    width: 100%;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.dark-upload-area i.material-icons {
+    font-size: 72px;
+    color: #03dac6;
+}
+
+.dark-upload-area p {
+    color: #e0e0e0;
+    margin-top: 20px;
+    font-size: 1.25rem;
+}
+
+/* Highlight area when dragging files over */
+.drop-zone.highlight {
+    border-color: #00ffcc;
+    background-color: rgba(0, 255, 204, 0.1);
+}
+
+.button-group .btn:hover {
+    background-color: #00c4a7;
+}
+
+#download-billing-files-btn {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+#download-billing-files-btn:hover {
+    background-color: #0056b3 !important;
+}
+
+/* Hide overlay by default */
+.hidden {
+    display: none !important;
+}
+
+/* To reveal the loader */
+.overlay.show {
+    display: flex;
+}
+/* Style the custom dropdown container */
+.custom-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Style the custom caret */
+.custom-dropdown .custom-caret {
+    position: absolute;
+    right: 10px; /* Adjust spacing */
+    top: 50%;
+    transform: translateY(-50%); /* Center vertically */
+    font-size: 18px; /* Adjust size */
+    color: #ffffff; /* Set to white */
+    pointer-events: none; /* Prevent interaction */
+}
+
+/* Hover effect for custom caret */
+.custom-dropdown:hover .custom-caret {
+    color: #00BAFF;
+}
+
+/* Style the select element */
+.custom-dropdown select {
+    color: #e0e0e0;
+    background-color: #2a2a2a;
+    border: none;
+    padding-right: 30px; /* Ensure space for the custom icon */
+    appearance: none; /* Hide default dropdown arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* Flatpickr Wrapper */
+.flatpickr-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%; /* Adjust based on layout */
+}
+
+/* Flatpickr Input */
+.flatpickr-wrapper input.datepicker {
+    width: 100%;
+    padding-right: 40px; /* Add space for the custom icon */
+    color: #e0e0e0; /* Light text color */
+    background-color: #2a2a2a; /* Match dark theme */
+    border: 1px solid #00BAFF;
+    border-radius: 4px;
+    outline: none;
+}
+    .required-note {
+        font-size: 0.9rem;
+        color: #ff5252; /* Bright red color for better visibility */
+        margin-bottom: 20px; /* Add space below the note */
+    }
+
+    /* Orientation Warning Styles */
+.orientation-warning {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    z-index: 9999;
+    max-width: 90%;
+    font-size: 32px;
+    line-height: 1.4;
+}
+
+.orientation-warning i {
+    font-size: 80px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.orientation-warning p {
+    margin: 15px 0;
+    font-weight: 500;
+}
+
+/* For all logos with class="logo" */
+.logo {
+    width: 160px;   /* or your preferred size */
+    height: auto;
+    display: block;
+}
+
+/* For navbar logo */
+.nav-wrapper .brand-logo img {
+    width: 120px;   /* or your preferred size */
+    height: auto;
+    vertical-align: middle;
+}
+
+/* Make all menu icons a lighter blue for visibility */
+.sidenav li > a > i.material-icons,
+.sidenav .material-icons,
+.nav-wrapper .material-icons,
+ul.right .material-icons {
+    color: #00BAFF !important;      /* Lighter, vibrant blue */
+    font-size: 1.6rem !important;
+    text-shadow: none !important;
+    transition: color 0.2s;
+}
+
+/* On hover/focus/active, use an even lighter blue */
+.sidenav li > a:hover > i.material-icons,
+.sidenav li.active > a > i.material-icons,
+.nav-wrapper .material-icons:focus,
+ul.right .material-icons:focus {
+    color: #98E9FD !important;      /* Very light blue */
+    text-shadow: none !important;
+}
+
+/* Make the user menu arrow icon the same light blue as the menu icons */
+.nav-wrapper .material-icons,
+.nav-wrapper i.material-icons,
+.nav-wrapper .user-menu .material-icons,
+.nav-wrapper .user-dropdown .material-icons,
+.nav-wrapper .user-arrow,
+.nav-wrapper .user-menu-arrow,
+.nav-wrapper .right .material-icons,
+.nav-wrapper .right i.material-icons,
+.nav-wrapper .dropdown-trigger > .material-icons,
+.nav-wrapper .dropdown-trigger > i.material-icons,
+.nav-wrapper .dropdown-trigger > span,
+.nav-wrapper .dropdown-trigger > svg,
+.nav-wrapper .dropdown-trigger > .arrow,
+.nav-wrapper .dropdown-trigger > .user-arrow {
+    color: #00BAFF !important;
+    fill: #00BAFF !important;
+}
+
+/* For SVG arrows */
+.nav-wrapper svg,
+.nav-wrapper .user-menu svg,
+.nav-wrapper .user-dropdown svg,
+.nav-wrapper .dropdown-trigger svg {
+    fill: #00BAFF !important;
+    color: #00BAFF !important;
+}
+
+/* For Unicode arrows in a span or similar */
+.nav-wrapper .arrow,
+.nav-wrapper .user-arrow,
+.nav-wrapper .user-menu-arrow,
+.nav-wrapper .dropdown-trigger .arrow {
+    color: #00BAFF !important;
+}
+
+th {
+    color: #0066CC !important;   /* Darker blue */
+    font-weight: 600;
+}
+
+/* Remove background from action buttons in tables */
+td .btn, td .btn-floating, td .waves-effect {
+    background-color: #00BAFF !important; /* Or your preferred blue */
+    box-shadow: none !important;
+    border: none !important;
+}
+
+td .btn:active, td .btn:focus, td .btn:hover {
+    background-color: #0099cc !important; /* Slightly darker blue on hover */
+    box-shadow: none !important;
+}
+
+td.actions .material-icons,
+td.actions a.btn-flat .material-icons {
+    background: none !important;
+    color: #00BAFF !important;
+    font-size: 1.5rem !important;
+    border: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    padding: 0.25em;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+td.actions .material-icons:hover,
+td.actions a.btn-flat .material-icons:hover {
+    background: rgba(0,186,255,0.08) !important;
+}
+
+/* Make selected/active row background blue instead of purple */
+tr.selected, tr.active,
+.highlight > tbody > tr.selected,
+.highlight > tbody > tr.active,
+table.highlight > tbody > tr.selected,
+table.highlight > tbody > tr.active,
+tr[tabindex]:focus, tr[tabindex]:active,
+tr[style*="background-color"] {
+    background-color: #00BAFF !important;
+    color: #fff !important;
+}
+
+/* If your table uses .striped, cover those too */
+table.striped > tbody > tr.selected,
+table.striped > tbody > tr.active {
+    background-color: #00BAFF !important;
+    color: #fff !important;
+}
+
+.archive-icon {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #bb86fc !important;
+    padding: 0 !important;
+}
+.archive-icon:focus, .archive-icon:active {
+    background: none !important;
+    box-shadow: none !important;
+}
+
+/* Responsive tab bar: wrap on desktop, scroll on mobile */
+@media (min-width: 800px) {
+  .tabs.custom-tabs {
+    flex-wrap: wrap !important;
+    white-space: normal !important;
+    overflow-x: visible !important;
+    height: auto !important;
+  }
+}
+@media (max-width: 799px) {
+  .tabs.custom-tabs {
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+  }
+  .tabs.custom-tabs::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Webkit */
+  }
+  .tabs .tab a {
+    font-size: 1.1rem !important;
+    padding: 10px 18px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .tabs.custom-tabs {
+    row-gap: 4px;
+  }
+  .tabs .tab a {
+    font-size: 1rem !important;
+    padding: 6px 10px !important;
+  }
+}
+
+/* ========== Upload Files tab (unified upload) ========== */
+.dark-upload-area {
+    background-color: #1e1e1e;
+    border: 2px dashed #03dac6;
+    padding: 36px 28px 28px;
+    text-align: center;
+    border-radius: 10px;
+    margin-top: 20px;
+    width: 100%;
+    min-height: 260px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.dark-upload-area i.material-icons.large {
+    font-size: 64px;
+    color: #03dac6;
+    margin: 0;
+}
+
+.dark-upload-area .upload-zone-hint,
+.dark-upload-area p.upload-zone-hint {
+    color: #e0e0e0;
+    margin: 12px 0 18px;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.dark-upload-area .upload-zone-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 16px;
+}
+
+.dark-upload-area .upload-zone-toolbar .btn {
+    float: none !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    line-height: 1.2;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    max-width: none !important;
+}
+
+#file-uploads .medical-file-type-panel,
+#file-uploads .medical-uploaded-files-single {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(3, 218, 198, 0.45);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    box-sizing: border-box;
+}
+
+#file-uploads .medical-file-type-panel .observation-label {
+    display: block;
+    font-size: 18px !important;
+    font-weight: 600;
+    color: #03dac6 !important;
+    margin: 0 0 14px 0;
+    line-height: 1.3;
+}
+
+#file-uploads .medical-file-type-panel .obs-radio-row:not(.unified-subtype-hidden) {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+#file-uploads .medical-file-type-panel .obs-radio-row label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    margin: 0 !important;
+    padding: 10px 20px;
+    font-size: 16px !important;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #b0bec5 !important;
+    cursor: pointer;
+    border: 1px solid rgba(3, 218, 198, 0.35);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#file-uploads .medical-file-type-panel .obs-radio-row label:has(input:checked) {
+    color: #03dac6 !important;
+    font-weight: 700;
+    background: rgba(3, 218, 198, 0.18);
+    border-color: #03dac6;
+    box-shadow: 0 0 0 1px rgba(3, 218, 198, 0.5);
+}
+
+#file-uploads .medical-file-type-panel .obs-radio-row input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: #03dac6;
+}
+
+#file-uploads #unified-subtype-medical.unified-subtype-hidden,
+#file-uploads #unified-subtype-imaging.unified-subtype-hidden {
+    display: none !important;
+}
+
+#unified-subtype-panel.unified-subtype-panel-hidden {
+    display: none !important;
+}
+
+#file-uploads .medical-uploaded-files-single .upload-files-section-title {
+    font-size: 18px !important;
+    font-weight: 600;
+    color: #03dac6 !important;
+    margin: 0 0 12px 0;
+}
+
+#file-uploads .medical-uploaded-files-single .file-list li {
+    font-size: 16px !important;
+    color: #e0e0e0;
+    margin-bottom: 6px;
+}
+
+#file-uploads .medical-uploaded-files-single .file-list a {
+    color: #90caf9;
+}
+
+#file-uploads .grey-text {
+    font-size: 16px !important;
+    color: #9ca3af !important;
+}
+
+#file-uploads #unified-dropzone-wrapper .file-list li {
+    font-size: 16px !important;
+}
+
+.dark-card .card-title {
+    color: #00BAFF !important;
+    font-size: 24px !important;
+    font-weight: 600;
+}

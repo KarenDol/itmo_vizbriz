@@ -1,0 +1,215 @@
+<!-- OSA Report Approval Modal -->
+<div id="osaApprovalModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Approve OSA Report</h3>
+            <span class="close" onclick="closeOsaApprovalModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="osaApprovalForm">
+                <div class="form-group">
+                    <label for="dentistName">Dentist Name:</label>
+                    <input type="text" id="dentistName" name="dentist_name" required 
+                           placeholder="Enter dentist name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="approvalDate">Approval Date:</label>
+                    <input type="date" id="approvalDate" name="approval_date" required 
+                           value="{{ today_date }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="approvalNotes">Notes (Optional):</label>
+                    <textarea id="approvalNotes" name="notes" rows="3" 
+                              placeholder="Enter any additional notes about the approval"></textarea>
+                </div>
+                
+                <input type="hidden" id="patientId" name="patient_id" value="{{ patient.id }}">
+                <input type="hidden" id="reportId" name="report_id" value="">
+                
+                <div class="form-actions">
+                    <button type="button" onclick="closeOsaApprovalModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Approve Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+</style>
+
+<script>
+function openOsaApprovalModal(reportId) {
+    document.getElementById('reportId').value = reportId;
+    document.getElementById('osaApprovalModal').style.display = 'block';
+}
+
+function closeOsaApprovalModal() {
+    document.getElementById('osaApprovalModal').style.display = 'none';
+    document.getElementById('osaApprovalForm').reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('osaApprovalModal');
+    if (event.target === modal) {
+        closeOsaApprovalModal();
+    }
+}
+
+// Handle form submission
+document.getElementById('osaApprovalForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        patient_id: document.getElementById('patientId').value,
+        report_id: document.getElementById('reportId').value,
+        dentist_name: document.getElementById('dentistName').value,
+        approval_date: document.getElementById('approvalDate').value,
+        notes: document.getElementById('approvalNotes').value
+    };
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Approving...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/workflow/approve_osa_report', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert('OSA report approved successfully!');
+            closeOsaApprovalModal();
+            
+            // Refresh the page or update the UI
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error approving OSA report. Please try again.');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    });
+});
+</script> 

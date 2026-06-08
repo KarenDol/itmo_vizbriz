@@ -1,0 +1,1934 @@
+{% extends "base.html" %}
+
+{% block title %}Level-4 Report - Clinician Review{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #0f766e;
+        --primary-light: #14b8a6;
+        --bg-dark: #0f172a;
+        --bg-card: #1e293b;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --info: #3b82f6;
+    }
+    
+    body {
+        background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+        min-height: 100vh;
+    }
+    
+    .clinician-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 16px;
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(15, 118, 110, 0.3);
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .page-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+    }
+    
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .step.active {
+        background: white;
+        color: var(--primary);
+    }
+    
+    .step.completed {
+        background: var(--success);
+        color: white;
+    }
+    
+    .step-arrow {
+        color: rgba(255,255,255,0.5);
+        font-size: 1.2rem;
+    }
+    
+    .patient-selector {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .patient-selector label {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .patient-autocomplete {
+        position: relative;
+    }
+    
+    .patient-autocomplete input {
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--bg-dark);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .patient-autocomplete input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2);
+    }
+    
+    .suggestion-box {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border: 2px solid var(--primary);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        z-index: 100;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+    }
+    
+    .suggestion-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s;
+    }
+    
+    .suggestion-item:hover {
+        background: var(--primary);
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .data-review-container {
+        display: none;
+    }
+    
+    .data-review-container.visible {
+        display: block;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        display: none;
+    }
+    
+    .loading-overlay.visible {
+        display: flex;
+    }
+    
+    .loading-content {
+        text-align: center;
+        color: var(--text-primary);
+    }
+    
+    .loading-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid var(--border-color);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .section-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    
+    .section-header {
+        background: linear-gradient(90deg, rgba(15, 118, 110, 0.2) 0%, transparent 100%);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s;
+    }
+    
+    .section-header:hover {
+        background: linear-gradient(90deg, rgba(15, 118, 110, 0.3) 0%, transparent 100%);
+    }
+    
+    .section-header h3 {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-header .icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+    
+    .section-header .section-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: normal;
+        margin-left: auto;
+        margin-right: 12px;
+    }
+    
+    .section-toggle {
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        transition: transform 0.3s;
+    }
+    
+    .section-card.collapsed .section-toggle {
+        transform: rotate(-90deg);
+    }
+    
+    .section-card.collapsed .section-content {
+        display: none;
+    }
+    
+    .section-content {
+        padding: 20px;
+    }
+    
+    .field-group {
+        margin-bottom: 16px;
+    }
+    
+    .field-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .field-label {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .field-label .source-badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        background: var(--info);
+        color: white;
+        border-radius: 4px;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    
+    .field-input {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .field-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+    }
+    
+    .field-input.modified {
+        border-color: var(--warning);
+        background: rgba(245, 158, 11, 0.1);
+    }
+    
+    .field-input.empty {
+        border-color: var(--error);
+        background: rgba(239, 68, 68, 0.05);
+    }
+    
+    textarea.field-input {
+        min-height: 80px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    .field-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    
+    .field-row-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .field-row-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .array-field {
+        background: var(--bg-dark);
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .array-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .array-item input {
+        flex: 1;
+    }
+    
+    .array-item .remove-btn {
+        width: 32px;
+        height: 32px;
+        background: var(--error);
+        border: none;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
+    }
+    
+    .array-item .remove-btn:hover {
+        opacity: 0.8;
+    }
+    
+    .add-item-btn {
+        width: 100%;
+        padding: 8px;
+        background: transparent;
+        border: 2px dashed var(--border-color);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    
+    .add-item-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+    
+    .section-badge {
+        background: var(--primary);
+        color: white;
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 8px;
+    }
+    
+    .action-bar {
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(0deg, var(--bg-dark) 0%, rgba(15, 23, 42, 0.95) 100%);
+        padding: 20px;
+        margin: 24px -24px -24px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    
+    .action-bar .stats {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: flex;
+        gap: 16px;
+    }
+    
+    .action-bar .stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .action-bar .stat .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .action-bar .stat .dot.filled { background: var(--success); }
+    .action-bar .stat .dot.empty { background: var(--error); }
+    .action-bar .stat .dot.modified { background: var(--warning); }
+    
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
+    }
+    
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .btn-secondary {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+    
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+    
+    .validation-summary {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+        display: none;
+    }
+    
+    .validation-summary.visible {
+        display: block;
+    }
+    
+    .validation-summary h4 {
+        color: var(--text-primary);
+        margin: 0 0 12px 0;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .validation-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .validation-item {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .validation-item.warning {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--warning);
+    }
+    
+    .validation-item.error {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--error);
+    }
+    
+    .result-container {
+        display: none;
+    }
+    
+    .result-container.visible {
+        display: block;
+    }
+    
+    .result-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 16px;
+    }
+    
+    .result-card h3 {
+        color: var(--text-primary);
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .report-preview {
+        background: var(--bg-dark);
+        border-radius: 8px;
+        padding: 20px;
+        max-height: 500px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+        white-space: pre-wrap;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Prompt tabs (system/user) */
+    .prompt-tabs {
+        margin-top: 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--bg-dark);
+    }
+    .prompt-tab-bar {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(15, 118, 110, 0.10);
+    }
+    .prompt-tab-btn {
+        padding: 10px 14px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+    .prompt-tab-btn.active {
+        color: var(--text-primary);
+        background: rgba(20, 184, 166, 0.18);
+        border-bottom: 2px solid var(--primary-light);
+    }
+    .prompt-tab-content {
+        padding: 12px;
+        display: none;
+    }
+    .prompt-tab-content.active {
+        display: block;
+    }
+    .prompt-box {
+        width: 100%;
+        min-height: 220px;
+        resize: vertical;
+        background: #0b1220;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 12px;
+        color: var(--text-primary);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        white-space: pre;
+        overflow: auto;
+    }
+    .prompt-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+    
+    .result-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        .field-row, .field-row-3, .field-row-4 {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .action-bar .stats {
+            justify-content: center;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="clinician-wrapper">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loading-message">Loading patient data...</p>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <i class="material-icons">medical_services</i>
+            Level-4 Report — Clinician Review
+        </h1>
+        <p>Review and validate patient data before generating the report. Ensure accuracy for optimal results.</p>
+        
+        <div class="step-indicator">
+            <div class="step active" id="step-1">
+                <i class="material-icons">person_search</i>
+                1. Select Patient
+            </div>
+            <span class="step-arrow">→</span>
+            <div class="step" id="step-2">
+                <i class="material-icons">fact_check</i>
+                2. Review Data
+            </div>
+            <span class="step-arrow">→</span>
+            <div class="step" id="step-3">
+                <i class="material-icons">description</i>
+                3. Generate Report
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Selector -->
+    <div class="patient-selector">
+        <label>Search and Select Patient</label>
+        <div class="patient-autocomplete">
+            <input type="text" id="patient-input" placeholder="Type patient name or ID..." autocomplete="off">
+            <input type="hidden" id="patient-id">
+            <div id="patient-suggestions" class="suggestion-box"></div>
+        </div>
+    </div>
+
+    <!-- Validation Summary -->
+    <div id="validation-summary" class="validation-summary">
+        <h4><i class="material-icons">warning</i> Data Validation Issues</h4>
+        <div id="validation-list" class="validation-list"></div>
+    </div>
+
+    <!-- Data Review Container -->
+    <div id="data-review-container" class="data-review-container">
+        
+        <!-- Personal Details Section -->
+        <div class="section-card" id="section-personal">
+            <div class="section-header" onclick="toggleSection('personal')">
+                <h3>
+                    <span class="icon"><i class="material-icons">person</i></span>
+                    Personal Details
+                    <span class="section-subtitle">Demographics & Body Metrics</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">Name <span style="color: var(--text-secondary); font-size: 0.7rem;">(reference only)</span></label>
+                        <input type="text" class="field-input" data-path="patient.name" id="field-name" readonly style="opacity: 0.7;">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Sex <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="patient.sex" id="field-sex">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Age <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="patient.age" id="field-age">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">BMI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="patient.bmi" id="field-bmi">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">Weight (kg) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="patient.weight_kg" id="field-weight">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Height (cm) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="patient.height_cm" id="field-height">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Patient ID <span style="color: var(--text-secondary); font-size: 0.7rem;">(reference)</span></label>
+                        <input type="text" class="field-input" data-path="patient.id" id="field-patient-id" readonly style="opacity: 0.7;">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Date of Birth <span style="color: var(--text-secondary); font-size: 0.7rem;">(reference)</span></label>
+                        <input type="text" class="field-input" data-path="patient.date_of_birth" id="field-dob" readonly style="opacity: 0.7;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinical Background Section -->
+        <div class="section-card" id="section-clinical">
+            <div class="section-header" onclick="toggleSection('clinical')">
+                <h3>
+                    <span class="icon"><i class="material-icons">local_hospital</i></span>
+                    Clinical Background
+                    <span class="section-subtitle">Medical History, Complaints & Goals</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Clinical Background / Medical History</label>
+                    <textarea class="field-input" data-path="clinical_background" id="field-clinical-background" rows="3"></textarea>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Complaints</label>
+                        <textarea class="field-input" data-path="complaints" id="field-complaints" rows="2" placeholder="Comma-separated list..."></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Goals</label>
+                        <textarea class="field-input" data-path="goals" id="field-goals" rows="2" placeholder="Comma-separated list..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sleep Study Section -->
+        <div class="section-card" id="section-sleep">
+            <div class="section-header" onclick="toggleSection('sleep')">
+                <h3>
+                    <span class="icon"><i class="material-icons">bedtime</i></span>
+                    Sleep Study Data
+                    <span class="section-subtitle">AHI, RDI, ODI & Positional Metrics sent to LLM</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">AHI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.ahi" id="field-ahi">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">RDI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.rdi" id="field-rdi">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">ODI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.odi" id="field-odi">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">O2 Nadir (%) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.o2_nadir" id="field-o2-nadir">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">Supine AHI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.supine_ahi" id="field-supine-ahi">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Non-Supine AHI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.non_supine_ahi" id="field-non-supine-ahi">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">REM AHI <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.rem_ahi" id="field-rem-ahi">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Snoring % <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.snoring_pct" id="field-snoring">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">Snoring Avg dB <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.snoring_avg_db" id="field-snoring-avg">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Snoring Max dB <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.snoring_max_db" id="field-snoring-max">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Sleep Efficiency % <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.sleep_efficiency" id="field-sleep-efficiency">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Total Sleep Time (min) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.total_sleep_time_min" id="field-tst">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">Total Sleep Time (text) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.total_sleep_time_text" id="field-tst-text" placeholder="e.g., 7h 8min">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Supine % of Sleep <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="position_stats.supine_pct_of_sleep" id="field-supine-pct" placeholder="e.g., 95">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Non-Supine % of Sleep <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="position_stats.non_supine_pct_of_sleep" id="field-non-supine-pct" placeholder="e.g., 5">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">RERA Count (optional)</label>
+                        <input type="text" class="field-input" data-path="sleep_study.rera_count" id="field-rera-count" placeholder="e.g., 10">
+                    </div>
+                </div>
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">% Time O2 &lt; 90% <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.time_below_90_pct" id="field-t90-pct">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Time O2 &lt; 90% (min) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.time_below_90_min" id="field-t90-min">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">T90 % (if available) <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.t90_pct" id="field-t90-direct">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">RERA Index <span class="section-badge">LLM</span></label>
+                        <input type="text" class="field-input" data-path="sleep_study.rera_index" id="field-rera-index">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENT & DISE Findings Section -->
+        <div class="section-card" id="section-ent">
+            <div class="section-header" onclick="toggleSection('ent')">
+                <h3>
+                    <span class="icon"><i class="material-icons">hearing</i></span>
+                    ENT & DISE Findings
+                    <span class="section-subtitle">Ear, Nose, Throat & Drug-Induced Sleep Endoscopy</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">ENT Findings <span class="section-badge">LLM</span></label>
+                    <textarea class="field-input" data-path="ent_findings" id="field-ent-findings" rows="3"></textarea>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">DISE Observations <span class="section-badge">LLM</span></label>
+                    <textarea class="field-input" data-path="anatomy.dise_findings" id="field-dise-obs" rows="3"></textarea>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">DISE MAD Response (optional)</label>
+                    <textarea class="field-input" data-path="anatomy.dise_mad_response" id="field-dise-mad" rows="2" placeholder="e.g., Mandibular advancement produced moderate improvement"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anatomy / Imaging Section -->
+        <div class="section-card" id="section-anatomy">
+            <div class="section-header" onclick="toggleSection('anatomy')">
+                <h3>
+                    <span class="icon"><i class="material-icons">biotech</i></span>
+                    Structural Imaging Observations
+                    <span class="section-subtitle">Anatomy findings sent to LLM</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Primary Obstruction Site <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.primary_obstruction_site" id="field-obstruction" rows="2"></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Bite / Jaw <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.bite_jaw" id="field-bite-jaw" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Soft Palate <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.soft_palate" id="field-soft-palate" rows="2"></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Tongue Base <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.tongue_base" id="field-tongue-base" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Hyoid <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.hyoid" id="field-hyoid" rows="2"></textarea>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Arches <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.arches" id="field-arches" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Nasal / Sinus <span class="section-badge">LLM</span></label>
+                        <textarea class="field-input" data-path="anatomy.nasal_sinus" id="field-nasal" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Imaging Conclusion <span class="section-badge">LLM</span></label>
+                    <textarea class="field-input" data-path="anatomy.conclusion" id="field-conclusion" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treatment History Section -->
+        <div class="section-card" id="section-treatment">
+            <div class="section-header" onclick="toggleSection('treatment')">
+                <h3>
+                    <span class="icon"><i class="material-icons">healing</i></span>
+                    Treatment History
+                    <span class="section-subtitle">Current Therapy & CPAP/Device Settings</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-row field-row-4">
+                    <div class="field-group">
+                        <label class="field-label">CPAP Used</label>
+                        <input type="text" class="field-input" data-path="treatment_history.cpap_used" id="field-cpap-used" placeholder="true/false">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">CPAP Effective Range</label>
+                        <input type="text" class="field-input" data-path="treatment_history.cpap_effective_range" id="field-cpap-range" placeholder="e.g., 8-12 cmH2O">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Avg Use Hours</label>
+                        <input type="text" class="field-input" data-path="treatment_history.avg_use_hours" id="field-avg-hours">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">P95 Pressure (cmH2O)</label>
+                        <input type="text" class="field-input" data-path="treatment_history.p95_pressure" id="field-p95">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Current Therapy</label>
+                        <input type="text" class="field-input" data-path="treatment_history.current_therapy" id="field-current-therapy">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Previous Treatments</label>
+                        <textarea class="field-input" data-path="treatment_history.previous_treatments" id="field-prev-treatments" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treatment Considerations & Follow-up -->
+        <div class="section-card" id="section-tx-followup">
+            <div class="section-header" onclick="toggleSection('tx-followup')">
+                <h3>
+                    <span class="icon"><i class="material-icons">assignment</i></span>
+                    Treatment Considerations & Follow-up
+                    <span class="section-subtitle">Sent to LLM as structured lists</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Treatment Considerations (one per line)</label>
+                    <textarea class="field-input" data-path="treatment_considerations" id="field-treatment-considerations" rows="4"></textarea>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Recommendations for Further Evaluation (one per line)</label>
+                    <textarea class="field-input" data-path="recommendations" id="field-recommendations" rows="4"></textarea>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Follow-up Plan (one per line)</label>
+                    <textarea class="field-input" data-path="follow_up_plan" id="field-followup-plan" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Design (optional) -->
+        <div class="section-card" id="section-device-design">
+            <div class="section-header" onclick="toggleSection('device-design')">
+                <h3>
+                    <span class="icon"><i class="material-icons">architecture</i></span>
+                    Device Design (optional)
+                    <span class="section-subtitle">Populate when available (improves precision)</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-row field-row-3">
+                    <div class="field-group">
+                        <label class="field-label">Mandibular Advancement</label>
+                        <input type="text" class="field-input" data-path="device_design.mandibular_advancement" id="field-dd-mand-adv" placeholder="e.g., +2mm">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Vertical Opening</label>
+                        <input type="text" class="field-input" data-path="device_design.vertical_opening" id="field-dd-vert-open" placeholder="e.g., 5mm">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Retention Features</label>
+                        <input type="text" class="field-input" data-path="device_design.retention_features" id="field-dd-retention" placeholder="e.g., ball clasps, elastic hooks">
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Coverage / Fabrication</label>
+                        <input type="text" class="field-input" data-path="device_design.coverage" id="field-dd-coverage" placeholder="e.g., first molar to first molar; exclude second molars">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Clinical Notes</label>
+                        <textarea class="field-input" data-path="device_design.clinical_notes" id="field-dd-notes" rows="2" placeholder="e.g., progressive advancement strategy; elastic band initiation"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oral Appliance Options (optional) -->
+        <div class="section-card" id="section-oral-options">
+            <div class="section-header" onclick="toggleSection('oral-options')">
+                <h3>
+                    <span class="icon"><i class="material-icons">view_list</i></span>
+                    Oral Appliance Options (optional)
+                    <span class="section-subtitle">One per line: Device - Key features</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div class="field-group">
+                    <label class="field-label">Oral Appliance Options</label>
+                    <textarea class="field-input" data-path="oral_appliance_options" id="field-oral-options" rows="4" placeholder="Emerald Herbst - ...&#10;Respire Herbst - ...&#10;Daynaflex Herbst - ..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference Level-4 PDF (optional) -->
+        <div class="section-card" id="section-reference">
+            <div class="section-header" onclick="toggleSection('reference')">
+                <h3>
+                    <span class="icon"><i class="material-icons">upload_file</i></span>
+                    Reference Level-4 PDF (optional)
+                    <span class="section-subtitle">Upload original Level-4 PDF for grading (not used for generation)</span>
+                </h3>
+                <span class="section-toggle material-icons">expand_more</span>
+            </div>
+            <div class="section-content">
+                <div style="display:flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <input type="file" id="reference-pdf-file" accept="application/pdf" style="color: var(--text-primary);" />
+                    <button class="btn btn-secondary" id="upload-reference-btn" onclick="uploadReferencePdf()">
+                        <i class="material-icons">upload_file</i>
+                        Upload Reference PDF
+                    </button>
+                </div>
+                <div id="reference-status" style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem;"></div>
+            </div>
+        </div>
+
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="stats">
+                <div class="stat">
+                    <span class="dot filled"></span>
+                    <span id="stat-filled">0</span> fields filled
+                </div>
+                <div class="stat">
+                    <span class="dot empty"></span>
+                    <span id="stat-empty">0</span> empty
+                </div>
+                <div class="stat">
+                    <span class="dot modified"></span>
+                    <span id="stat-modified">0</span> modified
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="resetToOriginal()">
+                    <i class="material-icons">restore</i>
+                    Reset Changes
+                </button>
+                <button class="btn btn-secondary" id="translate-btn" onclick="translateToEnglish()">
+                    <i class="material-icons">translate</i>
+                    Translate Hebrew → English
+                </button>
+                <button class="btn btn-primary" id="generate-btn" onclick="generateReport()">
+                    <i class="material-icons">auto_awesome</i>
+                    Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Container -->
+    <div id="result-container" class="result-container">
+        <div class="result-card">
+            <h3>
+                <i class="material-icons" style="color: var(--success);">check_circle</i>
+                Report Generated Successfully
+            </h3>
+            <div id="report-preview" class="report-preview"></div>
+
+            <!-- Prompt Review Tabs -->
+            <div class="prompt-tabs" id="prompt-tabs" style="display:none;">
+                <div class="prompt-tab-bar">
+                    <button class="prompt-tab-btn active" id="prompt-tab-user" onclick="showPromptTab('user')">User Prompt</button>
+                    <button class="prompt-tab-btn" id="prompt-tab-system" onclick="showPromptTab('system')">System Prompt</button>
+                </div>
+                <div class="prompt-tab-content active" id="prompt-content-user">
+                    <textarea id="user-prompt-box" class="prompt-box" readonly></textarea>
+                    <div class="prompt-actions">
+                        <button class="btn btn-secondary" onclick="copyPrompt('user')">
+                            <i class="material-icons">content_copy</i>
+                            Copy User Prompt
+                        </button>
+                    </div>
+                </div>
+                <div class="prompt-tab-content" id="prompt-content-system">
+                    <textarea id="system-prompt-box" class="prompt-box" readonly></textarea>
+                    <div class="prompt-actions">
+                        <button class="btn btn-secondary" onclick="copyPrompt('system')">
+                            <i class="material-icons">content_copy</i>
+                            Copy System Prompt
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grading Results -->
+            <div id="grade-container" class="section-card" style="margin-top: 16px; display:none;">
+                <div class="section-header" onclick="toggleSection('grade')">
+                    <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">
+                        Grading vs Reference
+                    </h3>
+                    <span class="section-toggle material-icons">expand_more</span>
+                </div>
+                <div class="section-content">
+                    <div id="grade-summary" style="color: var(--text-primary); font-weight: 600; margin-bottom: 10px;"></div>
+                    <div id="grade-scores" style="display:flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;"></div>
+                    <div id="grade-details" style="color: var(--text-primary); font-size: 0.9rem;"></div>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <a id="view-formatted-link" href="#" target="_blank" class="btn btn-primary">
+                    <i class="material-icons">visibility</i>
+                    View Formatted Report
+                </a>
+                <button class="btn btn-secondary" onclick="copyReport()">
+                    <i class="material-icons">content_copy</i>
+                    Copy Report
+                </button>
+                <button class="btn btn-secondary" onclick="generatePDF()">
+                    <i class="material-icons">picture_as_pdf</i>
+                    Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const patientInput = document.getElementById('patient-input');
+    const patientIdField = document.getElementById('patient-id');
+    const suggestionBox = document.getElementById('patient-suggestions');
+    const dataReviewContainer = document.getElementById('data-review-container');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingMessage = document.getElementById('loading-message');
+    const validationSummary = document.getElementById('validation-summary');
+    const validationList = document.getElementById('validation-list');
+    const resultContainer = document.getElementById('result-container');
+    
+    let suggestions = [];
+    let debounce;
+    let currentPatientId = null;
+    let originalCanonicalJson = null;
+    let currentCanonicalJson = null;
+    let currentHistoryId = null;
+    let currentReportResponse = null;
+    let currentReference = null;
+    let currentUserPrompt = null;
+    let currentSystemPrompt = null;
+    
+    // Patient search
+    patientInput.addEventListener('input', (e) => {
+        patientIdField.value = '';
+        clearTimeout(debounce);
+        debounce = setTimeout(() => fetchPatients(e.target.value.trim()), 250);
+    });
+    
+    async function fetchPatients(query) {
+        if (!query || query.length < 2) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+        try {
+            const resp = await fetch(`/reports/api/level4_report/patient_search?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            suggestions = data.patients || [];
+            renderSuggestions();
+        } catch (err) {
+            console.error('Patient search error:', err);
+        }
+    }
+    
+    function renderSuggestions() {
+        if (!suggestions.length) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+        suggestionBox.innerHTML = suggestions.map(p => 
+            `<div class="suggestion-item" data-id="${p.id}" data-name="${p.name}">${p.name} (#${p.id})</div>`
+        ).join('');
+        suggestionBox.style.display = 'block';
+    }
+    
+    suggestionBox.addEventListener('click', (e) => {
+        const item = e.target.closest('.suggestion-item');
+        if (item) {
+            const id = item.dataset.id;
+            const name = item.dataset.name;
+            patientInput.value = name;
+            patientIdField.value = id;
+            currentPatientId = id;
+            suggestionBox.style.display = 'none';
+            loadPatientData(id);
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!suggestionBox.contains(e.target) && e.target !== patientInput) {
+            suggestionBox.style.display = 'none';
+        }
+    });
+    
+    // Load patient canonical data
+    async function loadPatientData(patientId) {
+        showLoading('Loading patient data...');
+        updateSteps(1);
+        
+        try {
+            const resp = await fetch(`/reports/api/level4_clinician/patient/${patientId}/data`);
+            // Always try to read structured error details from the backend.
+            // The API returns JSON even for non-200s (e.g., missing canonical data).
+            let data = null;
+            try {
+                data = await resp.json();
+            } catch (parseErr) {
+                // Fallback: keep data null and handle via HTTP status
+            }
+
+            if (!resp.ok) {
+                const backendError = data && (data.error || data.message);
+                throw new Error(backendError || `HTTP ${resp.status}`);
+            }
+
+            if (!data || !data.success) {
+                throw new Error((data && data.error) || 'Failed to load data');
+            }
+            
+            originalCanonicalJson = JSON.parse(JSON.stringify(data.canonical_json));
+            currentCanonicalJson = data.canonical_json;
+            
+            populateFields(currentCanonicalJson);
+            dataReviewContainer.classList.add('visible');
+            resultContainer.classList.remove('visible');
+            await refreshReferenceInfo();
+            updateStats();
+            validateData();
+            updateSteps(2);
+            
+        } catch (err) {
+            console.error('Load patient data error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    // Populate form fields from canonical JSON
+    function populateFields(data) {
+        document.querySelectorAll('[data-path]').forEach(field => {
+            const path = field.dataset.path;
+            const value = getNestedValue(data, path);
+            
+            if (Array.isArray(value)) {
+                field.value = value.join(', ');
+            } else if (typeof value === 'object' && value !== null) {
+                field.value = JSON.stringify(value);
+            } else {
+                field.value = value || '';
+            }
+            
+            field.classList.remove('modified', 'empty');
+            if (!field.value || field.value.trim() === '') {
+                field.classList.add('empty');
+            }
+            
+            // Store original value for comparison
+            field.dataset.originalValue = field.value;
+        });
+        
+        // Track field changes
+        document.querySelectorAll('[data-path]').forEach(field => {
+            field.addEventListener('input', () => {
+                const isModified = field.value !== field.dataset.originalValue;
+                const isEmpty = !field.value || field.value.trim() === '';
+                
+                field.classList.toggle('modified', isModified && !isEmpty);
+                field.classList.toggle('empty', isEmpty);
+                
+                updateStats();
+                validateData();
+            });
+        });
+    }
+    
+    function getNestedValue(obj, path) {
+        return path.split('.').reduce((o, k) => (o || {})[k], obj);
+    }
+    
+    function setNestedValue(obj, path, value) {
+        const keys = path.split('.');
+        const lastKey = keys.pop();
+        const target = keys.reduce((o, k) => {
+            if (!o[k]) o[k] = {};
+            return o[k];
+        }, obj);
+        target[lastKey] = value;
+    }
+    
+    // Collect form data back to JSON
+    function collectFormData() {
+        const data = JSON.parse(JSON.stringify(originalCanonicalJson));
+        
+        document.querySelectorAll('[data-path]').forEach(field => {
+            const path = field.dataset.path;
+            let value = field.value.trim();
+            
+            // Handle array fields (comma-separated)
+            if (path === 'complaints' || path === 'goals' || path === 'treatment_considerations' || path === 'recommendations' || path === 'follow_up_plan') {
+                if (value) {
+                    // For these fields: treat both commas and newlines as separators
+                    value = value.split(/[,\n]/).map(s => s.trim()).filter(s => s);
+                } else {
+                    value = [];
+                }
+            }
+
+            // Oral appliance options: one per line "Device - Key features"
+            if (path === 'oral_appliance_options') {
+                if (!value) {
+                    value = [];
+                } else {
+                    const lines = value.split(/\n/).map(s => s.trim()).filter(Boolean);
+                    value = lines.map(line => {
+                        const parts = line.split(/\s*-\s*/, 2);
+                        const device = (parts[0] || '').trim();
+                        const features = (parts[1] || '').trim();
+                        return {
+                            device_type: device,
+                            key_features: features
+                        };
+                    }).filter(x => x.device_type);
+                }
+            }
+            
+            // Handle empty values
+            if (value === '' || (Array.isArray(value) && value.length === 0)) {
+                value = null;
+            }
+            
+            setNestedValue(data, path, value);
+        });
+        
+        return data;
+    }
+    
+    // Update statistics
+    function updateStats() {
+        let filled = 0, empty = 0, modified = 0;
+        
+        document.querySelectorAll('[data-path]').forEach(field => {
+            if (!field.value || field.value.trim() === '') {
+                empty++;
+            } else {
+                filled++;
+                if (field.classList.contains('modified')) {
+                    modified++;
+                }
+            }
+        });
+        
+        document.getElementById('stat-filled').textContent = filled;
+        document.getElementById('stat-empty').textContent = empty;
+        document.getElementById('stat-modified').textContent = modified;
+    }
+    
+    // Validate data
+    function validateData() {
+        const issues = [];
+        
+        // Check critical fields
+        const criticalFields = [
+            { path: 'patient.age', name: 'Age' },
+            { path: 'sleep_study.ahi', name: 'AHI' }
+        ];
+        
+        criticalFields.forEach(f => {
+            const field = document.querySelector(`[data-path="${f.path}"]`);
+            if (field && (!field.value || field.value.trim() === '')) {
+                issues.push({ type: 'error', message: `${f.name} is required` });
+            }
+        });
+        
+        // Check recommended fields
+        const recommendedFields = [
+            { path: 'clinical_background', name: 'Clinical Background' },
+            { path: 'sleep_study.o2_nadir', name: 'O2 Nadir' },
+            { path: 'patient.weight_kg', name: 'Weight (kg)' },
+            { path: 'patient.height_cm', name: 'Height (cm)' },
+            { path: 'anatomy.primary_obstruction_site', name: 'Primary Obstruction Site' }
+        ];
+        
+        recommendedFields.forEach(f => {
+            const field = document.querySelector(`[data-path="${f.path}"]`);
+            if (field && (!field.value || field.value.trim() === '')) {
+                issues.push({ type: 'warning', message: `${f.name} is recommended` });
+            }
+        });
+        
+        if (issues.length > 0) {
+            validationList.innerHTML = issues.map(i => 
+                `<span class="validation-item ${i.type}">
+                    <i class="material-icons">${i.type === 'error' ? 'error' : 'warning'}</i>
+                    ${i.message}
+                </span>`
+            ).join('');
+            validationSummary.classList.add('visible');
+        } else {
+            validationSummary.classList.remove('visible');
+        }
+    }
+    
+    // Reset to original
+    window.resetToOriginal = function() {
+        if (originalCanonicalJson) {
+            populateFields(originalCanonicalJson);
+            updateStats();
+            validateData();
+            M.toast({html: 'Reset to original data'});
+        }
+    };
+    
+    // Generate report
+    window.generateReport = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+        
+        const editedData = collectFormData();
+        
+        showLoading('Generating report with validated data...');
+        document.getElementById('generate-btn').disabled = true;
+        
+        try {
+            const resp = await fetch('/reports/api/level4_clinician/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    canonical_json: editedData
+                })
+            });
+            
+            if (!resp.ok) {
+                const errText = await resp.text();
+                throw new Error(`HTTP ${resp.status}: ${errText}`);
+            }
+            
+            const data = await resp.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Generation failed');
+            }
+            
+            currentReportResponse = data.response;
+            currentHistoryId = data.history_id;
+            currentUserPrompt = data.user_prompt || data.prompt || '';
+            currentSystemPrompt = data.system_prompt || '';
+            
+            // Show result
+            document.getElementById('report-preview').textContent = data.response || 'No response';
+
+            // Show prompts in tabs for review
+            const promptTabs = document.getElementById('prompt-tabs');
+            const userBox = document.getElementById('user-prompt-box');
+            const systemBox = document.getElementById('system-prompt-box');
+            if (promptTabs && userBox && systemBox) {
+                userBox.value = currentUserPrompt || '(No user prompt returned)';
+                systemBox.value = currentSystemPrompt || '(No system prompt returned)';
+                promptTabs.style.display = 'block';
+                showPromptTab('user');
+            }
+            
+            if (data.history_id) {
+                // Open directly in edit mode so clinicians can finalize/publish from the viewer
+                document.getElementById('view-formatted-link').href = `/reports/level4-report/view/${data.history_id}?edit=true`;
+            }
+            
+            resultContainer.classList.add('visible');
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+            updateSteps(3);
+            
+            M.toast({html: 'Report generated successfully!', classes: 'green'});
+
+            // If a reference PDF exists, automatically grade against it
+            await refreshReferenceInfo();
+            if (currentReference) {
+                await gradeAgainstReference();
+            } else {
+                document.getElementById('grade-container').style.display = 'none';
+            }
+            
+        } catch (err) {
+            console.error('Generate report error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+            document.getElementById('generate-btn').disabled = false;
+        }
+    };
+
+    // Prompt tabs + copy helpers
+    window.showPromptTab = function(which) {
+        const userBtn = document.getElementById('prompt-tab-user');
+        const sysBtn = document.getElementById('prompt-tab-system');
+        const userPane = document.getElementById('prompt-content-user');
+        const sysPane = document.getElementById('prompt-content-system');
+        const isUser = which === 'user';
+        if (userBtn) userBtn.classList.toggle('active', isUser);
+        if (sysBtn) sysBtn.classList.toggle('active', !isUser);
+        if (userPane) userPane.classList.toggle('active', isUser);
+        if (sysPane) sysPane.classList.toggle('active', !isUser);
+    };
+
+    window.copyPrompt = async function(which) {
+        try {
+            const txt = which === 'system' ? (currentSystemPrompt || '') : (currentUserPrompt || '');
+            await navigator.clipboard.writeText(txt);
+            M.toast({html: `${which === 'system' ? 'System' : 'User'} prompt copied`, classes: 'green'});
+        } catch (e) {
+            M.toast({html: 'Copy failed (browser permission). You can select text manually.', classes: 'orange'});
+        }
+    };
+
+    async function refreshReferenceInfo() {
+        currentReference = null;
+        const statusEl = document.getElementById('reference-status');
+        if (statusEl) statusEl.textContent = '';
+
+        if (!currentPatientId) return;
+        try {
+            const resp = await fetch(`/reports/api/level4_clinician/reference/${Number(currentPatientId)}`);
+            const data = await resp.json();
+            if (data && data.success && data.reference) {
+                currentReference = data.reference;
+                if (statusEl) statusEl.textContent = `Reference loaded: ${data.reference.filename} (uploaded ${data.reference.uploaded_at})`;
+            } else {
+                if (statusEl) statusEl.textContent = 'No reference PDF uploaded for this patient.';
+            }
+        } catch (e) {
+            if (statusEl) statusEl.textContent = 'Unable to check reference PDF.';
+        }
+    }
+
+    window.uploadReferencePdf = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+        const input = document.getElementById('reference-pdf-file');
+        if (!input || !input.files || !input.files.length) {
+            M.toast({html: 'Please choose a PDF file first', classes: 'red'});
+            return;
+        }
+
+        const btn = document.getElementById('upload-reference-btn');
+        btn.disabled = true;
+        showLoading('Uploading reference PDF...');
+
+        try {
+            const form = new FormData();
+            form.append('patient_id', String(currentPatientId));
+            form.append('file', input.files[0]);
+
+            const resp = await fetch('/reports/api/level4_clinician/reference/upload', {
+                method: 'POST',
+                body: form
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                throw new Error((data && data.error) || `HTTP ${resp.status}`);
+            }
+
+            M.toast({html: 'Reference PDF uploaded', classes: 'green'});
+            input.value = '';
+            await refreshReferenceInfo();
+
+            // If we already generated a report, run grading immediately
+            if (currentReportResponse && currentReference) {
+                await gradeAgainstReference();
+            }
+        } catch (err) {
+            console.error('Reference upload error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+            btn.disabled = false;
+        }
+    };
+
+    async function gradeAgainstReference() {
+        if (!currentPatientId || !currentReportResponse) return;
+        showLoading('Grading generated report vs reference...');
+
+        try {
+            const resp = await fetch('/reports/api/level4_clinician/grade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    generated_report: currentReportResponse
+                })
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                throw new Error((data && data.error) || `HTTP ${resp.status}`);
+            }
+
+            if (!data.reference || !data.grade) {
+                document.getElementById('grade-container').style.display = 'none';
+                return;
+            }
+
+            renderGrade(data.grade, data.reference);
+        } catch (err) {
+            console.error('Grade error:', err);
+            M.toast({html: `Grading error: ${err.message}`, classes: 'red'});
+            document.getElementById('grade-container').style.display = 'none';
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function renderGrade(grade, reference) {
+        const container = document.getElementById('grade-container');
+        const summary = document.getElementById('grade-summary');
+        const scoresEl = document.getElementById('grade-scores');
+        const detailsEl = document.getElementById('grade-details');
+
+        const scores = (grade && grade.scores) || {};
+        const scoreItems = [
+            { k: 'precision', label: 'Precision' },
+            { k: 'observations', label: 'Observations' },
+            { k: 'recommendations', label: 'Recommendations' },
+            { k: 'overall', label: 'Overall' },
+        ];
+
+        if (summary) {
+            summary.textContent = `${reference.filename} — ${grade.summary || 'Grading completed'}`;
+        }
+
+        if (scoresEl) {
+            scoresEl.innerHTML = scoreItems.map(item => {
+                const v = (scores[item.k] !== undefined && scores[item.k] !== null) ? scores[item.k] : 'N/A';
+                return `<div style="background: rgba(15, 118, 110, 0.12); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; min-width: 140px;">
+                    <div style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;">${item.label}</div>
+                    <div style="color: var(--text-primary); font-size: 1.25rem; font-weight: 800;">${v}</div>
+                </div>`;
+            }).join('');
+        }
+
+        if (detailsEl) {
+            const sections = [
+                ['High-precision matches', grade.high_precision_matches],
+                ['Missing from generated', grade.missing_from_generated],
+                ['Unsupported in generated', grade.unsupported_in_generated],
+                ['Recommendation deltas', grade.recommendation_deltas],
+            ];
+            detailsEl.innerHTML = sections.map(([title, arr]) => {
+                const items = Array.isArray(arr) ? arr : [];
+                const body = items.length ? `<ul style="margin: 6px 0 0 18px;">${items.map(x => `<li>${String(x)}</li>`).join('')}</ul>` : `<div style="color: var(--text-secondary); margin-top: 6px;">None</div>`;
+                return `<div style="margin-top: 12px;">
+                    <div style="font-weight: 700;">${title}</div>
+                    ${body}
+                </div>`;
+            }).join('');
+        }
+
+        if (container) container.style.display = 'block';
+    }
+
+    // Translate Hebrew content to English (runs before generation)
+    window.translateToEnglish = async function() {
+        if (!currentPatientId) {
+            M.toast({html: 'Please select a patient first', classes: 'red'});
+            return;
+        }
+
+        const editedData = collectFormData();
+
+        // Preserve originalValue tracking so fields still show "modified" vs the initial load
+        const originalValueByPath = {};
+        document.querySelectorAll('[data-path]').forEach(field => {
+            originalValueByPath[field.dataset.path] = field.dataset.originalValue;
+        });
+
+        showLoading('Translating Hebrew → English...');
+        const translateBtn = document.getElementById('translate-btn');
+        translateBtn.disabled = true;
+
+        try {
+            const resp = await fetch('/reports/api/level4_clinician/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    canonical_json: editedData
+                })
+            });
+
+            let data = null;
+            try { data = await resp.json(); } catch (e) {}
+
+            if (!resp.ok) {
+                const backendError = data && (data.error || data.message);
+                throw new Error(backendError || `HTTP ${resp.status}`);
+            }
+            if (!data || !data.success) {
+                throw new Error((data && data.error) || 'Translation failed');
+            }
+
+            // Update the current canonical JSON and UI values
+            currentCanonicalJson = data.canonical_json;
+
+            // Re-populate values but restore originalValue tracking
+            populateFields(currentCanonicalJson);
+            document.querySelectorAll('[data-path]').forEach(field => {
+                const path = field.dataset.path;
+                if (Object.prototype.hasOwnProperty.call(originalValueByPath, path)) {
+                    field.dataset.originalValue = originalValueByPath[path];
+                }
+                const isModified = field.value !== field.dataset.originalValue;
+                const isEmpty = !field.value || field.value.trim() === '';
+                field.classList.toggle('modified', isModified && !isEmpty);
+                field.classList.toggle('empty', isEmpty);
+            });
+
+            updateStats();
+            validateData();
+
+            const count = data.translated_count || 0;
+            M.toast({html: count ? `Translated ${count} fields to English` : 'No Hebrew found to translate', classes: 'green'});
+
+        } catch (err) {
+            console.error('Translate error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+            translateBtn.disabled = false;
+        }
+    };
+    
+    // Copy report
+    window.copyReport = function() {
+        if (currentReportResponse) {
+            navigator.clipboard.writeText(currentReportResponse).then(() => {
+                M.toast({html: 'Report copied to clipboard!'});
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                M.toast({html: 'Copy failed', classes: 'red'});
+            });
+        }
+    };
+    
+    // Generate PDF
+    window.generatePDF = async function() {
+        if (!currentPatientId || !currentReportResponse) {
+            M.toast({html: 'No report to save', classes: 'red'});
+            return;
+        }
+        
+        showLoading('Generating PDF...');
+        
+        try {
+            const resp = await fetch('/reports/api/level4_kb_report/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: Number(currentPatientId),
+                    report_content: currentReportResponse,
+                    history_id: currentHistoryId
+                })
+            });
+            
+            const data = await resp.json();
+            if (data.success) {
+                M.toast({html: 'PDF saved successfully!', classes: 'green'});
+            } else {
+                throw new Error(data.error || 'Save failed');
+            }
+        } catch (err) {
+            console.error('Save PDF error:', err);
+            M.toast({html: `Error: ${err.message}`, classes: 'red'});
+        } finally {
+            hideLoading();
+        }
+    };
+    
+    // Toggle section
+    window.toggleSection = function(sectionId) {
+        const card = document.getElementById(`section-${sectionId}`);
+        if (card) {
+            card.classList.toggle('collapsed');
+        }
+    };
+    
+    // Update step indicator
+    function updateSteps(activeStep) {
+        for (let i = 1; i <= 3; i++) {
+            const step = document.getElementById(`step-${i}`);
+            step.classList.remove('active', 'completed');
+            if (i < activeStep) {
+                step.classList.add('completed');
+            } else if (i === activeStep) {
+                step.classList.add('active');
+            }
+        }
+    }
+    
+    // Loading helpers
+    function showLoading(message) {
+        loadingMessage.textContent = message || 'Loading...';
+        loadingOverlay.classList.add('visible');
+    }
+    
+    function hideLoading() {
+        loadingOverlay.classList.remove('visible');
+    }
+});
+</script>
+{% endblock %}
+

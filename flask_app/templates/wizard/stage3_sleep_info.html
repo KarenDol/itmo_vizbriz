@@ -1,0 +1,70 @@
+{% extends "wizard_base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Sleep Information</h2>
+    <form id="stage3-form" action="/wizard/stage3_sleep_info" method="POST" enctype="multipart/form-data">
+        <!-- JavaScript to set progress bar -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof updateProgressBar === 'function') {
+                    updateProgressBar(50); // Set to appropriate progress percentage for Stage 3
+                } else {
+                    console.error('updateProgressBar function is not defined.');
+                }
+            });
+        </script>
+
+        <!-- Question about having a sleep test -->
+        <div class="mb-3">
+            <label for="sleep-test" class="form-label">Have you had a sleep test?</label>
+            <select class="form-select" id="sleep-test" name="sleep_test" required onchange="toggleSleepTestDetails()">
+                <option value="">Select</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <!-- Sleep test details (only visible if "Yes" is selected) -->
+        <div id="sleep-test-details" style="display: none;">
+            <div class="mb-3">
+                <label for="sleep-test-date" class="form-label">Date of Sleep Test (optional)</label>
+                <input type="date" class="form-control" id="sleep-test-date" name="sleep_test_date">
+            </div>
+            <div class="mb-3">
+                <label for="doctor-name" class="form-label">Name of the Doctor (optional)</label>
+                <input type="text" class="form-control" id="doctor-name" name="doctor_name">
+            </div>
+            <div class="mb-3">
+                <label for="sleep-test-result" class="form-label">Upload Sleep Test Result (optional)</label>
+                <input type="file" class="form-control" id="sleep-test-result" name="sleep_test_result">
+            </div>
+            <div class="mb-3">
+                <label for="md-reference" class="form-label">Upload MD Reference</label>
+                <input type="file" class="form-control" id="md-reference" name="md_reference">
+            </div>
+            <div class="mb-3">
+                <label for="oral-appliance-prescription" class="form-label">Upload Prescription for Oral Appliance</label>
+                <input type="file" class="form-control" id="oral-appliance-prescription" name="oral_appliance_prescription">
+            </div>
+        </div>
+
+        <!-- Submit button aligned to the right -->
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Next</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleSleepTestDetails() {
+        const sleepTestSelect = document.getElementById('sleep-test');
+        const sleepTestDetails = document.getElementById('sleep-test-details');
+
+        if (sleepTestSelect.value === 'Yes') {
+            sleepTestDetails.style.display = 'block';
+        } else {
+            sleepTestDetails.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

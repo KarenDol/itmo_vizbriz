@@ -1,0 +1,139 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.save
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets & local config
+.env
+.env.*
+!.env.example
+env/
+*accessKeys*.csv
+sendgrid_api.txt
+*.pem
+*.key
+
+# Logs & runtime artifacts
+*.log
+app.log.*
+LLM_logs/
+sleep_test_logs.txt
+document_extraction_phase2.log-*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+.nv.save
+.vscode-upload.json
+
+# Local data & uploads (may contain PHI)
+uploads/
+tmp/
+tmp_mpr/
+Documentation/
+annotation_dataset/
+flask_app/resources/
+patient_data/
+
+# Large / vendored bundles
+lambda/
+
+# SQL dumps & migrations scratch
+*.sql
+
+# Internal dev docs (competition repo ships README only)
+*.md
+!README.md
+
+# Backup / rollback artifacts
+*.bak
+*.bak-*
+*backup*
+ROLLBACK_*.sh
+crontab_backup_*.txt
+
+# Local-only scripts with credentials or one-off debugging
+run_with_env.py
+check_openAI_API.py
+simple_s3_test.py
+test_sendgrid*.py
+test_polly_permissions.py
+old_conversion_quiz_agent_.py
+fold_forms_managment.py
+.py
+flask_app/sql/
+flask_app/config/*_backup_*.py
+
+# Root-level debug/check scripts (not part of competition deliverable)
+/check_*.py
+/test_*.py
+/debug_*.py
+/view_*.py
+/backup_*.py
+/add_*.py
+/alter_*.py
+/insert_*.py
+/create_*.py
+/delete_*.py
+/update_*.py
+/fix_*.py
+/migrate_*.py
+/verify_*.py
+/validate_*.py
+/compare_*.py
+/discover_*.py
+/extract_*.py
+/generate_*.py
+/list_*.py
+/load_*.py
+/merge_*.py
+/normalize_*.py
+/process_*.py
+/query_*.py
+/read_*.py
+/rebuild_*.py
+/refresh_*.py
+/repair_*.py
+/reset_*.py
+/restore_*.py
+/run_*.py
+/scan_*.py
+/search_*.py
+/send_*.py
+/setup_*.py
+/show_*.py
+/simulate_*.py
+/sync_*.py
+/trace_*.py
+/trigger_*.py
+/upload_*.py
+/wipe_*.py
+/case_*.py
+/cbct_*.js
+/=*.py
+
+# Elastic Beanstalk local state
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Accidental test assets
+flask_app/flask_static/images/reports/level1/oat_sleep11.jpg
+
+# Misc local tooling
+requirements_modified.txt
+requirements-rtl.txt
+disable_old_processing.sh
+disable_processing_cron.sh
+test_lambda_e2e.sh
+mpr_generator_*.py
+validate_document_processing.py
+vizbriz_mpr_viewer.py

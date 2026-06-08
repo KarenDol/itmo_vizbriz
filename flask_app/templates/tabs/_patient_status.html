@@ -1,0 +1,348 @@
+<style>
+    .status-green {
+        background-color: green !important;
+        color: white !important;
+    }
+
+    .status-red {
+        background-color: red !important;
+        color: white !important;
+    }
+
+    .status-grey {
+        background-color: grey !important;
+        color: white !important;
+    }
+
+    textarea {
+        color: white !important;
+        background-color: #333 !important;
+    }
+
+    select.browser-default {
+        border: 1px solid #ccc;
+        background-color: white;
+        border-radius: 4px;
+        padding: 5px;
+        font-size: 14px;
+    }
+
+    select.browser-default:focus {
+        border-color: #42a5f5;
+        box-shadow: 0 0 5px #42a5f5;
+    }
+</style>
+
+<!-- Patient Status tab is hidden per requirements -->
+<div id="patient-details-tab" class="tab-content" style="display:none; padding: 20px;">
+    <table class="highlight responsive-table" style="width: 100%;">
+        <thead>
+            <tr>
+                <th style="width: 20%;">Status Type</th>
+                <th style="width: 15%;">Status Value</th> <!-- Slim column -->
+                <th style="width: 20%;">Last Updated</th>
+                <th style="width: 35%;">Comments</th> <!-- Wide column -->
+                <th style="width: 10%;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Row 1: Patient Status -->
+            <tr id="status-row">
+                <td>Patient Status</td>
+                <td>
+                    <select id="status-select" class="browser-default">
+                        <option value="New" {{ "selected" if patient.status == "New" else "" }}>New</option>
+                        <option value="Waiting for Referral" {{ "selected" if patient.status == "Waiting for Referral" else "" }}>Waiting for Referral</option>
+                        <option value="Referral in Process" {{ "selected" if patient.status == "Referral in Process" else "" }}>Referral in Process</option>
+                        <option value="RX Available" {{ "selected" if patient.status == "RX Available" else "" }}>RX Available</option>
+                        <option value="Schedule DMD Consult" {{ "selected" if patient.status == "Schedule DMD Consult" else "" }}>Schedule DMD Consult</option>
+                        <option value="DMD Consult Scheduled" {{ "selected" if patient.status == "DMD Consult Scheduled" else "" }}>DMD Consult Scheduled</option>
+                        <option value="In Treatment" {{ "selected" if patient.status == "In Treatment" else "" }}>In Treatment</option>
+                    </select>
+                </td>
+                <td>{{ patient.last_update.strftime('%Y-%m-%d') if patient.last_update else "N/A" }}</td>
+                <td>
+                    <span id="latest-comment">
+                        {{ patient.comments[-1].content if patient.comments else "No comments yet." }}
+                    </span>
+                    <a href="#!" id="edit-comments-btn">
+                        <i class="material-icons" style="color: #42a5f5;">edit</i>
+                    </a>
+                </td>
+                <td>
+                    <a class="save-btn" id="save-status-btn" data-patient-id="{{ patient.id }}" data-field="status">
+                        <i class="material-icons" style="color: green;">save</i>
+                    </a>
+                </td>
+            </tr>
+
+            <!-- Row 2: Payment Method -->
+            <tr id="payment-row">
+                <td>Payment Method</td>
+                <td>
+                    <select id="payment-method-select" class="browser-default">
+                        <option value="In Network" {{ "selected" if patient.payment_method == "In Network" else "" }}>In Network</option>
+                        <option value="Out of Network" {{ "selected" if patient.payment_method == "Out of Network" else "" }}>Out of Network</option>
+                        <option value="Private" {{ "selected" if patient.payment_method == "Private" else "" }}>Private</option>
+                    </select>
+                </td>
+                <td>{{ patient.last_update.strftime('%Y-%m-%d') if patient.last_update else "N/A" }}</td>
+                <td></td>
+                <td>
+                    <a class="save-btn" id="save-payment-method-btn" data-patient-id="{{ patient.id }}" data-field="payment_method">
+                        <i class="material-icons" style="color: green;">save</i>
+                    </a>
+                </td>
+            </tr>
+
+            {% for status_type in all_status_types %}
+            <tr>
+                <td>{{ status_type }}</td>
+                <td>
+                    <select id="status-value-{{ status_type }}" class="browser-default status-dropdown">
+                        {% for option in status_options if option.status_type == status_type %}
+                        <option 
+                            value="{{ option.status_value }}" 
+                            {% if patient_statuses.get(status_type) and patient_statuses[status_type].status_value == option.status_value %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ option.status_value }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    {% if patient_statuses.get(status_type) %}
+                        {{ patient_statuses[status_type].updated_at.strftime('%Y-%m-%d') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <textarea id="comment-{{ status_type }}" style="width: 100%; color: white; background-color: #333;">
+                        {% if patient_statuses.get(status_type) %}
+                            {{ patient_statuses[status_type].comment }}
+                        {% endif %}
+                    </textarea>
+                </td>
+                <td>
+                    <a class="save-status-btn" data-patient-id="{{ patient.id }}" data-status-id="{{ patient_statuses.get(status_type).id if patient_statuses.get(status_type) else -1 }}" data-status-type="{{ status_type }}">
+                        <i class="material-icons" style="color: green;">save</i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for Comments -->
+<div id="comments-modal" class="modal" style="background-color: #333; color: white;">
+    <div class="modal-content">
+        <h5>Patient Comments</h5>
+        <ul id="comments-list" style="max-height: 300px; overflow-y: auto;">
+            {% for comment in patient.comments %}
+            <li>
+                <p style="color: white;">{{ comment.content }}</p>
+                <small style="color: lightgray;">{{ comment.created_date.strftime('%Y-%m-%d') }} by {{ comment.dentist.name }}</small>
+            </li>
+            {% endfor %}
+        </ul>
+        <textarea id="new-comment" placeholder="Add a new comment..." style="width: 100%; color: white; background-color: #444;"></textarea>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" id="add-comment-btn" class="btn">Add</a>
+        <a href="#!" class="modal-close btn">Close</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        M.AutoInit();
+
+        // Function to style dropdowns dynamically based on the selected value
+        const styleDropdown = (dropdown) => {
+            const selectedValue = dropdown.value.toLowerCase();
+            dropdown.classList.remove('status-green', 'status-red', 'status-grey');
+            if (selectedValue === 'yes') {
+                dropdown.classList.add('status-green');
+            } else if (selectedValue === 'no') {
+                dropdown.classList.add('status-red');
+            } else {
+                dropdown.classList.add('status-grey');
+            }
+        };
+
+        // Apply styles to all status dropdowns on page load and change
+        document.querySelectorAll('.status-dropdown').forEach(dropdown => {
+            styleDropdown(dropdown); // Apply initial style
+            dropdown.addEventListener('change', function () {
+                styleDropdown(dropdown); // Update style on change
+            });
+        });
+
+        // Save Patient Status
+        document.getElementById('save-status-btn').addEventListener('click', function () {
+            const patientId = this.getAttribute('data-patient-id');
+            const field = this.getAttribute('data-field');
+            const value = document.getElementById('status-select').value.trim();
+
+            console.log("Patient ID:", patientId);
+            console.log("Key (field):", field);
+            console.log("Value:", value);
+
+            if (!value) {
+                M.toast({ html: 'Status value is required.', displayLength: 2000 });
+                return;
+            }
+
+            fetch(`/api/patient/${patientId}/update_field`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: field, value: value }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        M.toast({ html: 'Status updated successfully!', displayLength: 2000 });
+                    } else {
+                        console.error('Error response:', data.message);
+                        M.toast({ html: `Error: ${data.message}`, displayLength: 2000 });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating status:', error);
+                    M.toast({ html: 'An error occurred.', displayLength: 2000 });
+                });
+        });
+
+        // Save Payment Method
+        document.getElementById('save-payment-method-btn').addEventListener('click', function () {
+            const patientId = this.getAttribute('data-patient-id');
+            const field = this.getAttribute('data-field');
+            const value = document.getElementById('payment-method-select').value.trim();
+
+            console.log("Patient ID:", patientId);
+            console.log("Key (field):", field);
+            console.log("Value:", value);
+
+            if (!value) {
+                M.toast({ html: 'Payment method value is required.', displayLength: 2000 });
+                return;
+            }
+
+            fetch(`/api/patient/${patientId}/update_field`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: field, value: value }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        M.toast({ html: 'Payment method updated successfully!', displayLength: 2000 });
+                    } else {
+                        console.error('Error response:', data.message);
+                        M.toast({ html: `Error: ${data.message}`, displayLength: 2000 });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating payment method:', error);
+                    M.toast({ html: 'An error occurred.', displayLength: 2000 });
+                });
+        });
+
+        // Save Dynamic Status
+        document.querySelectorAll('.save-status-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const patientId = this.getAttribute('data-patient-id');
+                const statusId = this.getAttribute('data-status-id');
+                const statusType = this.getAttribute('data-status-type');
+                const value = document.getElementById(`status-value-${statusType}`).value.trim();
+                const comment = document.getElementById(`comment-${statusType}`).value.trim();
+
+                console.log("Patient ID:", patientId);
+                console.log("Status ID:", statusId);
+                console.log("Status Type:", statusType);
+                console.log("Status Value:", value);
+                console.log("Comment:", comment);
+
+                if (!value) {
+                    M.toast({ html: 'Status value is required.', displayLength: 2000 });
+                    return;
+                }
+
+                fetch(`/patient/${patientId}/status/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status_id: statusId,
+                        status_type: statusType,
+                        status_value: value,
+                        comment: comment
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            M.toast({ html: 'Status updated successfully!', displayLength: 2000 });
+                        } else {
+                            console.error('Error response:', data.message);
+                            M.toast({ html: `Error: ${data.message}`, displayLength: 2000 });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating dynamic status:', error);
+                        M.toast({ html: 'An error occurred.', displayLength: 2000 });
+                    });
+            });
+        });
+
+        // Open Comments Modal
+        document.getElementById('edit-comments-btn').addEventListener('click', function () {
+            const modal = document.getElementById('comments-modal');
+            M.Modal.init(modal).open();
+        });
+
+        // Add Comment via AJAX without Page Refresh
+        document.getElementById('add-comment-btn').addEventListener('click', function () {
+            const patientId = document.getElementById('save-status-btn').getAttribute('data-patient-id');
+            const content = document.getElementById('new-comment').value.trim();
+
+            if (!content) {
+                M.toast({ html: 'Comment cannot be empty.', displayLength: 2000 });
+                return;
+            }
+
+            fetch(`/api/patients/${patientId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        M.toast({ html: 'Comment added successfully!', displayLength: 2000 });
+                        document.getElementById('new-comment').value = '';
+
+                        // Update the latest comment without refreshing the page
+                        const latestCommentSpan = document.getElementById('latest-comment');
+                        latestCommentSpan.textContent = content;
+
+                        // Close the modal
+                        const modal = M.Modal.getInstance(document.getElementById('comments-modal'));
+                        modal.close();
+                    } else {
+                        console.error('Error response:', data.message);
+                        M.toast({ html: `Error: ${data.message}`, displayLength: 2000 });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding comment:', error);
+                    M.toast({ html: 'An error occurred.', displayLength: 2000 });
+                });
+        });
+    });
+</script>
+
+

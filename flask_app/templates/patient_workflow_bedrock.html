@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Workflow - {{ patient.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Loading State -->
+    <div id="loading-state" class="text-center py-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        <p class="mt-4 text-gray-600">Generating dynamic workflow page...</p>
+    </div>
+
+    <!-- Patient Summary (Always visible) -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-start mb-4">
+            <h1 class="text-2xl font-bold text-gray-800">Patient Workflow - {{ patient.name }}</h1>
+            <div class="flex space-x-2">
+                <button onclick="viewManifest()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded text-sm">
+                    🔍 View Manifest
+                </button>
+                <button onclick="viewWorkflowGuidelines()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
+                    📋 Workflow Guide
+                </button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Patient Information</h2>
+                <p><strong>Name:</strong> {{ patient.name }}</p>
+                <p><strong>Email:</strong> {{ patient.email }}</p>
+                <p><strong>Phone:</strong> {{ patient.phone }}</p>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Status</h2>
+                <p><strong>Patient ID:</strong> {{ patient.id }}</p>
+                <p><strong>Status:</strong> {{ patient.status }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Source Indicator -->
+    <div id="content-source" class="mb-4 p-3 rounded-lg text-sm font-medium">
+        <!-- Will be populated by JavaScript -->
+    </div>
+
+    <!-- Dynamic Content Area -->
+    <div id="dynamic-content" class="space-y-6">
+        <!-- Content will be populated by JavaScript -->
+    </div>
+
+    <!-- Error State (Hidden by default) -->
+    <div id="error-state" class="hidden bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-red-800 mb-2">AI Service Unavailable</h3>
+        <p class="text-red-600 mb-4">The AI-powered workflow generator is temporarily unavailable. Using simplified interface.</p>
+        <button onclick="loadFallbackContent()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+            Load Simplified View
+        </button>
+    </div>
+</div>
+
+<script>
+// Global variables
+const patientId = {{ patient.id }};
+const manifestData = {{ manifest_data | tojson | safe }};
+
+// Load dynamic content when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadDynamicContent();
+});
+
+async function loadDynamicContent() {
+    try {
+        console.log('Loading dynamic content...');
+        
+        const response = await fetch(`/api/bedrock/generate_workflow_content/${patientId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                manifest_data: manifestData
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Hide loading state
+            document.getElementById('loading-state').style.display = 'none';
+            
+            // Clean up the HTML content (remove markdown code blocks if present)
+            let htmlContent = result.html_content;
+            
+            // Remove markdown code block markers if present
+            if (htmlContent.includes('```html')) {
+                htmlContent = htmlContent.replace(/```html\s*/, '').replace(/```\s*$/, '');
+            }
+            
+            // Also remove any remaining markdown formatting
+            htmlContent = htmlContent.replace(/```/g, '').trim();
+            
+            console.log('Cleaned HTML content:', htmlContent);
+            
+            // Insert the cleaned HTML content
+            document.getElementById('dynamic-content').innerHTML = htmlContent;
+            
+            // Show AI source indicator
+            showContentSource('ai');
+            
+            console.log('Dynamic content loaded successfully');
+        } else {
+            throw new Error(result.error || 'Failed to generate content');
+        }
+        
+    } catch (error) {
+        console.error('Error loading dynamic content:', error);
+        showErrorState();
+    }
+}
+
+function showErrorState() {
+    // Hide loading state
+    document.getElementById('loading-state').style.display = 'none';
+    
+    // Show error state
+    document.getElementById('error-state').classList.remove('hidden');
+    
+    // Show fallback source indicator
+    showContentSource('fallback');
+}
+
+function showContentSource(source) {
+    const indicator = document.getElementById('content-source');
+    if (source === 'ai') {
+        indicator.innerHTML = '🤖 <span class="text-green-600">AI-Generated Content</span> - Dynamically created by Bedrock LLM';
+        indicator.className = 'mb-4 p-3 rounded-lg text-sm font-medium bg-green-50 border border-green-200';
+    } else if (source === 'fallback') {
+        indicator.innerHTML = '📋 <span class="text-blue-600">Template Content</span> - Using simplified interface (AI unavailable)';
+        indicator.className = 'mb-4 p-3 rounded-lg text-sm font-medium bg-blue-50 border border-blue-200';
+    }
+}
+
+function loadFallbackContent() {
+    // Hide error state
+    document.getElementById('error-state').classList.add('hidden');
+    
+    // Show fallback content
+    const fallbackContent = generateFallbackContent(manifestData);
+    document.getElementById('dynamic-content').innerHTML = fallbackContent;
+    
+    // Show fallback source indicator
+    showContentSource('fallback');
+}
+
+function generateFallbackContent(manifestData) {
+    const patientInfo = manifestData.patient_info || {};
+    const stageManifest = manifestData.stage_manifest || [];
+    const eligibleActions = manifestData.eligible_actions || [];
+    
+    let html = `
+        <!-- Stage Progress -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Stage Progress</h2>
+            <div class="space-y-3">
+    `;
+    
+    for (const stage of stageManifest) {
+        const status = stage.value === 'yes' ? '✅ Completed' : '⏳ Pending';
+        const statusClass = stage.value === 'yes' ? 'text-green-600' : 'text-yellow-600';
+        
+        html += `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div>
+                    <span class="font-medium">${stage.stage_number}. ${stage.stage_name}</span>
+                </div>
+                <span class="${statusClass} font-medium">${status}</span>
+            </div>
+        `;
+    }
+    
+    html += `
+            </div>
+        </div>
+
+        <!-- Available Actions -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Available Actions</h2>
+            <div class="space-y-4">
+    `;
+    
+    for (const action of eligibleActions) {
+        const actionKey = action.action_key || 'unknown';
+        const label = action.label || 'Unknown Action';
+        const uiType = action.ui_type || 'button';
+        const endpoint = action.endpoint || '#';
+        const aiGuidance = action.ai_guidance || 'No guidance available';
+        
+        if (uiType === 'button') {
+            html += `
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium text-gray-800">${label}</h3>
+                            <p class="text-sm text-gray-600 mt-1">${aiGuidance}</p>
+                        </div>
+                        <button onclick="executeAction('${endpoint}', '${actionKey}')" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                            Execute
+                        </button>
+                    </div>
+                </div>
+            `;
+        } else if (uiType === 'form') {
+            const inputFields = action.input_fields || [];
+            html += `
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <h3 class="font-medium text-gray-800 mb-2">${label}</h3>
+                    <p class="text-sm text-gray-600 mb-3">${aiGuidance}</p>
+                    <form onsubmit="executeForm(event, '${endpoint}', '${actionKey}')" class="space-y-3">
+            `;
+            
+            for (const field of inputFields) {
+                html += `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">${field}</label>
+                        <input type="text" name="${field}" required 
+                               class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                `;
+            }
+            
+            html += `
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function executeAction(endpoint, actionKey) {
+    console.log('Executing action:', actionKey, 'at endpoint:', endpoint);
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action_key: actionKey,
+            patient_id: patientId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Action result:', data);
+        alert('Action executed successfully!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error executing action');
+    });
+}
+
+function executeForm(event, endpoint, actionKey) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    data.action_key = actionKey;
+    data.patient_id = patientId;
+
+    console.log('Executing form action:', actionKey, 'at endpoint:', endpoint);
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Form action result:', data);
+        alert('Form submitted successfully!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting form');
+    });
+}
+
+function viewManifest() {
+    const manifestData = {{ manifest_data | tojson | safe }};
+    const manifestText = JSON.stringify(manifestData, null, 2);
+    
+    // Create a modal to display the manifest
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Execution Manifest Data</h2>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg">
+                <pre class="text-sm text-gray-800 whitespace-pre-wrap">${manifestText}</pre>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function viewWorkflowGuidelines() {
+    const guidelines = `
+# Patient Workflow Guidelines
+
+## Overview
+This page dynamically generates a patient workflow interface based on the execution manifest. The AI analyzes the patient's current stage and available actions to create an interactive interface.
+
+## Workflow Stages
+1. **Quiz Completion** - Patient completes sleep questionnaire
+2. **Initial Consult Scheduled** - Dental consultation is scheduled
+3. **Initial Consult Completed** - First consultation is finished
+4. **OSA Report Ready** - Sleep study report is uploaded
+5. **Order Oral Appliance** - Custom appliance is ordered
+6. **Device Delivered** - Appliance arrives at dental office
+7. **Schedule Delivery** - Patient delivery appointment scheduled
+8. **Delivery Completed** - Appliance fitted and delivered to patient
+
+## Available Actions
+- **Buttons**: Simple actions that can be executed immediately
+- **Forms**: Actions requiring additional input (dates, notes, etc.)
+- **Upload Links**: Actions that require file uploads
+
+## How It Works
+1. The page loads with patient information
+2. AI analyzes the manifest data to determine current progress
+3. Dynamic content is generated showing:
+   - Stage completion status
+   - Available actions for incomplete stages
+4. Actions are executed via API calls to update the database
+
+## Debugging
+- Use "View Manifest" to see the raw data being processed
+- Check browser console for API call results
+- Content source indicator shows if AI or template is being used
+    `;
+    
+    // Create a modal to display the guidelines
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Workflow Guidelines</h2>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="prose max-w-none">
+                <pre class="text-sm text-gray-800 whitespace-pre-wrap">${guidelines}</pre>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+</script>
+{% endblock %} 

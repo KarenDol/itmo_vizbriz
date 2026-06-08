@@ -1,0 +1,596 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Patient Data - Dentist Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .upload-card {
+        background-color: #1e1e1e;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        max-width: 100%;
+    }
+
+    .upload-area {
+        border: 2px dashed #bb86fc;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .upload-area:hover {
+        background-color: rgba(187, 134, 252, 0.1);
+    }
+
+    .file-item {
+        background-color: #2a2a2a;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .file-item span {
+        cursor: pointer;
+        color: #bb86fc;
+    }
+
+    .file-item i {
+        cursor: pointer;
+        color: #bb86fc;
+    }
+
+    .card-title, p, label {
+        color: #e0e0e0;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+        color: #e0e0e0;
+        background-color: #2a2a2a;
+        border-bottom: 1px solid #bb86fc;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+        border-bottom: 1px solid #03dac6;
+        box-shadow: 0 1px 0 0 #03dac6;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+
+    select {
+        color: #e0e0e0;
+        background-color: #2a2a2a;
+        padding-right: 25px;
+        background-position: right 10px center;
+        background-size: 10px;
+    }
+
+    .material-icons {
+        color: #bb86fc;
+    }
+
+    .btn-upload {
+        background-color: #03dac6;
+        color: #121212;
+        margin-bottom: 10px;
+    }
+
+    .btn-upload:hover {
+        background-color: #04e9d5;
+    }
+
+    .input-field > label {
+        color: #bb86fc;
+    }
+
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #03dac6;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .upload-btn-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .upload-btn-group button {
+        width: 48%;
+        background-color: #03dac6;
+        color: #121212;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col s12 m10 offset-m1">
+        <div class="card upload-card">
+            <div class="card-content">
+                <span class="card-title">Upload Patient Data</span>
+                <form id="upload-form" method="POST" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
+                    <div class="input-field">
+                        <input id="patient_name" name="patient_name" type="text" class="validate" required>
+                        <label for="patient_name">Patient Name</label>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="email" name="email" type="text" class="validate" >
+                        <label for="email">Email</label>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="phone" name="phone" type="text" class="validate" >
+                        <label for="phone">Phone</label>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="dob" name="dob" type="date" class="validate" >
+                        <label for="dob">Date of Birth</label>
+                    </div>
+                    <!-- Gender Field -->
+                    <div class="input-field">
+                        <select id="gender" name="gender">
+                            <option value="" disabled selected>Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <label for="gender">Gender</label>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="insurer" name="insurer" type="text" class="validate">
+                        <label for="insurer">Insurer</label>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="policy_id" name="policy_id" type="text" class="validate">
+                        <label for="policy_id">Policy ID</label>
+                    </div>
+
+                    <div class="input-field">
+                        <input id="address" name="address" type="text" class="validate">
+                        <label for="address">Address</label>
+                    </div>
+
+                   <!-- Snoring Question -->
+                    <div class="input-field">
+                        <select id="snoring" name="snoring">
+                            <option value="" disabled selected>Do you snore?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                            <option value="other">Other (please specify)</option>
+                        </select>
+                        <label for="snoring">Do you snore?</label>
+                    </div>
+                    <div class="input-field" id="snoring_other_field" style="display:none;">
+                        <input id="snoring_other" name="snoring_other" type="text" placeholder="Please specify">
+                    </div>
+
+                    <!-- Daytime Sleepiness Question -->
+                    <div class="input-field">
+                        <select id="daytime_sleepiness" name="daytime_sleepiness">
+                            <option value="" disabled selected>Do you experience daytime sleepiness?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                            <option value="other">Other (please specify)</option>
+                        </select>
+                        <label for="daytime_sleepiness">Do you experience daytime sleepiness?</label>
+                    </div>
+                    <div class="input-field" id="daytime_sleepiness_other_field" style="display:none;">
+                        <input id="daytime_sleepiness_other" name="daytime_sleepiness_other" type="text" placeholder="Please specify">
+                    </div>
+
+                    <!-- Sleep Study Question -->
+                    <div class="input-field">
+                        <select id="sleep_study" name="sleep_study">
+                            <option value="" disabled selected>Have you had a sleep study?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label for="sleep_study">Have you had a sleep study?</label>
+                    </div>
+                    <div class="input-field" id="sleep_study_date_field" style="display:none;">
+                        <input id="sleep_study_date" name="sleep_study_date" type="date">
+                        <label for="sleep_study_date">If yes, when?</label>
+                    </div>
+
+                    <!-- CPAP Intolerant Question -->
+                    <div class="input-field">
+                        <select id="cpap_intolerant" name="cpap_intolerant">
+                            <option value="" disabled selected>Are you CPAP intolerant?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                            <option value="other">Other (please specify)</option>
+                        </select>
+                        <label for="cpap_intolerant">Are you CPAP intolerant?</label>
+                    </div>
+                    <div class="input-field" id="cpap_intolerant_other_field" style="display:none;">
+                        <input id="cpap_intolerant_other" name="cpap_intolerant_other" type="text" placeholder="Please specify">
+                    </div>
+
+
+<ul class="tabs">
+    <li class="tab col s4"><a href="#billing" class="active">Billing</a></li>
+    <li class="tab col s4"><a href="#imaging-triad">Imaging Triad</a></li>
+    <li class="tab col s4"><a href="#medical-triad">Medical Triad</a></li>
+</ul>
+
+<!-- Billing Tab -->
+<div id="billing" class="col s12">
+    <h6>Billing Documents</h6>
+    <div class="upload-area drop-zone" id="drop-area-billing">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop billing files here<br>Or select manually</p>
+        <input type="file" id="fileElemBilling" name="billing_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-billing" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemBilling', 'file-list-billing');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemBilling', 'file-list-billing');">Upload Folder</button>
+    </div>
+</div>
+
+<!-- Imaging Triad Tab -->
+<div id="imaging-triad" class="col s12">
+    <h6>Imaging Triad</h6>
+    
+    <!-- Clinical Pictures -->
+    <h6>Clinical Pictures</h6>
+    <div class="upload-area drop-zone" id="drop-area-clinical">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop clinical pictures here<br>Or select manually</p>
+        <input type="file" id="fileElemClinical" name="clinical_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-clinical" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemClinical', 'file-list-clinical');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemClinical', 'file-list-clinical');">Upload Folder</button>
+    </div>
+
+    <!-- CBCT -->
+    <h6>CBCT</h6>
+    <div class="upload-area drop-zone" id="drop-area-cbct">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop CBCT files here<br>Or select manually</p>
+        <input type="file" id="fileElemCBCT" name="cbct_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-cbct" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemCBCT', 'file-list-cbct');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemCBCT', 'file-list-cbct');">Upload Folder</button>
+    </div>
+
+    <!-- Intraoral Scan -->
+    <h6>Intraoral Scan</h6>
+    <div class="upload-area drop-zone" id="drop-area-intraoral">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop intraoral scan files here<br>Or select manually</p>
+        <input type="file" id="fileElemIntraoral" name="intraoral_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-intraoral" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemIntraoral', 'file-list-intraoral');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemIntraoral', 'file-list-intraoral');">Upload Folder</button>
+    </div>
+</div>
+
+<!-- Medical Triad Tab -->
+<div id="medical-triad" class="col s12">
+    <h6>Medical Triad</h6>
+    
+    <!-- Sleep Test -->
+    <h6>Sleep Test</h6>
+    <div class="upload-area drop-zone" id="drop-area-sleep">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop sleep test files here<br>Or select manually</p>
+        <input type="file" id="fileElemSleep" name="sleep_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-sleep" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemSleep', 'file-list-sleep');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemSleep', 'file-list-sleep');">Upload Folder</button>
+    </div>
+
+    <!-- Questionnaire -->
+    <h6>Questionnaire</h6>
+    <div class="upload-area drop-zone" id="drop-area-questionnaire">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop questionnaire files here<br>Or select manually</p>
+        <input type="file" id="fileElemQuestionnaire" name="questionnaire_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-questionnaire" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemQuestionnaire', 'file-list-questionnaire');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemQuestionnaire', 'file-list-questionnaire');">Upload Folder</button>
+    </div>
+
+    <!-- Medical Background -->
+    <h6>Medical Background</h6>
+    <div class="upload-area drop-zone" id="drop-area-medical">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop medical background files here<br>Or select manually</p>
+        <input type="file" id="fileElemMedical" name="medical_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-medical" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemMedical', 'file-list-medical');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemMedical', 'file-list-medical');">Upload Folder</button>
+    </div>
+</div>
+
+
+
+                    <div class="center-align">
+                        <button class="btn waves-effect waves-light btn-upload" type="submit">
+                            Save
+                            <i class="material-icons right">save</i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loader overlay -->
+                <div class="overlay">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Materialize components
+    M.FormSelect.init(document.querySelectorAll('select'));
+    M.Tabs.init(document.querySelectorAll('.tabs'));
+
+    // File list and input references
+    const fileLists = {
+        billing: document.getElementById('file-list-billing'),
+        clinical: document.getElementById('file-list-clinical'),
+        cbct: document.getElementById('file-list-cbct'),
+        intraoral: document.getElementById('file-list-intraoral'),
+        sleep: document.getElementById('file-list-sleep'),
+        questionnaire: document.getElementById('file-list-questionnaire'),
+        medical: document.getElementById('file-list-medical')
+    };
+
+    const inputs = {
+        billing: document.getElementById('fileElemBilling'),
+        clinical: document.getElementById('fileElemClinical'),
+        cbct: document.getElementById('fileElemCBCT'),
+        intraoral: document.getElementById('fileElemIntraoral'),
+        sleep: document.getElementById('fileElemSleep'),
+        questionnaire: document.getElementById('fileElemQuestionnaire'),
+        medical: document.getElementById('fileElemMedical')
+    };
+
+    // Drag-and-drop functionality for each file upload area
+    const dropZones = document.querySelectorAll('.drop-zone');
+
+    dropZones.forEach(function(dropZone) {
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();  // Prevent file from being opened
+            dropZone.classList.add('highlight');
+        });
+
+        dropZone.addEventListener('dragleave', function() {
+            dropZone.classList.remove('highlight');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();  // Prevent file from being opened
+            dropZone.classList.remove('highlight');
+
+            const input = dropZone.querySelector('input[type="file"]');
+            const files = e.dataTransfer.items;  // Files dropped
+            const fileList = fileLists[dropZone.id.split('-')[2]];  // Get correct file list by id
+
+            if (files.length) {
+                for (let i = 0; i < files.length; i++) {
+                    const entry = files[i].webkitGetAsEntry();
+                    if (entry.isDirectory) {
+                        readDirectory(entry, input, fileList);  // Handle folder uploads
+                    } else {
+                        processFile(files[i].getAsFile(), input, fileList);
+                    }
+                }
+            }
+        });
+    });
+
+    // Recursively read files in directories
+    function readDirectory(entry, input, fileList) {
+        const reader = entry.createReader();
+        reader.readEntries(function(entries) {
+            for (let i = 0; i < entries.length; i++) {
+                if (entries[i].isDirectory) {
+                    readDirectory(entries[i], input, fileList);  // Recurse for subfolders
+                } else {
+                    entries[i].file(function(file) {
+                        processFile(file, input, fileList);
+                    });
+                }
+            }
+        });
+    }
+
+    // Function to process individual files and add to the file input and file list
+    function processFile(file, input, fileList) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);  // Add files to the DataTransfer object
+        for (let i = 0; i < input.files.length; i++) {
+            dataTransfer.items.add(input.files[i]);  // Preserve already added files
+        }
+        input.files = dataTransfer.files;  // Update input's files property
+        addFileToList(file, fileList);  // Display the file in the list
+    }
+
+    // Function to display the file in the file list
+    function addFileToList(file, fileList) {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+            <span>${file.name}</span>
+            <i class="material-icons" onclick="this.parentElement.remove()">close</i>
+        `;
+        fileList.appendChild(fileItem);
+    }
+
+    // Handle Date of Birth field: set default value if empty
+    const dobField = document.getElementById('dob');
+    const defaultDate = '1900-01-01';
+
+    // Form submission with loading overlay and DOB handling
+    const form = document.getElementById('upload-form');
+    const overlay = document.querySelector('.overlay');
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Only set default DOB if no date is selected
+        if (!dobField.value) {
+            dobField.value = defaultDate;
+        }
+
+        const formData = new FormData(form);
+        overlay.style.display = 'flex';
+
+        fetch('{{ url_for("main.upload") }}', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            overlay.style.display = 'none';
+            if (data.success) {
+                M.toast({html: 'Upload successful!', classes: 'green'});
+                // Reload the page after successful upload
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                M.toast({html: data.message || 'Error during upload.', classes: 'red'});
+            }
+        })
+        .catch(error => {
+            overlay.style.display = 'none';
+            console.error('Error:', error);
+            M.toast({html: 'An unexpected error occurred. Please try again.', classes: 'red'});
+        });
+    });
+
+    // Upload Folder Function
+    window.uploadFolder = function(inputId, fileListId) {
+        const input = document.getElementById(inputId);
+        input.setAttribute("webkitdirectory", ""); // Allow folder selection
+        input.setAttribute("directory", "");
+        input.click();
+        input.addEventListener('change', function() {
+            const files = input.files;
+            const fileList = document.getElementById(fileListId);
+            for (let i = 0; i < files.length; i++) {
+                processFile(files[i], input, fileList);
+            }
+        });
+    };
+
+    // Upload Files Function
+    window.uploadFiles = function(inputId, fileListId) {
+        const input = document.getElementById(inputId);
+        input.click();
+        input.addEventListener('change', function() {
+            const files = input.files;
+            const fileList = document.getElementById(fileListId);
+            for (let i = 0; i < files.length; i++) {
+                processFile(files[i], input, fileList);
+            }
+        });
+    };
+
+    // Snoring Other option toggle
+    document.getElementById('snoring').addEventListener('change', function() {
+        const snoringOtherField = document.getElementById('snoring_other_field');
+        snoringOtherField.style.display = this.value === 'other' ? 'block' : 'none';
+    });
+
+    // Daytime Sleepiness Other option toggle
+    document.getElementById('daytime_sleepiness').addEventListener('change', function() {
+        const daytimeSleepinessOtherField = document.getElementById('daytime_sleepiness_other_field');
+        daytimeSleepinessOtherField.style.display = this.value === 'other' ? 'block' : 'none';
+    });
+
+    // Sleep Study Question - Show date field if "Yes"
+    document.getElementById('sleep_study').addEventListener('change', function() {
+        const sleepStudyDateField = document.getElementById('sleep_study_date_field');
+        if (this.value === 'yes') {
+            sleepStudyDateField.style.display = 'block';
+            document.getElementById('sleep_study_date').setAttribute('required', 'required');
+        } else {
+            sleepStudyDateField.style.display = 'none';
+            document.getElementById('sleep_study_date').removeAttribute('required');
+        }
+    });
+
+    // CPAP Intolerant Other option toggle
+    document.getElementById('cpap_intolerant').addEventListener('change', function() {
+        const cpapIntolerantOtherField = document.getElementById('cpap_intolerant_other_field');
+        cpapIntolerantOtherField.style.display = this.value === 'other' ? 'block' : 'none';
+    });
+});
+</script>
+
+
+{% endblock %}

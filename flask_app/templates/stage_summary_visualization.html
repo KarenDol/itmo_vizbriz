@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+
+{% block title %}Stage Summary Visualization{% endblock %}
+
+{% block extra_css %}
+<style>
+    .viz-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 24px;
+        background: #fafafa;
+        min-height: 100vh;
+    }
+    
+    .viz-header {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .viz-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    
+    .viz-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+    }
+    
+    .controls-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .legend {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .legend-color.completed { background: #22c55e; }
+    .legend-color.pending { background: #f97316; }
+    .legend-color.blocked { background: #ef4444; }
+    .legend-color.skipped { background: #94a3b8; }
+    .legend-color.optional { background: #e2e8f0; border: 2px dashed #64748b; }
+    
+    .visualization-area {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        min-height: 600px;
+        position: relative;
+        overflow: auto;
+    }
+    
+    .stage-node {
+        position: absolute;
+        background: white;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 12px 16px;
+        min-width: 200px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .stage-node:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .stage-node.completed {
+        border-color: #22c55e;
+        background: #dcfce7;
+    }
+    
+    .stage-node.pending {
+        border-color: #f97316;
+        background: #fff7ed;
+    }
+    
+    .stage-node.blocked {
+        border-color: #ef4444;
+        background: #fee2e2;
+    }
+    
+    .stage-node.skipped {
+        border-color: #94a3b8;
+        background: #f1f5f9;
+        opacity: 0.7;
+    }
+    
+    .stage-node.optional {
+        border-style: dashed;
+    }
+    
+    .stage-node-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .stage-number {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    
+    .stage-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .stage-meta {
+        font-size: 12px;
+        color: #475569;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+    
+    .stage-badges {
+        display: flex;
+        gap: 4px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: #e2e8f0;
+        color: #475569;
+    }
+    
+    .badge.optional {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .badge.skip-if {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .connection-line {
+        position: absolute;
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    .connection-line.prerequisite {
+        stroke: #3b82f6;
+        stroke-width: 2;
+        stroke-dasharray: 5,5;
+    }
+    
+    .connection-line.skip-if {
+        stroke: #94a3b8;
+        stroke-width: 2;
+        stroke-dasharray: 2,2;
+    }
+    
+    .connection-arrow {
+        fill: #3b82f6;
+    }
+    
+    .connection-arrow.skip {
+        fill: #94a3b8;
+    }
+    
+    .stage-list-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+    }
+    
+    .relationship-diagram {
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 12px;
+        font-size: 13px;
+    }
+    
+    .relationship-diagram h4 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 600;
+    }
+    
+    .relationship-flow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .flow-arrow {
+        color: #64748b;
+        font-size: 14px;
+    }
+    
+    .flow-item {
+        padding: 6px 10px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+        font-weight: 500;
+        color: #1e293b;
+    }
+    
+    .stage-card-viz {
+        background: white;
+        border: 5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 18px;
+        transition: all 0.2s;
+    }
+    
+    .stage-card-viz:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #3b82f6;
+    }
+    
+    .stage-card-viz.completed {
+        border-color: #22c55e;
+        border-width: 5px;
+        background: #f0fdf4;
+    }
+    
+    .stage-card-viz.pending {
+        border-color: #f97316;
+        border-width: 5px;
+        background: #fff7ed;
+    }
+    
+    .stage-card-viz.skipped {
+        border-color: #94a3b8;
+        border-width: 5px;
+        background: #f8fafc;
+        opacity: 0.7;
+    }
+    
+    .stage-card-viz.blocked {
+        border-color: #ef4444;
+        border-width: 5px;
+        background: #fef2f2;
+    }
+    
+    .stage-card-viz.optional {
+        border-style: dashed;
+    }
+    
+    .prereq-list, .skip-if-list {
+        margin-top: 10px;
+        font-size: 13px;
+    }
+    
+    .prereq-list strong, .skip-if-list strong {
+        color: #1e293b;
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    
+    .prereq-item, .skip-if-item {
+        padding: 6px 10px;
+        margin: 3px 0;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .prereq-item {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .skip-if-item {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+    
+    .view-toggle {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+    }
+    
+    .view-btn {
+        padding: 6px 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+    
+    .view-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    
+    .view-btn:hover {
+        background: #f1f5f9;
+    }
+    
+    .view-btn.active:hover {
+        background: #2563eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="viz-container">
+    <div class="viz-header">
+        <h1>🔗 Stage Relationship Visualization</h1>
+        <p>Visual representation of stage dependencies, prerequisites, and skip conditions</p>
+    </div>
+    
+    <div class="controls-bar">
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color completed"></div>
+                <span>Completed</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color pending"></div>
+                <span>Pending</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color blocked"></div>
+                <span>Blocked</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color skipped"></div>
+                <span>Skipped</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color optional"></div>
+                <span>Optional</span>
+            </div>
+        </div>
+        <div class="view-toggle">
+            <button class="view-btn active" onclick="switchView('list')">📋 List View</button>
+            <button class="view-btn" onclick="switchView('graph')">🕸️ Graph View</button>
+        </div>
+    </div>
+    
+    <div id="visualizationArea" class="visualization-area">
+        <div id="listView" class="stage-list-view"></div>
+        <svg id="graphView" style="display: none; width: 100%; height: 100%; min-height: 600px;"></svg>
+    </div>
+</div>
+
+<script>
+let stagesData = [];
+let currentView = 'list';
+
+async function loadStagesData() {
+    try {
+        // Load manifest structure
+        const structureResponse = await fetch('/vizbriz/api/stage_summary_manifest_structure');
+        const structureData = await structureResponse.json();
+        
+        if (structureData.stages) {
+            stagesData = structureData.stages;
+            relationships = structureData;
+            renderVisualization();
+        }
+    } catch (error) {
+        console.error('Error loading stages:', error);
+        document.getElementById('listView').innerHTML = '<p style="color: #ef4444;">Error loading stage data</p>';
+    }
+}
+
+let relationships = {};
+
+function renderVisualization() {
+    if (currentView === 'list') {
+        renderListView();
+    } else {
+        renderGraphView();
+    }
+}
+
+function renderListView() {
+    const container = document.getElementById('listView');
+    container.innerHTML = '';
+    
+    stagesData.forEach((stage, index) => {
+        const statusClass = stage.status || 'pending';
+        const optionalClass = stage.optional ? 'optional' : '';
+        const cardClass = `${statusClass} ${optionalClass}`.trim();
+        
+        let prereqHtml = '';
+        if (stage.prerequisites && stage.prerequisites.length > 0) {
+            prereqHtml = `
+                <div class="prereq-list">
+                    <strong>📌 Prerequisites:</strong>
+                    ${stage.prerequisites.map(prereq => {
+                        const prereqStage = stagesData.find(s => s.key === prereq);
+                        const prereqTitle = prereqStage ? prereqStage.title : prereq;
+                        const prereqStatus = prereqStage ? prereqStage.status : 'unknown';
+                        return `<div class="prereq-item">${prereqTitle} <span style="color: #64748b; font-size: 11px;">(${prereqStatus})</span></div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        let skipIfHtml = '';
+        if (stage.skip_if && stage.skip_if.length > 0) {
+            skipIfHtml = `
+                <div class="skip-if-list">
+                    <strong>⏭️ Skip If:</strong>
+                    ${stage.skip_if.map(skipKey => {
+                        const skipStage = stagesData.find(s => s.key === skipKey);
+                        const skipTitle = skipStage ? skipStage.title : skipKey;
+                        const skipStatus = skipStage ? skipStage.status : 'unknown';
+                        return `<div class="skip-if-item">${skipTitle} <span style="color: #64748b; font-size: 11px;">(${skipStatus})</span></div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        container.innerHTML += `
+            <div class="stage-card-viz ${cardClass}">
+                <div class="stage-node-header">
+                    <span class="stage-number">Stage ${index + 1}</span>
+                    <span class="badge ${statusClass}">${statusClass}</span>
+                </div>
+                <h3 class="stage-title">${stage.title}</h3>
+                <div class="stage-meta">Key: <code>${stage.key}</code></div>
+                <div class="stage-badges">
+                    ${stage.optional ? '<span class="badge optional">Optional</span>' : ''}
+                    ${stage.skip_if && stage.skip_if.length > 0 ? `<span class="badge skip-if">Can Skip</span>` : ''}
+                </div>
+        ${prereqHtml}
+        ${skipIfHtml}
+        
+        ${stage.description ? `
+            <div class="detail-item" style="margin-top: 10px; padding: 12px; background: #f8fafc; border-left: 3px solid #cbd5e1; border-radius: 6px;">
+                <div class="detail-label" style="color: #475569; font-weight: 600; margin-bottom: 6px;">📝 Description</div>
+                <div style="font-size: 13px; color: #1e293b; line-height: 1.6;">${stage.description}</div>
+            </div>
+        ` : ''}
+        
+        <div class="detail-item" style="background: #fef3c7; border-left: 3px solid #f59e0b; margin-top: 10px; padding: 12px; border-radius: 6px;">
+            <div class="detail-label" style="color: #92400e; font-weight: 600; margin-bottom: 8px;">⚙️ Completion Condition</div>
+            <div style="font-size: 12px; color: #1e293b;">
+                <div style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px;">
+                    <strong style="color: #92400e;">Type:</strong> 
+                    <code style="background: #fef3c7; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-left: 6px;">${stage.completion_type || 'N/A'}</code>
+                </div>
+                ${stage.data_source ? `
+                    <div style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px;">
+                        <strong style="color: #92400e;">Data Source:</strong> 
+                        <span style="margin-left: 6px; font-family: monospace; font-size: 12px;">${stage.data_source}</span>
+                    </div>
+                ` : ''}
+                ${stage.completion_field ? `
+                    <div style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px;">
+                        <strong style="color: #92400e;">Completion Field:</strong> 
+                        <span style="margin-left: 6px; font-family: monospace; font-size: 12px;">${stage.completion_field}</span>
+                    </div>
+                ` : ''}
+                ${stage.completion_args && Object.keys(stage.completion_args).length > 0 ? `
+                    <div style="margin-bottom: 8px; padding: 8px; background: #fff; border-radius: 4px;">
+                        <strong style="color: #92400e;">Arguments:</strong>
+                        <pre style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 6px; overflow-x: auto; font-family: monospace; border: 1px solid #e2e8f0;">${JSON.stringify(stage.completion_args, null, 2)}</pre>
+                    </div>
+                ` : ''}
+                ${stage.completion_rule ? `
+                    <div style="padding: 8px; background: #fff; border-radius: 4px;">
+                        <strong style="color: #92400e;">Rule:</strong>
+                        <div style="background: #f8fafc; padding: 8px; border-radius: 4px; font-size: 11px; margin-top: 6px; font-family: monospace; color: #1e293b; word-break: break-word; border: 1px solid #e2e8f0; line-height: 1.5;">${stage.completion_rule}</div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+        
+        ${stage.guidance ? `
+            <div class="detail-item" style="margin-top: 10px; padding: 12px; background: #e0f2fe; border-left: 3px solid #0ea5e9; border-radius: 6px;">
+                <div class="detail-label" style="color: #0369a1; font-weight: 600; margin-bottom: 6px;">💡 Guidance</div>
+                <div style="font-size: 13px; color: #0c4a6e; line-height: 1.6; font-style: italic;">${stage.guidance}</div>
+            </div>
+        ` : ''}
+        
+        ${(stage.prerequisites && stage.prerequisites.length > 0) || (stage.skip_if && stage.skip_if.length > 0) ? `
+            <div class="relationship-diagram">
+                <h4>🔗 Relationships:</h4>
+                ${stage.prerequisites && stage.prerequisites.length > 0 ? `
+                    <div style="margin-bottom: 8px;">
+                        <strong style="color: #3b82f6;">Requires:</strong>
+                        <div class="relationship-flow">
+                            ${stage.prerequisites.map(prereq => {
+                                const prereqStage = stagesData.find(s => s.key === prereq);
+                                const prereqTitle = prereqStage ? prereqStage.title : prereq;
+                                return `<span class="flow-item" title="${prereq}">${prereqTitle}</span>`;
+                            }).join('<span class="flow-arrow">→</span>')}
+                            <span class="flow-arrow">→</span>
+                            <span class="flow-item" style="background: #dbeafe; border-color: #3b82f6;">${stage.key}</span>
+                        </div>
+                    </div>
+                ` : ''}
+                ${stage.skip_if && stage.skip_if.length > 0 ? `
+                    <div>
+                        <strong style="color: #94a3b8;">Skips if:</strong>
+                        <div class="relationship-flow">
+                            <span class="flow-item" style="background: #f1f5f9; border-color: #94a3b8;">${stage.key}</span>
+                            <span class="flow-arrow" style="color: #94a3b8;">⏭️</span>
+                            ${stage.skip_if.map(skipKey => {
+                                const skipStage = stagesData.find(s => s.key === skipKey);
+                                const skipTitle = skipStage ? skipStage.title : skipKey;
+                                return `<span class="flow-item" style="background: #e0e7ff; border-color: #94a3b8;" title="${skipKey}">${skipTitle}</span>`;
+                            }).join('<span class="flow-arrow" style="color: #94a3b8;">OR</span>')}
+                            <span style="font-size: 11px; color: #64748b; margin-left: 4px;">completed</span>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        ` : ''}
+            </div>
+        `;
+    });
+}
+
+function renderGraphView() {
+    // Simple graph view - could be enhanced with a proper graph library
+    const svg = document.getElementById('graphView');
+    svg.innerHTML = '';
+    
+    // For now, show a message that graph view needs a library
+    svg.innerHTML = `
+        <text x="50%" y="50%" text-anchor="middle" font-size="16" fill="#64748b">
+            Graph view coming soon. Use List View to see all relationships.
+        </text>
+    `;
+}
+
+function switchView(view) {
+    currentView = view;
+    
+    // Update button states
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Show/hide views
+    const listView = document.getElementById('listView');
+    const graphView = document.getElementById('graphView');
+    
+    if (view === 'list') {
+        listView.style.display = 'grid';
+        graphView.style.display = 'none';
+    } else {
+        listView.style.display = 'none';
+        graphView.style.display = 'block';
+    }
+    
+    renderVisualization();
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadStagesData();
+});
+</script>
+{% endblock %}
+

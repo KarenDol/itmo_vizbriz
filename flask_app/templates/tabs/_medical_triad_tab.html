@@ -1,0 +1,476 @@
+<style>
+    #custom-medical-loader-wrapper {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        z-index: 10500;
+    }
+
+    .custom-medical-loader {
+        border: 12px solid #f3f3f3;
+        border-top: 12px solid #6940ff;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: custom-medical-spin 1.5s linear infinite;
+    }
+
+    @keyframes custom-medical-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Medical Progress Bar Container */
+    #custom-medical-progress-container {
+        display: block;
+        width: 80%;
+        background-color: #ddd;
+        border-radius: 20px;
+        margin-top: 20px;
+        position: relative; /* Ensure proper positioning for inner elements */
+        overflow: hidden; /* Prevent text overflow outside container */
+    }
+
+    /* Medical Progress Bar */
+    #custom-medical-progress-bar {
+        width: 0%;
+        height: 20px;
+        background-color: #4caf50;
+        border-radius: 20px;
+        text-align: center;
+        color: white;
+        line-height: 20px; /* Vertically center text inside the bar */
+        transition: width 0.5s ease-in-out;
+        overflow: hidden; /* Prevent text from spilling out of the bar */
+    }
+
+    /* Medical Progress Text */
+    #custom-medical-progress-text {
+        margin-top: 10px;
+        color: white;
+        font-size: 1rem;
+        text-align: center; /* Center text below the progress bar */
+    }
+</style>
+
+<!-- Medical Files Upload Section -->
+<div id="medical-triad" class="col s12 tab-content">
+    <div class="card dark-card">
+        <div class="card-content">
+            <span class="card-title">Medical Files</span>
+            <ul class="collapsible expandable">
+                <!-- Sleep Test Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>Sleep Test</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="sleep-test-file-list">
+                            {% if uploaded_files.sleep_test %}
+                                {% for file in uploaded_files.sleep_test %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No Sleep Test files uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-sleep-test" class="upload-area drop-zone dark-upload-area center">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop Sleep Test files or folders here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemSleepTest" style="display:none" multiple>
+                            <input type="file" id="folderElemSleepTest" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" id="upload-sleep-test-files-btn" type="button">Select Files</button>
+                            <button class="btn green" id="upload-sleep-test-folders-btn" type="button">Select Folder</button>
+                        </div>
+                        <button class="btn green waves-effect waves-light" id="submit-sleep-test-files-btn">Upload Sleep Test</button>
+                    </div>
+                </li>
+                <!-- Questionnaire Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>Questionnaire</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="questionnaire-file-list">
+                            {% if uploaded_files.questionnaire %}
+                                {% for file in uploaded_files.questionnaire %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No Questionnaire files uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-questionnaire" class="upload-area drop-zone dark-upload-area center">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop Questionnaire files or folders here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemQuestionnaire" style="display:none" multiple>
+                            <input type="file" id="folderElemQuestionnaire" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" id="upload-questionnaire-files-btn" type="button">Select Files</button>
+                            <button class="btn green" id="upload-questionnaire-folders-btn" type="button">Select Folder</button>
+                        </div>
+                        <button class="btn green waves-effect waves-light" id="submit-questionnaire-files-btn">Upload Questionnaire</button>
+                    </div>
+                </li>
+                <!-- Medical Background Section -->
+                <li>
+                    <div class="collapsible-header">
+                        <i class="material-icons">expand_more</i>
+                        <span>Medical Background</span>
+                    </div>
+                    <div class="collapsible-body">
+                        <ul class="file-list" id="medical-background-file-list">
+                            {% if uploaded_files.medical_background %}
+                                {% for file in uploaded_files.medical_background %}
+                                    <li>
+                                        <a href="{{ url_for('filemgmt.download_file', file_id=file.id) }}" target="_blank">
+                                            {{ file.name }} ({{ (file.file_size / 1024)|round(2) }} KB)
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li>No Medical Background files uploaded yet.</li>
+                            {% endif %}
+                        </ul>
+                        <div id="dropzone-medical-background" class="upload-area drop-zone dark-upload-area center">
+                            <i class="material-icons large">cloud_upload</i>
+                            <p>Drag & drop Medical Background files or folders here<br>Or use the buttons below</p>
+                            <input type="file" id="fileElemMedicalBackground" style="display:none" multiple>
+                            <input type="file" id="folderElemMedicalBackground" webkitdirectory directory style="display:none">
+                        </div>
+                        <div class="button-group center-align">
+                            <button class="btn green" id="upload-medical-background-files-btn" type="button">Select Files</button>
+                            <button class="btn green" id="upload-medical-background-folders-btn" type="button">Select Folder</button>
+                        </div>
+                        <button class="btn green waves-effect waves-light" id="submit-medical-background-files-btn">Upload Medical Background</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<
+<!-- Loader Overlay with Circular Progress -->
+<div id="custom-medical-loader-wrapper" class="overlay">
+    <div class="preloader-wrapper big active">
+        <div class="spinner-layer spinner-green-only">
+            <div class="circle-clipper left">
+                <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+                <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+        </div>
+    </div>
+    <div id="custom-medical-progress-container">
+        <div id="custom-medical-progress-bar"></div>
+    </div>
+    <div id="custom-medical-progress-text"></div>
+ </div>
+
+ <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sections = [
+            { id: 'sleep-test', subcategory: 'sleep-test', fileElemId: 'fileElemSleepTest', folderElemId: 'folderElemSleepTest', dropzoneId: 'dropzone-sleep-test', fileListId: 'sleep-test-file-list' },
+            { id: 'questionnaire', subcategory: 'questionnaire', fileElemId: 'fileElemQuestionnaire', folderElemId: 'folderElemQuestionnaire', dropzoneId: 'dropzone-questionnaire', fileListId: 'questionnaire-file-list' },
+            { id: 'medical-background', subcategory: 'medical-background', fileElemId: 'fileElemMedicalBackground', folderElemId: 'folderElemMedicalBackground', dropzoneId: 'dropzone-medical-background', fileListId: 'medical-background-file-list' }
+        ];
+
+        const customLoader = document.getElementById('custom-medical-loader-wrapper');
+        const progressBar = document.getElementById('custom-medical-progress-bar');
+        const progressText = document.getElementById('custom-medical-progress-text');
+        let filesToUpload = {};
+        let totalUploadCount = 0;
+
+        function showLoader(message = 'Processing...') {
+            customLoader.style.display = 'flex';
+            progressBar.style.width = '0%';
+            progressText.textContent = message;
+        }
+
+        function hideLoader() {
+            customLoader.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressText.textContent = '';
+        }
+
+        
+
+        function updateProgressBar(percentage) {
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `Uploading: ${percentage.toFixed(2)}%`;
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function previewFile(file, fileList) {
+            const li = document.createElement('li');
+            li.textContent = file.relativePath || file.webkitRelativePath || file.name;
+            fileList.appendChild(li);
+        }
+
+        async function handleZipFile(zipFile, sectionId, fileList) {
+            showLoader('Unzipping large file...');
+            try {
+                const zip = await JSZip.loadAsync(zipFile);
+                const zipBaseName = zipFile.name.replace(/\.zip$/, '');
+                const zipEntries = Object.keys(zip.files);
+
+                if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+                let processedEntries = 0;
+
+                for (const entry of zipEntries) {
+                    const zipEntry = zip.files[entry];
+                    if (!zipEntry.dir) {
+                        processedEntries++;
+                        const progress = (processedEntries / zipEntries.length) * 100;
+                        updateProgressBar(progress);
+                        progressText.textContent = `Unzipping: ${processedEntries}/${zipEntries.length} files`;
+
+                        const blob = await zipEntry.async('blob');
+                        const relativePath = `${zipBaseName}/${entry}`;
+
+                        filesToUpload[sectionId].push({
+                            file: new File([blob], entry, { type: blob.type }),
+                            relativePath
+                        });
+                    }
+                }
+
+                previewFile(zipFile, fileList);
+            } catch (error) {
+                console.error('Error during unzipping:', error);
+                alert(`Failed to unzip file: ${error.message}`);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function handleDrop(e, fileList, sectionId) {
+            const dt = e.dataTransfer;
+            const items = dt.items;
+
+            if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+            Array.from(items).forEach(item => {
+                const entry = item.webkitGetAsEntry();
+                if (entry) {
+                    traverseFileTree(entry, '', fileList, sectionId);
+                }
+            });
+        }
+
+        
+        function traverseFileTree(item, path = '', fileList, sectionId) {
+                if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+                if (item.isFile) {
+                    // If the item is a file, read its content
+                    item.file(file => {
+                        file.relativePath = path + file.name; // Add relative path for preview
+                        filesToUpload[sectionId].push({
+                            file,
+                            relativePath: file.relativePath
+                        });
+                        previewFile(file, fileList); // Add file to the preview list
+                    });
+                } else if (item.isDirectory) {
+                    // If the item is a directory, traverse its entries
+                    const dirReader = item.createReader();
+                    dirReader.readEntries(entries => {
+                        entries.forEach(entry => {
+                            traverseFileTree(entry, path + item.name + '/', fileList, sectionId);
+                        });
+                    });
+                }
+            }
+        
+        
+        
+        
+        function handleFiles(files, fileList, sectionId) {
+            if (!filesToUpload[sectionId]) filesToUpload[sectionId] = [];
+
+            Array.from(files).forEach(file => {
+                if (file.name.endsWith('.zip')) {
+                    handleZipFile(file, sectionId, fileList);
+                } else {
+                    const relativePath = file.webkitRelativePath || file.name;
+                    filesToUpload[sectionId].push({
+                        file,
+                        relativePath
+                    });
+                    previewFile({ name: relativePath }, fileList);
+                    totalUploadCount++;
+                }
+            });
+        }
+
+        async function processUploads(section, fileList) {
+            if (!filesToUpload[section.id] || filesToUpload[section.id].length === 0) {
+                alert('No files to upload!');
+                return; // Skip further processing
+            }
+
+            const files = filesToUpload[section.id];
+            const totalBytes = files.reduce((acc, { file }) => acc + file.size, 0);
+            let bytesUploaded = 0;
+
+            if (totalBytes === 0) {
+                console.error('Total size of files is 0. Exiting.');
+                return;
+            }
+
+            updateProgressBar(0);
+
+            for (const { file, relativePath } of files) {
+                try {
+                    const presignedResponse = await fetch('{{ url_for("filemgmt.generate_client_presigned_url") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filename: relativePath,
+                            section: section.id,
+                            patient_id: '{{ patient.id }}',
+                            category: 'medical'
+                        })
+                    });
+
+                    const presignedData = await presignedResponse.json();
+                    if (!presignedResponse.ok || !presignedData.success) {
+                        throw new Error(presignedData.message || 'Failed to get presigned URL');
+                    }
+
+                    await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', presignedData.url);
+
+                        xhr.upload.addEventListener('progress', (e) => {
+                            if (e.lengthComputable) {
+                                const overallProgress = (bytesUploaded + e.loaded) / totalBytes * 100;
+                                updateProgressBar(overallProgress);
+                            }
+                        });
+
+                        xhr.addEventListener('load', () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                resolve();
+                            } else {
+                                reject(new Error(`Upload failed for ${relativePath}`));
+                            }
+                        });
+
+                        xhr.addEventListener('error', () => reject(new Error(`Error uploading file: ${relativePath}`)));
+
+                        const formData = new FormData();
+                        Object.keys(presignedData.fields).forEach(key => formData.append(key, presignedData.fields[key]));
+                        formData.append('file', file);
+
+                        xhr.send(formData);
+                    });
+
+                    // Update bytesUploaded after the file is successfully uploaded
+                    bytesUploaded += file.size;
+
+                    const metadataPayload = {
+                        patient_id: '{{ patient.id }}',
+                        s3_key: presignedData.s3_key,
+                        file_size: file.size,
+                        file_type: file.type || 'application/octet-stream',
+                        category: 'medical',
+                        subcategory: section.subcategory
+                    };
+
+                    const metadataResponse = await fetch('{{ url_for("main.store_file_metadata") }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(metadataPayload)
+                    });
+
+                    const metadataResult = await metadataResponse.json();
+                    if (!metadataResponse.ok || !metadataResult.success) {
+                        throw new Error(metadataResult.message || 'Failed to store metadata');
+                    }
+
+                } catch (error) {
+                    console.error(`Error uploading ${relativePath}:`, error.message);
+                }
+            }
+
+            requestAnimationFrame(() => {
+                updateProgressBar(100);
+            });
+
+            filesToUpload[section.id] = [];
+            fileList.innerHTML = '';
+        }
+
+        sections.forEach(section => {
+            const dropzone = document.getElementById(section.dropzoneId);
+            const fileElem = document.getElementById(section.fileElemId);
+            const folderElem = document.getElementById(section.folderElemId);
+            const fileList = document.getElementById(section.fileListId);
+            const submitBtn = document.getElementById(`submit-${section.id}-files-btn`);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            dropzone.addEventListener('dragenter', () => dropzone.classList.add('highlight'));
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('highlight'));
+            dropzone.addEventListener('drop', e => {
+                handleDrop(e, fileList, section.id);
+            });
+
+            fileElem.addEventListener('change', () => handleFiles(fileElem.files, fileList, section.id));
+            folderElem.addEventListener('change', () => handleFiles(folderElem.files, fileList, section.id));
+            document.getElementById(`upload-${section.id}-files-btn`).addEventListener('click', () => fileElem.click());
+            document.getElementById(`upload-${section.id}-folders-btn`).addEventListener('click', () => folderElem.click());
+
+            submitBtn.addEventListener('click', async function () {
+                if (!filesToUpload[section.id] || filesToUpload[section.id].length === 0) {
+                    alert('No files to upload!');
+                    return; // No refresh if no files to upload
+                }
+
+                showLoader('Uploading files...');
+                try {
+                    await processUploads(section, fileList);
+                    alert('File Upload and metadata storage completed successfully!');
+                    window.location.reload();
+                } catch (error) {
+                    alert(`Error during upload: ${error.message}`);
+                } finally {
+                    hideLoader();
+                }
+            });
+        });
+    });
+</script>

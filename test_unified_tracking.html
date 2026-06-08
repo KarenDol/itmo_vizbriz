@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Unified Tracking API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Unified Tracking API</h1>
+        <p>This page tests the new unified tracking endpoint that handles both page views and CTA interactions.</p>
+        
+        <div class="section">
+            <h3>Generate Quiz ID</h3>
+            <button onclick="generateQuizId()">Generate New Quiz ID</button>
+            <div id="quizIdResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test Page View Tracking</h3>
+            <div class="form-group">
+                <label for="pageQuizId">Quiz ID:</label>
+                <input type="text" id="pageQuizId" placeholder="Enter quiz ID or leave empty">
+            </div>
+            <div class="form-group">
+                <label for="pageType">Page Type:</label>
+                <select id="pageType">
+                    <option value="stage_a_step_1">Stage A - Step 1</option>
+                    <option value="stage_a_step_2">Stage A - Step 2</option>
+                    <option value="stage_b_step_1">Stage B - Step 1</option>
+                    <option value="stage_b_step_2">Stage B - Step 2</option>
+                    <option value="results_page">Results Page</option>
+                    <option value="consultation_form">Consultation Form</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="patientEmail">Patient Email:</label>
+                <input type="email" id="patientEmail" placeholder="patient@example.com">
+            </div>
+            <div class="form-group">
+                <label for="quizType">Quiz Type:</label>
+                <select id="quizType">
+                    <option value="basic_quiz">Basic Quiz</option>
+                    <option value="advanced_quiz">Advanced Quiz</option>
+                </select>
+            </div>
+            <button onclick="trackPageView()">Track Page View</button>
+            <div id="pageViewResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test CTA Click Tracking</h3>
+            <div class="form-group">
+                <label for="ctaQuizId">Quiz ID:</label>
+                <input type="text" id="ctaQuizId" placeholder="Enter quiz ID or leave empty">
+            </div>
+            <div class="form-group">
+                <label for="ctaType">CTA Type:</label>
+                <select id="ctaType">
+                    <option value="schedule_sleep_test">Schedule Sleep Test</option>
+                    <option value="consult_dental_team">Consult Dental Team</option>
+                    <option value="complete_advanced_assessment">Complete Advanced Assessment</option>
+                    <option value="email_link_click">Email Link Click</option>
+                    <option value="phone_click">Phone Click</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="ctaText">CTA Text:</label>
+                <input type="text" id="ctaText" placeholder="Button text that was clicked">
+            </div>
+            <div class="form-group">
+                <label for="ctaPageType">Page Type:</label>
+                <input type="text" id="ctaPageType" placeholder="Page where CTA was clicked">
+            </div>
+            <div class="form-group">
+                <label for="ctaPatientEmail">Patient Email:</label>
+                <input type="email" id="ctaPatientEmail" placeholder="patient@example.com">
+            </div>
+            <div class="form-group">
+                <label for="emailSource">Email Source:</label>
+                <select id="emailSource">
+                    <option value="false">From Web</option>
+                    <option value="true">From Email</option>
+                </select>
+            </div>
+            <button onclick="trackCTAClick()">Track CTA Click</button>
+            <div id="ctaResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>Test Form Submission Tracking</h3>
+            <div class="form-group">
+                <label for="formQuizId">Quiz ID:</label>
+                <input type="text" id="formQuizId" placeholder="Enter quiz ID or leave empty">
+            </div>
+            <div class="form-group">
+                <label for="formType">Form Type:</label>
+                <select id="formType">
+                    <option value="consultation_request">Consultation Request</option>
+                    <option value="quiz_submission">Quiz Submission</option>
+                    <option value="contact_form">Contact Form</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="formPatientEmail">Patient Email:</label>
+                <input type="email" id="formPatientEmail" placeholder="patient@example.com">
+            </div>
+            <button onclick="trackFormSubmit()">Track Form Submission</button>
+            <div id="formResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuizId = null;
+
+        async function generateQuizId() {
+            try {
+                const response = await fetch('/api/generate_quiz_id', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    currentQuizId = result.quiz_id;
+                    document.getElementById('quizIdResult').innerHTML = 
+                        `<div class="success">Generated Quiz ID: <strong>${currentQuizId}</strong></div>`;
+                    
+                    // Auto-fill quiz ID fields
+                    document.getElementById('pageQuizId').value = currentQuizId;
+                    document.getElementById('ctaQuizId').value = currentQuizId;
+                    document.getElementById('formQuizId').value = currentQuizId;
+                } else {
+                    document.getElementById('quizIdResult').innerHTML = 
+                        `<div class="error">Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('quizIdResult').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function trackPageView() {
+            const data = {
+                interaction_type: 'page_view',
+                quiz_id: document.getElementById('pageQuizId').value || null,
+                patient_email: document.getElementById('patientEmail').value || null,
+                session_id: 'test-session-' + Date.now(),
+                page_type: document.getElementById('pageType').value,
+                quiz_type: document.getElementById('quizType').value,
+                page_url: window.location.href,
+                referrer: document.referrer,
+                user_agent: navigator.userAgent,
+                clinic_id: 1 // Test clinic ID
+            };
+
+            await trackInteraction(data, 'pageViewResult');
+        }
+
+        async function trackCTAClick() {
+            const data = {
+                interaction_type: 'cta_click',
+                quiz_id: document.getElementById('ctaQuizId').value || null,
+                patient_email: document.getElementById('ctaPatientEmail').value || null,
+                session_id: 'test-session-' + Date.now(),
+                cta_type: document.getElementById('ctaType').value,
+                cta_text: document.getElementById('ctaText').value,
+                page_type: document.getElementById('ctaPageType').value,
+                email_source: document.getElementById('emailSource').value === 'true',
+                quiz_type: 'basic_quiz',
+                clinic_id: 1 // Test clinic ID
+            };
+
+            await trackInteraction(data, 'ctaResult');
+        }
+
+        async function trackFormSubmit() {
+            const data = {
+                interaction_type: 'form_submit',
+                quiz_id: document.getElementById('formQuizId').value || null,
+                patient_email: document.getElementById('formPatientEmail').value || null,
+                session_id: 'test-session-' + Date.now(),
+                page_type: document.getElementById('formType').value,
+                quiz_type: 'basic_quiz',
+                clinic_id: 1, // Test clinic ID
+                additional_data: {
+                    form_type: document.getElementById('formType').value,
+                    submission_time: new Date().toISOString()
+                }
+            };
+
+            await trackInteraction(data, 'formResult');
+        }
+
+        async function trackInteraction(data, resultElementId) {
+            try {
+                const response = await fetch('/api/tracking/log-interaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    document.getElementById(resultElementId).innerHTML = 
+                        `<div class="success">
+                            <strong>Success!</strong><br>
+                            Interaction ID: ${result.interaction_id}<br>
+                            Quiz ID: ${result.quiz_id || 'None'}<br>
+                            Message: ${result.message}
+                        </div>`;
+                } else {
+                    document.getElementById(resultElementId).innerHTML = 
+                        `<div class="error">Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById(resultElementId).innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-generate quiz ID on page load
+        window.onload = function() {
+            generateQuizId();
+        };
+    </script>
+</body>
+</html> 

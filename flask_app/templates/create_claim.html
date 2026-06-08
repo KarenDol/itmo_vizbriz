@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Claim - Vzibriz OSA Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .file-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px;
+        background-color: #2c2c2c;
+        color: #ffffff;
+        margin-top: 5px;
+    }
+    .file-item i {
+        cursor: pointer;
+    }
+    .dark-select .select-wrapper input.select-dropdown,
+    .input-field input[type="text"],
+    .input-field input[type="number"],
+    .materialize-textarea {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+    }
+    .dark-select .dropdown-content {
+        background-color: #424242 !important;
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col s12 m10 offset-m1">
+        <div class="card dark-card">
+            <div class="card-content">
+                <span class="card-title">Create New Claim</span>
+                <form id="claim-form" method="POST" action="{{ url_for('main.create_claim') }}" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Autocomplete for Patient (Name + Mobile) -->
+                        <div class="input-field col s12 m6">
+                            <input type="text" id="patient_autocomplete" class="autocomplete" required>
+                            <label for="patient_autocomplete">Patient Name (Mobile)</label>
+                            <input type="hidden" id="patient_id" name="patient_id">
+                        </div>
+
+                        <!-- Dentist Name (Derived from Patient) -->
+                        <div class="input-field col s12 m6">
+                            <input type="text" id="dentist_name" name="dentist_name" readonly>
+                            <label for="dentist_name">Dentist Name</label>
+                            <input type="hidden" id="dentist_id" name="dentist_id">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Insurer (Fetched from Patient but Editable) -->
+                        <div class="input-field col s12 m6">
+                            <input type="text" name="insurer" id="insurer" required>
+                            <label for="insurer">Insurer</label>
+                        </div>
+                        
+                        <!-- Policy ID (Fetched from Patient but Editable) -->
+                        <div class="input-field col s12 m6">
+                            <input type="text" name="policy_id" id="policy_id">
+                            <label for="policy_id">Policy ID</label>
+                        </div>
+                    </div>
+
+                    <div class="row dark-select">
+                        <!-- Diagnosis Dropdown -->
+                        <div class="input-field col s12">
+                            <select id="diagnosis" name="diagnosis" required>
+                                <option value="" disabled selected>Choose a Diagnosis</option>
+                                <option value="Obstructive Sleep Apnea">Obstructive Sleep Apnea</option>
+                                <option value="Central Sleep Apnea">Central Sleep Apnea</option>
+                                <option value="Complex Sleep Apnea Syndrome">Complex Sleep Apnea Syndrome</option>
+                                <option value="Sleep-Related Hypoventilation">Sleep-Related Hypoventilation</option>
+                                <option value="Sleep-Related Hypoxemia Disorder">Sleep-Related Hypoxemia Disorder</option>
+                            </select>
+                            <label for="diagnosis">Diagnosis</label>
+                        </div>
+                    </div>
+
+                    <div class="row dark-select">
+                        <!-- Treatment Recommendations -->
+                        <div class="input-field col s12">
+                            <select id="treatment_recommendations" name="treatment_recommendations" required>
+                                <option value="" disabled selected>Choose a Procedure</option>
+                                <option value="Oral Appliance">Oral Appliance</option>
+                                <option value="MAD">MAD</option>
+                                <option value="TRD">TRD</option>
+                                <option value="Hybrid Device">Hybrid Device</option>
+                                <option value="Oral Shield">Oral Shield</option>
+                                <option value="SomnoDent">SomnoDent</option>
+                                <option value="Other">Other (Specify below)</option>
+                            </select>
+                        </div>
+
+                        <!-- Treatment Description if 'Other' is selected -->
+                        <div class="input-field col s12" id="other_treatment_field" style="display:none;">
+                            <input type="text" id="other_treatment" name="other_treatment">
+                            <label for="other_treatment">Specify Other Treatment</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Claim Amount -->
+                        <div class="input-field col s12 m6">
+                            <input type="number" step="0.01" id="claim_amount" name="claim_amount" required>
+                            <label for="claim_amount">Claim Amount</label>
+                        </div>
+
+                        <!-- Deductible -->
+                        <div class="input-field col s12 m6">
+                            <input type="number" step="0.01" id="deductible" name="deductible">
+                            <label for="deductible">Deductible (Optional)</label>
+                        </div>
+                    </div>
+
+                    <div class="row dark-select">
+                        <!-- Status Dropdown -->
+                        <div class="input-field col s12">
+                            <select id="status" name="status" required>
+                                <option value="" disabled selected>Choose Claim Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Received">Received</option>
+                                <option value="In Process">In Process</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Denied">Denied</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Suspended">Suspended</option>
+                                <option value="Finalized">Finalized</option>
+                                <option value="Adjusted">Adjusted</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Single Comment Section -->
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <textarea name="comments" class="materialize-textarea"></textarea>
+                            <label for="comments">Comments</label>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="row">
+                        <div class="col s12">
+                            <div class="file-field input-field">
+                                <div class="btn">
+                                    <span>Add Files</span>
+                                    <input type="file" id="fileElemClaim" name="claim_files[]" multiple>
+                                </div>
+                                <div class="file-path-wrapper">
+                                    <input class="file-path validate" type="text" placeholder="Upload one or more files">
+                                </div>
+                            </div>
+                            <div id="file-list-claim" class="file-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="row">
+                        <div class="col s12 center-align">
+                            <button type="submit" class="btn waves-effect waves-light">Submit Claim</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        M.AutoInit();
+
+        // Fetch and populate patient data for autocomplete via AJAX
+        fetch('{{ url_for("main.get_patients_for_autocomplete") }}')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                const patientData = {};
+                data.patients.forEach(patient => {
+                    patientData[`${patient.name} (${patient.mobile})`] = null; // Mapping name and mobile as label
+                });
+
+                // Initialize Autocomplete
+                const patientAutocomplete = document.getElementById('patient_autocomplete');
+                const dentistNameField = document.getElementById('dentist_name');
+                const dentistIdField = document.getElementById('dentist_id');
+                const insurerField = document.getElementById('insurer');
+                const policyIdField = document.getElementById('policy_id');
+
+                M.Autocomplete.init(patientAutocomplete, {
+                    data: patientData,
+                    onAutocomplete: function(selectedValue) {
+                        const selectedPatient = data.patients.find(
+                            patient => `${patient.name} (${patient.mobile})` === selectedValue
+                        );
+                        if (selectedPatient) {
+                            document.getElementById('patient_id').value = selectedPatient.id;
+                            dentistNameField.value = selectedPatient.dentist_name || '';
+                            dentistIdField.value = selectedPatient.dentist_id || '';
+                            insurerField.value = selectedPatient.insurer || '';
+                            policyIdField.value = selectedPatient.policy_id || '';
+                            M.updateTextFields(); // Refresh input fields
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching patient data:', error));
+
+        // Show/hide other treatment field based on selection
+        document.getElementById('treatment_recommendations').addEventListener('change', function() {
+            const otherField = document.getElementById('other_treatment_field');
+            otherField.style.display = this.value === 'Other' ? 'block' : 'none';
+        });
+
+        // Handle file uploads
+        const fileElemClaim = document.getElementById('fileElemClaim');
+        const fileListClaim = document.getElementById('file-list-claim');
+
+        fileElemClaim.addEventListener('change', function() {
+            fileListClaim.innerHTML = ''; // Clear existing file list
+            Array.from(this.files).forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <i class="material-icons" onclick="this.parentElement.remove()">close</i>
+                `;
+                fileListClaim.appendChild(fileItem);
+            });
+        });
+    });
+</script>
+{% endblock %}

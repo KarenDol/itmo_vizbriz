@@ -1,0 +1,951 @@
+{% extends "base.html" %}
+
+{% block title %}OSA Clinic Cases - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-clinic-cases-container">
+    <div class="row">
+        <div class="col s12">
+            <div class="card dark-card">
+                <div class="card-content">
+                    <span class="card-title">
+                        <i class="material-icons left">business</i>
+                        OSA Clinic Cases
+                    </span>
+                
+                <!-- DSO and Clinic Selection -->
+                <div class="row" style="margin-bottom: 20px;">
+                    <div class="col s12 m6">
+                        <div class="input-field">
+                            <i class="material-icons prefix">search</i>
+                            <input type="text" id="dso-autocomplete" class="autocomplete" placeholder="Search DSO...">
+                            <label for="dso-autocomplete">DSO</label>
+                            <input type="hidden" id="dso-id" value="">
+                        </div>
+                    </div>
+                    <div class="col s12 m6">
+                        <div class="input-field">
+                            <select id="clinic-select" onchange="loadPatients()" disabled>
+                                <option value="" disabled selected>Select Clinic</option>
+                            </select>
+                            <label>Clinic</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="row">
+                    <div class="col s12">
+                        <div class="input-field">
+                            <i class="material-icons prefix">search</i>
+                            <input type="text" id="patient-search" placeholder="Search patients by name, email, or ID...">
+                            <label for="patient-search">Search patients</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Count -->
+                <div class="row">
+                    <div class="col s12">
+                        <div class="chip">
+                            <i class="material-icons left">people</i>
+                            <span id="patient-count">0 patients</span>
+                        </div>
+                        <div class="chip">
+                            <i class="material-icons left">schedule</i>
+                            LIFO - Latest First
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loading" class="center-align" style="display: none;">
+                    <div class="preloader-wrapper active">
+                        <div class="spinner-layer spinner-blue-only">
+                            <div class="circle-clipper left">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="gap-patch">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="circle-clipper right">
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p>Loading patients...</p>
+                </div>
+
+                <!-- Patient Cards Container -->
+                <div id="patient-container" class="row">
+                    <!-- Patient cards will be loaded here -->
+                </div>
+
+                <!-- No Patients Message -->
+                <div id="no-patients" class="center-align" style="display: none;">
+                    <i class="material-icons large grey-text">people_outline</i>
+                    <h5 class="grey-text">No patients found</h5>
+                    <p class="grey-text">Select a DSO and clinic to view patients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let allPatients = [];
+let filteredPatients = [];
+let allDSOs = []; // Store DSOs globally for autocomplete
+
+// Load DSOs on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDSOs();
+    initializeSearch();
+    
+    // Clear DSO selection when autocomplete input is cleared
+    const dsoAutocomplete = document.getElementById('dso-autocomplete');
+    dsoAutocomplete.addEventListener('input', function() {
+        if (this.value === '') {
+            document.getElementById('dso-id').value = '';
+            const clinicSelect = document.getElementById('clinic-select');
+            clinicSelect.innerHTML = '<option value="" disabled selected>Select Clinic</option>';
+            clinicSelect.disabled = true;
+            M.FormSelect.init(clinicSelect);
+            showNoPatients();
+        }
+    });
+});
+
+function loadDSOs() {
+    fetch('/api/admin/dsos', {
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Store DSOs globally
+            allDSOs = data.dsos;
+            
+            // Prepare autocomplete data object
+            const autocompleteData = {};
+            data.dsos.forEach(dso => {
+                autocompleteData[dso.name] = null; // Materialize autocomplete format
+            });
+            
+            // Initialize Materialize autocomplete
+            const dsoAutocomplete = document.getElementById('dso-autocomplete');
+            const autocompleteInstance = M.Autocomplete.init(dsoAutocomplete, {
+                data: autocompleteData,
+                onAutocomplete: function(text) {
+                    // Find the selected DSO ID
+                    const selectedDSO = allDSOs.find(dso => dso.name === text);
+                    if (selectedDSO) {
+                        document.getElementById('dso-id').value = selectedDSO.id;
+                        loadClinics();
+                    } else {
+                        M.toast({html: 'DSO not found', classes: 'orange'});
+                    }
+                },
+                minLength: 1, // Start showing suggestions after 1 character
+                limit: 20 // Limit number of suggestions shown
+            });
+            
+            // Store autocomplete instance for later use
+            dsoAutocomplete.autocompleteInstance = autocompleteInstance;
+        } else {
+            M.toast({html: 'Error loading DSOs: ' + data.message, classes: 'red'});
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        M.toast({html: 'Error loading DSOs', classes: 'red'});
+    });
+}
+
+function loadClinics() {
+    const dsoId = document.getElementById('dso-id').value;
+    const clinicSelect = document.getElementById('clinic-select');
+    
+    if (!dsoId) {
+        clinicSelect.innerHTML = '<option value="" disabled selected>Select Clinic</option>';
+        clinicSelect.disabled = true;
+        M.FormSelect.init(clinicSelect);
+        return;
+    }
+    
+    clinicSelect.disabled = false;
+    clinicSelect.innerHTML = '<option value="" disabled selected>Loading clinics...</option>';
+    M.FormSelect.init(clinicSelect);
+    
+    fetch(`/api/admin/clinics/${dsoId}`, {
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            clinicSelect.innerHTML = '<option value="" disabled selected>Select Clinic</option>';
+            
+            data.clinics.forEach(clinic => {
+                const option = document.createElement('option');
+                option.value = clinic.id;
+                option.textContent = clinic.name;
+                clinicSelect.appendChild(option);
+            });
+            
+            M.FormSelect.init(clinicSelect);
+        } else {
+            M.toast({html: 'Error loading clinics: ' + data.message, classes: 'red'});
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        M.toast({html: 'Error loading clinics', classes: 'red'});
+    });
+}
+
+function loadPatients(searchQuery = '') {
+    const clinicId = document.getElementById('clinic-select').value;
+    const dsoId = document.getElementById('dso-id').value;
+    
+    // If no clinic is selected, load all patients
+    if (!clinicId) {
+        if (!dsoId) {
+            // No DSO or clinic selected - load all patients
+            loadAllPatients(searchQuery);
+            return;
+        } else {
+            showNoPatients();
+            return;
+        }
+    }
+    
+    showLoading();
+    
+    const url = searchQuery ? `/api/admin/patients/${clinicId}?search=${encodeURIComponent(searchQuery)}` : `/api/admin/patients/${clinicId}`;
+    
+    fetch(url, {
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            allPatients = data.patients;
+            filteredPatients = [...allPatients];
+            displayPatients();
+            updatePatientCount();
+        } else {
+            M.toast({html: 'Error loading patients: ' + data.message, classes: 'red'});
+            showNoPatients();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        hideLoading();
+        M.toast({html: 'Error loading patients', classes: 'red'});
+        showNoPatients();
+    });
+}
+
+function loadAllPatients(searchQuery = '') {
+    showLoading();
+    
+    const url = searchQuery ? `/api/admin/patients/all?search=${encodeURIComponent(searchQuery)}` : '/api/admin/patients/all';
+    
+    fetch(url, {
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            allPatients = data.patients;
+            filteredPatients = [...allPatients];
+            displayPatients();
+            updatePatientCount();
+        } else {
+            M.toast({html: 'Error loading patients: ' + data.message, classes: 'red'});
+            showNoPatients();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        hideLoading();
+        M.toast({html: 'Error loading patients', classes: 'red'});
+        showNoPatients();
+    });
+}
+
+function displayPatients() {
+    const container = document.getElementById('patient-container');
+    
+    if (filteredPatients.length === 0) {
+        showNoPatients();
+        return;
+    }
+    
+    hideNoPatients();
+    
+    let html = '';
+    filteredPatients.forEach(patient => {
+        const initials = patient.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        const addedDate = (patient.create_date || patient.created_at) ? new Date(patient.create_date || patient.created_at).toLocaleDateString() : 'Unknown';
+        const status = (patient.status || 'New');
+        const statusColor = (function(s){
+            const key = s.toLowerCase();
+            if (key === 'new') return '#1976d2';
+            if (key === 'onboarding') return '#f57c00';
+            if (key === 'in treatment') return '#388e3c';
+            if (key === 'followup') return '#7b1fa2';
+            if (key === 'active') return '#0277bd';
+            return '#90a4ae';
+        })(status);
+        
+                                html += `
+                            <div class="col s12 m6 l4">
+                                <div class="patient-card status-${status.toLowerCase().replace(' ', '-')}" onclick="showLoadingAndNavigate('/patient_workflow_manifest/${patient.id}', this)" title="Status: ${status}">
+                                    <div class="card-header">
+                                        <div class="patient-avatar">
+                                            <div class="avatar-circle">${initials}</div>
+                                </div>
+                                        <div class="patient-basic-info">
+                                            <h3 class="patient-name" style="display: flex; align-items: center; gap: 8px;">
+                                                ${patient.name}
+                                                <span class="status-chip status-${status.toLowerCase().replace(' ', '-')}">${status}</span>
+                                            </h3>
+                                            <div class="patient-id">ID: ${patient.id}</div>
+                            </div>
+                                        <div class="card-actions">
+                                            <i class="material-icons">arrow_forward</i>
+                            </div>
+                        </div>
+                        
+                                    <div class="card-body">
+                                        <div class="contact-info">
+                                            <div class="info-item">
+                                                <i class="material-icons">email</i>
+                                                <span>${patient.email || 'No email'}</span>
+                                            </div>
+                                            ${patient.phone && patient.phone !== 'No phone' ? `
+                                            <div class="info-item">
+                                                <i class="material-icons">phone</i>
+                                                <span>${patient.phone}</span>
+                                            </div>
+                                            ` : ''}
+                                        </div>
+                                        
+                                        <div class="patient-details">
+                                            ${patient.gender && patient.gender !== 'Not specified' ? `
+                                            <div class="detail-item">
+                                                <span class="detail-label">Gender:</span>
+                                                <span class="detail-value">${patient.gender}</span>
+                                            </div>
+                                            ` : ''}
+                                            ${patient.age && patient.age !== 'Not specified' ? `
+                                            <div class="detail-item">
+                                                <span class="detail-label">Age:</span>
+                                                <span class="detail-value">${patient.age}</span>
+                                            </div>
+                                            ` : ''}
+                                            ${patient.dso_name ? `
+                                            <div class="detail-item">
+                                                <span class="detail-label">DSO:</span>
+                                                <span class="detail-value">${patient.dso_name}</span>
+                                            </div>
+                            ` : ''}
+                                            ${patient.clinic_name ? `
+                                            <div class="detail-item">
+                                                <span class="detail-label">Clinic:</span>
+                                                <span class="detail-value">${patient.clinic_name}</span>
+                                            </div>
+                            ` : ''}
+                                        </div>
+                                        
+                                        <div class="date-info">
+                                            <div class="detail-item">
+                                                <span class="detail-label">Added:</span>
+                                                <span class="detail-value">${addedDate}</span>
+                                            </div>
+                                        </div>
+                        </div>
+                        
+                                    <div class="card-footer">
+                                        ${patient.latest_action ? `
+                                        <div class="stage-info">
+                                            <div class="stage-label">Latest:</div>
+                                            <div class="stage-name">${patient.latest_action}</div>
+                                        </div>
+                                        ` : ''}
+                                        <div class="stage-info">
+                                            <div class="stage-label">Next:</div>
+                                            <div class="stage-name next-stage">Click to view patient</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function initializeSearch() {
+    const searchInput = document.getElementById('patient-search');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+        
+        // Set a new timeout to avoid too many requests
+        searchTimeout = setTimeout(() => {
+            // Trigger server-side search
+            const clinicId = document.getElementById('clinic-select').value;
+            const dsoId = document.getElementById('dso-id').value;
+            
+            if (!clinicId && !dsoId) {
+                // No filters selected - search all patients
+                loadAllPatients(searchTerm);
+            } else if (clinicId) {
+                // Clinic selected - search within clinic
+                loadPatients(searchTerm);
+            } else {
+                // Only DSO selected - show no patients message
+                showNoPatients();
+            }
+        }, 300); // 300ms delay to avoid too many requests
+    });
+}
+
+function updatePatientCount() {
+    const countElement = document.getElementById('patient-count');
+    countElement.textContent = `${filteredPatients.length} patients`;
+}
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('patient-container').style.display = 'none';
+    document.getElementById('no-patients').style.display = 'none';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('patient-container').style.display = 'block';
+}
+
+function showNoPatients() {
+    document.getElementById('no-patients').style.display = 'block';
+    document.getElementById('patient-container').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
+}
+
+function hideNoPatients() {
+    document.getElementById('no-patients').style.display = 'none';
+    document.getElementById('patient-container').style.display = 'block';
+}
+
+// Simple navigation function - no loading states on dashboard
+function showLoadingAndNavigate(url, cardElement) {
+    // Navigate immediately without showing loading states on dashboard
+    window.location.href = url;
+}
+</script>
+
+<style>
+/* Balanced dark theme styles */
+.admin-clinic-cases-container {
+    background: #f5f5f5;
+    min-height: 100vh;
+    padding: 20px;
+    margin: -20px;
+}
+
+.dark-card {
+    background: #ffffff !important;
+    color: #333333 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.dark-card .card-title {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+}
+
+.dark-card .card-title i {
+    color: #3498db !important;
+}
+
+/* Input fields with better contrast */
+.dark-card .input-field input {
+    color: #2c3e50 !important;
+    border-bottom: 1px solid #bdc3c7 !important;
+    background: #ffffff !important;
+}
+
+.dark-card .input-field input:focus {
+    border-bottom: 1px solid #3498db !important;
+    box-shadow: 0 1px 0 0 #3498db !important;
+}
+
+.dark-card .input-field label {
+    color: #7f8c8d !important;
+}
+
+.dark-card .input-field input:focus + label,
+.dark-card .input-field input:focus ~ label {
+    color: #3498db !important;
+}
+
+.dark-card .input-field .material-icons.prefix {
+    color: #3498db !important;
+}
+
+/* Select dropdowns */
+.dark-card .input-field select {
+    color: #2c3e50 !important;
+    border-bottom: 1px solid #bdc3c7 !important;
+    background: #ffffff !important;
+}
+
+.dark-card .input-field select:focus {
+    border-bottom: 1px solid #3498db !important;
+    box-shadow: 0 1px 0 0 #3498db !important;
+}
+
+/* Chips */
+.dark-card .chip {
+    background: #ecf0f1 !important;
+    color: #2c3e50 !important;
+    border: 1px solid #bdc3c7 !important;
+}
+
+.dark-card .chip i {
+    color: #7f8c8d !important;
+}
+
+/* Patient card styles - matching Patient Management Dashboard */
+.patient-card {
+    background: white;
+    border-radius: 18px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 3px solid rgba(46, 204, 113, 0.15);
+    overflow: hidden;
+    position: relative;
+    height: 400px; /* Fixed height for all cards */
+    min-height: 400px; /* Ensure minimum height */
+}
+
+.patient-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    z-index: 1;
+}
+
+.patient-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    border-color: #3498db;
+}
+
+/* Status-based accent colors */
+.patient-card.status-new::before { background: linear-gradient(90deg, #1976d2, #0d47a1); }
+.patient-card.status-onboarding::before { background: linear-gradient(90deg, #f57c00, #e65100); }
+.patient-card.status-in-treatment::before { background: linear-gradient(90deg, #388e3c, #1b5e20); }
+.patient-card.status-followup::before { background: linear-gradient(90deg, #7b1fa2, #4a148c); }
+.patient-card.status-active::before { background: linear-gradient(90deg, #0277bd, #01579b); }
+.patient-card.status-archived { display: none; }
+/* Full card border colors - much more distinct */
+.patient-card.status-new { border: 3px solid #1976d2; }
+.patient-card.status-onboarding { border: 3px solid #f57c00; }
+.patient-card.status-in-treatment { border: 3px solid #388e3c; }
+.patient-card.status-followup { border: 3px solid #7b1fa2; }
+.patient-card.status-active { border: 3px solid #0277bd; }
+
+/* Prominent status chips */
+.status-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    border: 1px solid transparent;
+}
+.status-chip.status-new { background: #1976d2; color: white; border-color: #1976d2; }
+.status-chip.status-onboarding { background: #f57c00; color: white; border-color: #f57c00; }
+.status-chip.status-in-treatment { background: #388e3c; color: white; border-color: #388e3c; }
+.status-chip.status-followup { background: #7b1fa2; color: white; border-color: #7b1fa2; }
+.status-chip.status-active { background: #0277bd; color: white; border-color: #0277bd; }
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.patient-avatar {
+    flex-shrink: 0;
+    margin-right: 16px;
+}
+
+.avatar-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.patient-basic-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-actions {
+    color: #7f8c8d;
+    transition: color 0.2s ease;
+}
+
+.patient-card:hover .card-actions {
+    color: #3498db;
+}
+
+.card-body {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto; /* Allow scrolling if content exceeds available space */
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-info {
+    margin-bottom: 16px;
+    flex-shrink: 0; /* Don't shrink this important section */
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.info-item i {
+    font-size: 16px;
+    color: #95a5a6;
+}
+
+.patient-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex: 1; /* Allow this section to grow and shrink as needed */
+    overflow-y: auto; /* Handle overflow if there's too much content */
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.date-info {
+    margin-top: auto; /* Push to bottom */
+    flex-shrink: 0; /* Don't shrink this section */
+}
+
+.detail-label {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.detail-value {
+    color: #495057;
+    font-weight: 400;
+}
+
+.card-footer {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.stage-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stage-label {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.stage-name {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.stage-name.next-stage {
+    color: #3498db;
+    font-weight: 600;
+}
+
+.patient-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 4px 0;
+}
+
+.patient-id {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+
+.patient-card.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+    padding: 20px;
+}
+
+.loading-overlay i {
+    font-size: 24px;
+    color: #3498db;
+    margin-bottom: 8px;
+}
+
+.loading-overlay span {
+    font-size: 14px;
+    color: #3498db;
+    font-weight: 500;
+}
+
+.rotating {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.patient-card.selected {
+    border-color: #4caf50;
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(76, 175, 80, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 4px;
+    padding: 20px;
+    border: 2px solid #4caf50;
+}
+
+.selection-overlay i {
+    font-size: 24px;
+    color: #4caf50;
+    margin-bottom: 8px;
+}
+
+.selection-overlay span {
+    font-size: 14px;
+    color: #4caf50;
+    font-weight: 500;
+}
+
+.circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#patient-container {
+    margin-top: 20px;
+}
+
+/* Increase spacing and font sizes for better readability */
+.patient-card .card-content p {
+    margin: 8px 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+}
+
+.patient-card .card-content h6 {
+    margin: 10px 0 8px 0 !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+}
+
+.patient-card .card-content .material-icons {
+    font-size: 16px !important;
+    margin-right: 6px !important;
+}
+
+/* Add more padding to card content */
+.patient-card .card-content {
+    padding: 20px !important;
+}
+
+/* Ensure proper spacing for the status section */
+.patient-card .status-section {
+    margin-top: 15px !important;
+    padding-top: 15px !important;
+    border-top: 1px solid #e0e0e0 !important;
+}
+
+.patient-card .status-section p {
+    margin: 6px 0 !important;
+    font-weight: 500 !important;
+}
+
+.chip {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/* Ensure text is readable */
+.patient-card .card-content h6,
+.patient-card .card-content p {
+    color: #2c3e50 !important;
+}
+
+.patient-card .card-content .material-icons {
+    color: #7f8c8d !important;
+}
+
+/* Force all text in patient cards to be readable */
+.patient-card .card-content * {
+    color: #2c3e50 !important;
+}
+
+.patient-card .card-content .material-icons {
+    color: #7f8c8d !important;
+}
+
+.patient-card .card-content .blue-text {
+    color: #3498db !important;
+}
+
+/* Fix search interface and header text colors */
+.card-title {
+    color: #000000 !important;
+}
+
+.input-field label {
+    color: #000000 !important;
+}
+
+.input-field input[type=text] {
+    color: #000000 !important;
+}
+
+.input-field input[type=text]::placeholder {
+    color: #666 !important;
+}
+
+.input-field .material-icons.prefix {
+    color: #1976d2 !important;
+}
+
+/* Override Materialize's default light colors */
+.input-field input:focus + label,
+.input-field input:focus ~ label,
+.input-field input.valid + label,
+.input-field input.valid ~ label {
+    color: #1976d2 !important;
+}
+
+.input-field input:focus,
+.input-field input.valid {
+    border-bottom: 1px solid #1976d2 !important;
+    box-shadow: 0 1px 0 0 #1976d2 !important;
+}
+
+/* Autocomplete dropdown styling */
+.autocomplete-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.autocomplete-content li {
+    min-height: 50px;
+    line-height: 50px;
+    padding: 0 15px;
+}
+
+.autocomplete-content li:hover {
+    background-color: #e3f2fd;
+}
+
+.autocomplete-content li .highlight {
+    color: #1976d2;
+    font-weight: 500;
+}
+
+/* Ensure autocomplete input has proper styling */
+#dso-autocomplete {
+    color: #2c3e50 !important;
+}
+
+#dso-autocomplete:focus {
+    border-bottom: 1px solid #1976d2 !important;
+    box-shadow: 0 1px 0 0 #1976d2 !important;
+}
+</style>
+{% endblock %}

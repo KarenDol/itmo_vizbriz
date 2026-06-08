@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}L3 Autoreport{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #00baff;
+        --primary-dark: #0099d4;
+        --bg: #f1f5f9;
+        --card: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e2e8f0;
+    }
+    .l3-auto-wrap { max-width: 1100px; margin: 24px auto; padding: 0 20px 48px; }
+    .l3-auto-header {
+        background: linear-gradient(135deg, #00baff, #0099d4);
+        color: #fff;
+        border-radius: 12px;
+        padding: 20px 28px;
+        margin-bottom: 20px;
+    }
+    .l3-auto-header h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 700; }
+    .l3-auto-header p { margin: 0; opacity: 0.95; font-size: 0.9rem; }
+    .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .panel h2 { font-size: 1.05rem; margin: 0 0 14px; color: var(--text); font-weight: 700; }
+    .clinical-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+    .clinical-gallery img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+    }
+    .clinical-gallery .cap { font-size: 0.7rem; color: var(--muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .report-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+    .badge-pill.missing { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .obs-row {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        background: #fafafa;
+    }
+    .obs-row label.obs-label {
+        display: block;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    /* Materialize hides native <select>; force visible dropdowns in this page */
+    .l3-auto-wrap select.browser-default,
+    .l3-auto-wrap .obs-phrase-select {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        width: 100%;
+        height: auto;
+        padding: 10px 12px;
+        border: 2px solid #00baff;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        background: #fff !important;
+        color: #111827 !important;
+        font-size: 0.9rem;
+        cursor: pointer;
+        -webkit-appearance: menulist;
+        appearance: menulist;
+    }
+    .obs-row .phrase-hint {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #0099d4;
+        margin-bottom: 4px;
+    }
+    .obs-row textarea {
+        width: 100%;
+        min-height: 72px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.9rem;
+        resize: vertical;
+        color: var(--text);
+        background: #fff;
+    }
+    .conclusion-area {
+        width: 100%;
+        min-height: 140px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    .actions-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 8px;
+    }
+    .btn-primary {
+        background: var(--primary) !important;
+        color: #fff !important;
+    }
+    .btn-secondary {
+        background: #64748b !important;
+        color: #fff !important;
+    }
+    .btn-outline {
+        background: #fff !important;
+        color: var(--primary) !important;
+        border: 2px solid var(--primary) !important;
+    }
+    .status-msg { margin-top: 12px; font-size: 0.9rem; color: var(--muted); }
+    .status-msg.error { color: #dc2626; }
+    .status-msg.success { color: #059669; }
+    .merge-options label { margin-right: 16px; font-size: 0.9rem; color: var(--text); }
+    .viewer-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+    }
+    .viewer-overlay img { max-width: 95%; max-height: 95%; border-radius: 8px; }
+    .viewer-overlay.active { display: flex; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="l3-auto-wrap">
+    <div class="l3-auto-header">
+        <h1>L3 Autoreport</h1>
+        <p id="patient-subtitle">Build CBCT observations, auto-generate conclusion, and merge with latest L2 + L3 reports.</p>
+    </div>
+
+    {% if not patient_id %}
+    <div class="panel" id="patient-picker-panel">
+        <h2>Select patient</h2>
+        <p style="color:var(--muted);margin:0 0 12px;">Open from a patient chart, or enter a patient ID below.</p>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input type="number" id="patient-id-input" placeholder="Patient ID" min="1"
+                   style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;width:160px;font-size:1rem;">
+            <button type="button" class="btn btn-primary waves-effect" id="btn-open-patient">Open L3 Autoreport</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="l3-auto-main"{% if not patient_id %} style="display:none;"{% endif %}>
+    <div class="panel" id="clinical-panel" style="display:none;">
+        <h2>Clinical pictures <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(reference only — not included in PDF)</span></h2>
+        <div class="clinical-gallery" id="clinical-gallery"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Observations</h2>
+        <p style="color:var(--muted);font-size:0.85rem;margin:-8px 0 14px;">
+            Choose a phrase from the dropdown to append it to the text area, or type freely.
+        </p>
+        <div id="observations-container">
+            {% for obs in observations_config %}
+            <div class="obs-row" data-key="{{ obs.key }}">
+                <label class="obs-label">{{ obs.label }}</label>
+                {% if obs.options %}
+                <span class="phrase-hint">Suggested phrase (select to append)</span>
+                <select class="browser-default obs-phrase-select" data-key="{{ obs.key }}" aria-label="Suggested phrases for {{ obs.label }}">
+                    <option value="">— Choose a canonical phrase —</option>
+                    {% for opt in obs.options %}
+                    <option value="{{ opt|e }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                <textarea id="obs-{{ obs.key }}" class="obs-details-input" data-key="{{ obs.key }}" placeholder="Details for {{ obs.label }}…" rows="3"></textarea>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Conclusion</h2>
+        <textarea id="conclusion" class="conclusion-area" placeholder="Click “Generate conclusion” to draft with OpenAI, or write manually."></textarea>
+        <div class="actions-bar">
+            <button type="button" class="btn btn-outline waves-effect" id="btn-generate-conclusion">
+                <i class="material-icons left" style="color:#00baff!important;">auto_awesome</i>
+                Generate conclusion (OpenAI)
+            </button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Generate report</h2>
+        <div class="actions-bar">
+            <button type="button" class="btn btn-primary waves-effect" id="btn-generate-report">
+                <i class="material-icons left" style="color:#fff!important;">picture_as_pdf</i>
+                Generate L3 Autoreport PDF
+            </button>
+            <a href="#" id="btn-back-patient" class="btn btn-secondary waves-effect" style="display:none;">
+                <i class="material-icons left" style="color:#fff!important;">arrow_back</i>
+                Back to patient files
+            </a>
+        </div>
+        <div class="status-msg" id="status-msg"></div>
+        <div id="pdf-preview-link" style="margin-top:12px;display:none;">
+            <a href="#" target="_blank" rel="noopener" class="btn btn-outline waves-effect">Open generated PDF</a>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class="viewer-overlay" id="image-viewer">
+    <img src="" alt="Clinical picture" id="viewer-img">
+</div>
+
+<script>
+(function() {
+    const PATIENT_ID = {{ patient_id|default('null') }};
+    const OBS_CONFIG = {{ observations_config|tojson }};
+
+    const obsContainer = document.getElementById('observations-container');
+    const clinicalPanel = document.getElementById('clinical-panel');
+    const clinicalGallery = document.getElementById('clinical-gallery');
+    const conclusionEl = document.getElementById('conclusion');
+    const statusEl = document.getElementById('status-msg');
+    const pdfLinkWrap = document.getElementById('pdf-preview-link');
+
+    var openPatientBtn = document.getElementById('btn-open-patient');
+    if (openPatientBtn) {
+        openPatientBtn.addEventListener('click', function() {
+            var pid = parseInt(document.getElementById('patient-id-input').value, 10);
+            if (pid > 0) {
+                window.location.href = '/reports/l3-autoreport?patient_id=' + pid;
+            }
+        });
+    }
+
+    if (!PATIENT_ID) {
+        if (statusEl) {
+            statusEl.textContent = 'Enter a patient ID above, or open from Patient Files / Workflow Manifest.';
+            statusEl.className = 'status-msg';
+        }
+        return;
+    }
+
+    document.getElementById('patient-subtitle').textContent =
+        'Patient ID ' + PATIENT_ID + ' — build observations and merge with latest L2 + L3 reports.';
+
+    const backBtn = document.getElementById('btn-back-patient');
+    backBtn.href = '/patient/' + PATIENT_ID + '#patient-files';
+    backBtn.style.display = 'inline-flex';
+
+    function setStatus(msg, type) {
+        statusEl.textContent = msg || '';
+        statusEl.className = 'status-msg' + (type ? ' ' + type : '');
+    }
+
+    function wirePhraseSelects() {
+        document.querySelectorAll('.obs-phrase-select').forEach(function(select) {
+            if (select.dataset.wired === '1') return;
+            select.dataset.wired = '1';
+            select.addEventListener('change', function() {
+                const v = select.value;
+                if (!v) return;
+                const key = select.getAttribute('data-key');
+                const textarea = document.getElementById('obs-' + key);
+                if (!textarea) return;
+                const cur = textarea.value.trim();
+                textarea.value = cur ? (cur + '; ' + v) : v;
+                select.selectedIndex = 0;
+            });
+        });
+    }
+
+    function applyPrefill(prefill) {
+        if (!prefill) return;
+        OBS_CONFIG.forEach(function(obs) {
+            const val = prefill[obs.key];
+            if (!val) return;
+            const textarea = document.getElementById('obs-' + obs.key);
+            if (textarea && !textarea.value.trim()) {
+                textarea.value = val;
+            }
+        });
+    }
+
+    wirePhraseSelects();
+
+    function collectObservations() {
+        const out = {};
+        OBS_CONFIG.forEach(function(obs) {
+            const ta = document.getElementById('obs-' + obs.key);
+            out[obs.key] = ta ? ta.value.trim() : '';
+        });
+        return out;
+    }
+
+    function renderClinicalPictures(pics) {
+        clinicalGallery.innerHTML = '';
+        if (!pics || !pics.length) {
+            clinicalPanel.style.display = 'none';
+            return;
+        }
+        clinicalPanel.style.display = 'block';
+        pics.forEach(function(p) {
+            const wrap = document.createElement('div');
+            const img = document.createElement('img');
+            img.src = p.view_url;
+            img.alt = p.name || 'Clinical picture';
+            img.addEventListener('click', function() {
+                document.getElementById('viewer-img').src = p.view_url;
+                document.getElementById('image-viewer').classList.add('active');
+            });
+            const cap = document.createElement('div');
+            cap.className = 'cap';
+            cap.textContent = p.name || '';
+            wrap.appendChild(img);
+            wrap.appendChild(cap);
+            clinicalGallery.appendChild(wrap);
+        });
+    }
+
+    document.getElementById('image-viewer').addEventListener('click', function() {
+        this.classList.remove('active');
+    });
+
+    fetch('/reports/api/l3_autoreport/patient/' + PATIENT_ID + '/context')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.success) throw new Error(data.error || 'Failed to load context');
+            applyPrefill(data.prefill_observations || {});
+            renderClinicalPictures(data.clinical_pictures || []);
+        })
+        .catch(function(e) {
+            setStatus(e.message, 'error');
+        });
+
+    document.getElementById('btn-generate-conclusion').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        setStatus('Generating conclusion with OpenAI…');
+        fetch('/reports/api/l3_autoreport/generate_conclusion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                patient_id: PATIENT_ID,
+                observations: collectObservations()
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.success) throw new Error(data.error || 'Failed');
+            conclusionEl.value = data.conclusion || '';
+            setStatus('Conclusion generated.', 'success');
+        })
+        .catch(function(e) {
+            setStatus(e.message, 'error');
+        })
+        .finally(function() { btn.disabled = false; });
+    });
+
+    document.getElementById('btn-generate-report').addEventListener('click', function() {
+        const btn = this;
+        btn.disabled = true;
+        pdfLinkWrap.style.display = 'none';
+        setStatus('Generating report…');
+        fetch('/reports/api/l3_autoreport/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                patient_id: PATIENT_ID,
+                observations: collectObservations(),
+                conclusion: conclusionEl.value.trim(),
+                include_l2: true,
+                include_l3: true,
+                save_to_reports: true
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.success) throw new Error(data.error || 'Generation failed');
+            setStatus('Report generated and saved.', 'success');
+            if (data.pdf_url) {
+                pdfLinkWrap.style.display = 'block';
+                pdfLinkWrap.querySelector('a').href = data.pdf_url;
+            }
+            if (typeof M !== 'undefined') {
+                M.toast({ html: 'L3 Autoreport generated', classes: 'green' });
+            }
+        })
+        .catch(function(e) {
+            setStatus(e.message, 'error');
+        })
+        .finally(function() { btn.disabled = false; });
+    });
+})();
+</script>
+{% endblock %}

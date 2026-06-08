@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רישום לקורס רפואת שינה דנטלית - Vizbriz</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts - Hebrew support -->
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Assistant', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+            direction: rtl;
+        }
+        
+        .registration-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .course-title {
+            font-size: 1.3rem;
+            font-weight: 400;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .provider-text {
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+        
+        .form-section {
+            padding: 40px 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        select.form-control {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            font-weight: 500;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .alert-error, .alert-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+        
+        .success-section {
+            text-align: center;
+            padding: 40px 30px;
+        }
+        
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .success-message {
+            color: #64748b;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .input-icon {
+            position: relative;
+        }
+        
+        .input-icon i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            z-index: 1;
+        }
+        
+        .input-icon .form-control {
+            padding-right: 45px;
+        }
+        
+        @media (max-width: 768px) {
+            .registration-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header-section {
+                padding: 30px 20px;
+            }
+            
+            .form-section {
+                padding: 30px 20px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+            
+            .course-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="registration-container">
+            <!-- Header Section -->
+            <div class="header-section">
+                <div class="logo">
+                    <img src="/flask_static/white-font-grey.png" alt="Vizbriz Logo" style="height: 80px; margin-bottom: 15px; max-width: 100%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; font-size: 2.5rem; font-weight: 700; margin-bottom: 10px; color: white;">
+                        <i class="fas fa-tooth"></i> Vizbriz
+                    </div>
+                </div>
+                <div class="course-title">קורס רפואת שינה דנטלית</div>
+                <div class="provider-text">מוגש על ידי Vizbriz</div>
+            </div>
+            
+            {% if success %}
+            <!-- Success Section -->
+            <div class="success-section">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="success-title">הרישום בוצע בהצלחה!</div>
+                <div class="success-message">
+                    תודה על רישומך לקורס רפואת שינה דנטלית.
+                </div>
+            </div>
+            {% else %}
+            <!-- Form Section -->
+            <div class="form-section">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-circle' if category == 'error' or category == 'danger' else 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" novalidate>
+                    <!-- Hidden DSO field -->
+                    <input type="hidden" name="dso_name" value="{{ dso_name }}">
+                    <!-- Hidden Session field -->
+                    <input type="hidden" name="session_id" value="{{ session_id }}">
+                    
+                    <!-- Participant Name -->
+                    <div class="form-group">
+                        <label for="doctor_name" class="form-label">
+                            <i class="fas fa-user"></i> שם מלא של המשתתף
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="doctor_name" 
+                                   name="doctor_name" 
+                                   placeholder="ד\"ר יוחנן כהן"
+                                   value="{{ request.form.doctor_name if request.form.doctor_name }}"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <!-- Clinic Name -->
+                    <div class="form-group">
+                        <label for="clinic_name" class="form-label">
+                            <i class="fas fa-clinic-medical"></i> שם המרפאה
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-clinic-medical"></i>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="clinic_name" 
+                                   name="clinic_name" 
+                                   placeholder="מרפאת שיניים מרכזית"
+                                   value="{{ request.form.clinic_name if request.form.clinic_name }}"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i> כתובת אימייל
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="email" 
+                                   name="email" 
+                                   placeholder="doctor@example.com"
+                                   value="{{ request.form.email if request.form.email }}"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <!-- Phone Number -->
+                    <div class="form-group">
+                        <label for="phone_number" class="form-label">
+                            <i class="fas fa-phone"></i> מספר טלפון
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="phone_number" 
+                                   name="phone_number" 
+                                   placeholder="050-123-4567"
+                                   value="{{ request.form.phone_number if request.form.phone_number }}"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <!-- Role in Dental Office -->
+                    <div class="form-group">
+                        <label for="role" class="form-label">
+                            <i class="fas fa-user-tag"></i> תפקיד במרפאה
+                        </label>
+                        <div class="input-icon">
+                            <i class="fas fa-user-tag"></i>
+                            <select class="form-control" 
+                                    id="role" 
+                                    name="role" 
+                                    required>
+                                <option value="">בחר את התפקיד שלך</option>
+                                <option value="Dentist" {{ 'selected' if request.form.role == 'Dentist' }}>רופא.ת שיניים</option>
+                                <option value="Dental Hygienist" {{ 'selected' if request.form.role == 'Dental Hygienist' }}>שינן.ית</option>
+                                <option value="Dental Assistant" {{ 'selected' if request.form.role == 'Dental Assistant' }}>עוזר.ת רופא שיניים</option>
+                                <option value="Office Manager" {{ 'selected' if request.form.role == 'Office Manager' }}>מנהל.ת משרד</option>
+                                <option value="Receptionist" {{ 'selected' if request.form.role == 'Receptionist' }}>פקיד.ה קבלה</option>
+                                <option value="Practice Administrator" {{ 'selected' if request.form.role == 'Practice Administrator' }}>מנהל.ת תרגול</option>
+                                <option value="Treatment Coordinator" {{ 'selected' if request.form.role == 'Treatment Coordinator' }}>רכז.ת טיפול</option>
+                                <option value="Insurance Coordinator" {{ 'selected' if request.form.role == 'Insurance Coordinator' }}>רכז.ת ביטוח</option>
+                                <option value="Other" {{ 'selected' if request.form.role == 'Other' }}>אחר</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-register">
+                        <i class="fas fa-check-circle"></i> אישור נוכחות
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Form Enhancement Script -->
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (alert.classList.contains('alert-success')) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+        
+        // Phone number formatting for Israeli format
+        document.getElementById('phone_number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 9) {
+                value = value.replace(/(\d{3})(\d{3})(\d{3})/, '$1-$2-$3');
+            } else if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})/, '$1-$2-');
+            } else if (value.length >= 3) {
+                value = value.replace(/(\d{3})/, '$1-');
+            }
+            e.target.value = value;
+        });
+        
+        // Form validation enhancement
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const requiredFields = ['doctor_name', 'clinic_name', 'email', 'phone_number'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    אנא מלא את כל השדות הנדרשים.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.form-section').insertBefore(alert, document.querySelector('form'));
+            }
+        });
+    </script>
+</body>
+</html>

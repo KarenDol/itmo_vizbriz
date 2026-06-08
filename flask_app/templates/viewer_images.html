@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Viewer</title>
+    <style>
+        /* Reset body and HTML styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Main layout container */
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar styling */
+        #sidebar {
+            width: 25%;
+            background-color: #f4f4f4;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-right: 1px solid #ccc;
+        }
+
+        #sidebar h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        /* Main viewer area styling */
+        #main-viewer {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #222;
+            padding: 20px;
+            box-sizing: border-box;
+            max-width: 50%;
+        }
+
+        #viewer-container {
+            width: 100%;
+            height: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #444;
+            border: 1px solid #555;
+            color: white;
+        }
+
+        /* File list styling */
+        .file-type {
+            margin-bottom: 10px;
+        }
+
+        .file-type h3 {
+            margin: 10px 0;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: none; /* Initially hidden */
+        }
+
+        .file-list li {
+            margin: 5px 0;
+            cursor: pointer;
+            color: #007BFF;
+            text-decoration: underline;
+        }
+
+        .file-list li:hover {
+            text-decoration: none;
+        }
+
+        /* Viewer controls */
+        #viewer-controls {
+            margin-top: 20px;
+        }
+
+        #viewer-controls button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Navigation arrows */
+        #navigation-arrows {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #navigation-arrows button {
+            padding: 5px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main container -->
+    <div id="container">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <h2>File Explorer</h2>
+            <div id="file-list">
+                <!-- Images Section -->
+                <div class="file-type">
+                    <h3 onclick="toggleList(this)">Images</h3>
+                    <ul class="file-list" id="images-list">
+                        {% for file in files.images %}
+                        <li data-type="image" data-url="{{ file.url }}">{{ file.file_name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- DICOM Files Section -->
+                <div class="file-type">
+                    <h3 onclick="toggleList(this)">DICOM Files</h3>
+                    <ul class="file-list" id="dicom-list">
+                        {% for file in files.dicom %}
+                        <li data-type="dicom" data-url="{{ file.url }}">{{ file.file_name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- STL Files Section -->
+                <div class="file-type">
+                    <h3 onclick="toggleList(this)">3D Models</h3>
+                    <ul class="file-list" id="stl-list">
+                        {% for file in files.stl %}
+                        <li data-type="stl" data-url="{{ file.url }}">{{ file.file_name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Viewer -->
+        <div id="main-viewer">
+            <div id="viewer-container">
+                <p>Select a file to view</p>
+            </div>
+            <div id="viewer-controls">
+                <button id="zoom-in">Zoom In</button>
+                <button id="zoom-out">Zoom Out</button>
+                <button id="rotate">Rotate</button>
+            </div>
+            <div id="navigation-arrows">
+                <button id="prev-file">Previous</button>
+                <button id="next-file">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/loaders/STLLoader.js"></script>
+    <script>
+        const fileLists = document.querySelectorAll('.file-list li');
+        const viewerContainer = document.getElementById('viewer-container');
+        const zoomInButton = document.getElementById('zoom-in');
+        const zoomOutButton = document.getElementById('zoom-out');
+        const rotateButton = document.getElementById('rotate');
+        const prevFileButton = document.getElementById('prev-file');
+        const nextFileButton = document.getElementById('next-file');
+
+        let viewer, scene, camera, renderer, mesh;
+        let currentFileIndex = 0;
+        let currentFiles = [];
+
+        // Toggle file lists open/close
+        function toggleList(header) {
+            const fileList = header.nextElementSibling;
+            fileList.style.display = fileList.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Display the selected file
+        function displayFile(file) {
+            const fileType = file.dataset.type;
+            const fileUrl = file.dataset.url; // Use pre-signed URL
+
+            if (fileType === 'image') {
+                viewerContainer.innerHTML = `<img src="${fileUrl}" alt="Image">`;
+            } else if (fileType === 'dicom') {
+                viewerContainer.innerHTML = `<p>DICOM file viewing not yet implemented: ${file.textContent}</p>`;
+            } else if (fileType === 'stl') {
+                loadSTL(fileUrl);
+            }
+        }
+
+        // Load an STL file
+        function loadSTL(fileUrl) {
+            viewerContainer.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            viewerContainer.appendChild(canvas);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer({ canvas });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+            const loader = new THREE.STLLoader();
+            loader.load(fileUrl, geometry => {
+                const material = new THREE.MeshNormalMaterial();
+                mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+                animate();
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                renderer.render(scene, camera);
+            }
+        }
+
+        // Handle file selection
+        fileLists.forEach((file, index) => {
+            file.addEventListener('click', () => {
+                currentFileIndex = index;
+                currentFiles = Array.from(fileLists);
+                displayFile(file);
+            });
+        });
+
+        // Navigation arrows
+        prevFileButton.addEventListener('click', () => {
+            if (currentFiles.length > 0) {
+                currentFileIndex = (currentFileIndex - 1 + currentFiles.length) % currentFiles.length;
+                displayFile(currentFiles[currentFileIndex]);
+            }
+        });
+
+        nextFileButton.addEventListener('click', () => {
+            if (currentFiles.length > 0) {
+                currentFileIndex = (currentFileIndex + 1) % currentFiles.length;
+                displayFile(currentFiles[currentFileIndex]);
+            }
+        });
+
+        // Zoom and rotate controls
+        zoomInButton.addEventListener('click', () => {
+            if (camera) camera.position.z -= 0.5;
+        });
+
+        zoomOutButton.addEventListener('click', () => {
+            if (camera) camera.position.z += 0.5;
+        });
+
+        rotateButton.addEventListener('click', () => {
+            if (mesh) mesh.rotation.y += 0.5;
+        });
+    </script>
+</body>
+</html>

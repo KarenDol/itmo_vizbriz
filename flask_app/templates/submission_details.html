@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Details</title>
+    <style>
+        body { font-family: sans-serif; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
+        .section { margin-bottom: 20px; }
+        h1, h2 { color: #333; }
+        .info-grid { display: grid; grid-template-columns: 150px 1fr; gap: 10px; }
+        .info-grid strong { font-weight: bold; }
+        .answers-table { width: 100%; border-collapse: collapse; }
+        .answers-table th, .answers-table td { border: 1px solid #ddd; padding: 8px; }
+        .answers-table th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Submission Details for ID: {{ submission[0].id }}</h1>
+        
+        <div class="section">
+            <h2>Submission Information</h2>
+            <div class="info-grid">
+                <strong>Patient Email:</strong>
+                <span>{{ submission[0].patient_email }}</span>
+                
+                <strong>Clinic:</strong>
+                <span>{{ submission[2].name if submission[2] else 'Unknown Clinic' }}</span>
+                
+                <strong>Quiz Type:</strong>
+                <span>{{ 'Basic Quiz' if submission[0].quiz_type == 'basic_quiz' else 'Advanced Quiz' }}</span>
+                
+                <strong>Referral Doctor:</strong>
+                <span>{{ submission[0].referral_doctor if submission[0].referral_doctor else 'Not specified' }}</span>
+                
+                <strong>Submitted:</strong>
+                <span>{{ submission[0].created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Patient Information</h2>
+            <div class="info-grid">
+                <strong>Name:</strong>
+                <span>{{ submission[1].name if submission[1] else 'Not available' }}</span>
+                
+                <strong>Email:</strong>
+                <span>{{ submission[1].email if submission[1] else submission[0].patient_email }}</span>
+                
+                <strong>Phone:</strong>
+                <span>{{ submission[1].phone if submission[1] else 'Not available' }}</span>
+                
+                <strong>Address:</strong>
+                <span>{{ submission[1].address if submission[1] else 'Not available' }}</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Quiz Answers</h2>
+            <table class="answers-table">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Answer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question, answer in quiz_answers.items() %}
+                    <tr>
+                        <td>{{ question.replace('_', ' ')|title }}</td>
+                        <td>{{ answer }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Tracking Usage Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .code-example {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Unified Tracking Usage Example</h1>
+        <p>This page demonstrates how to use the unified tracking utility in your frontend applications.</p>
+        
+        <div class="section">
+            <h3>1. Include the Tracking Script</h3>
+            <div class="code-example">
+                <pre>&lt;script src="/static/js/unified_tracking.js"&gt;&lt;/script&gt;</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>2. Initialize and Set Quiz Context</h3>
+            <button onclick="initializeTracking()">Initialize Tracking</button>
+            <div id="initResult"></div>
+            <div class="code-example">
+                <pre>// Generate quiz ID and set context
+async function initializeTracking() {
+    const quizId = await unifiedTracker.generateQuizId();
+    unifiedTracker.setQuizContext(
+        quizId, 
+        'patient@example.com', 
+        'basic_quiz', 
+        1
+    );
+}</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>3. Track Page Views</h3>
+            <button onclick="trackPageView()">Track Page View</button>
+            <div id="pageViewResult"></div>
+            <div class="code-example">
+                <pre>// Track page view
+await unifiedTracker.trackPageView('stage_a_step_1', {
+    step_number: 1,
+    time_spent: 45
+});</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>4. Track CTA Clicks</h3>
+            <button onclick="trackCTAClick()">Track CTA Click</button>
+            <div id="ctaResult"></div>
+            <div class="code-example">
+                <pre>// Track CTA click
+await unifiedTracker.trackCTAClick(
+    'schedule_sleep_test',
+    'Schedule My Sleep Test Now',
+    'results_page',
+    false
+);</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>5. Track Form Submissions</h3>
+            <button onclick="trackFormSubmit()">Track Form Submission</button>
+            <div id="formResult"></div>
+            <div class="code-example">
+                <pre>// Track form submission
+await unifiedTracker.trackFormSubmit('consultation_request', {
+    form_fields: ['name', 'email', 'phone'],
+    completion_time: 120
+});</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>6. Get Current Context</h3>
+            <button onclick="showContext()">Show Context</button>
+            <div id="contextResult"></div>
+            <div class="code-example">
+                <pre>// Get current tracking context
+const context = unifiedTracker.getContext();
+console.log(context);</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Integration with Quiz Flow</h3>
+            <div class="info">
+                <strong>Typical Quiz Integration:</strong><br>
+                1. Generate quiz ID when quiz starts<br>
+                2. Track each page view as user progresses<br>
+                3. Track CTA clicks for conversion events<br>
+                4. Track form submission when quiz completes
+            </div>
+            <div class="code-example">
+                <pre>// Complete quiz flow example
+async function startQuiz() {
+    // 1. Generate quiz ID
+    const quizId = await unifiedTracker.generateQuizId();
+    unifiedTracker.setQuizContext(quizId, patientEmail, 'basic_quiz', clinicId);
+    
+    // 2. Track quiz start
+    await unifiedTracker.trackPageView('quiz_start');
+    
+    // 3. Show first question
+    showQuestion(1);
+}
+
+async function nextQuestion(questionNumber) {
+    // Track page view for each question
+    await unifiedTracker.trackPageView(`question_${questionNumber}`);
+    showQuestion(questionNumber + 1);
+}
+
+async function handleCTAClick(ctaType, ctaText) {
+    // Track CTA clicks
+    await unifiedTracker.trackCTAClick(ctaType, ctaText, 'results_page');
+    // Handle the CTA action
+}
+
+async function submitQuiz() {
+    // Track quiz completion
+    await unifiedTracker.trackFormSubmit('quiz_submission', {
+        total_questions: 10,
+        completion_time: 300
+    });
+    // Submit quiz data
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/unified_tracking.js"></script>
+    <script>
+        async function initializeTracking() {
+            try {
+                const quizId = await unifiedTracker.generateQuizId();
+                unifiedTracker.setQuizContext(
+                    quizId, 
+                    'patient@example.com', 
+                    'basic_quiz', 
+                    1
+                );
+                
+                document.getElementById('initResult').innerHTML = 
+                    `<div class="success">✅ Tracking initialized with Quiz ID: ${quizId}</div>`;
+            } catch (error) {
+                document.getElementById('initResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function trackPageView() {
+            try {
+                const result = await unifiedTracker.trackPageView('stage_a_step_1', {
+                    step_number: 1,
+                    time_spent: 45
+                });
+                
+                if (result.status === 'success') {
+                    document.getElementById('pageViewResult').innerHTML = 
+                        `<div class="success">✅ Page view tracked (ID: ${result.interaction_id})</div>`;
+                } else {
+                    document.getElementById('pageViewResult').innerHTML = 
+                        `<div class="error">❌ Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('pageViewResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function trackCTAClick() {
+            try {
+                const result = await unifiedTracker.trackCTAClick(
+                    'schedule_sleep_test',
+                    'Schedule My Sleep Test Now',
+                    'results_page',
+                    false
+                );
+                
+                if (result.status === 'success') {
+                    document.getElementById('ctaResult').innerHTML = 
+                        `<div class="success">✅ CTA click tracked (ID: ${result.interaction_id})</div>`;
+                } else {
+                    document.getElementById('ctaResult').innerHTML = 
+                        `<div class="error">❌ Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('ctaResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function trackFormSubmit() {
+            try {
+                const result = await unifiedTracker.trackFormSubmit('consultation_request', {
+                    form_fields: ['name', 'email', 'phone'],
+                    completion_time: 120
+                });
+                
+                if (result.status === 'success') {
+                    document.getElementById('formResult').innerHTML = 
+                        `<div class="success">✅ Form submission tracked (ID: ${result.interaction_id})</div>`;
+                } else {
+                    document.getElementById('formResult').innerHTML = 
+                        `<div class="error">❌ Error: ${result.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('formResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function showContext() {
+            const context = unifiedTracker.getContext();
+            document.getElementById('contextResult').innerHTML = 
+                `<div class="info">
+                    <strong>Current Context:</strong><br>
+                    <pre>${JSON.stringify(context, null, 2)}</pre>
+                </div>`;
+        }
+
+        // Auto-initialize on page load
+        window.onload = function() {
+            initializeTracking();
+        };
+    </script>
+</body>
+</html> 

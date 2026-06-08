@@ -1,0 +1,1230 @@
+{% extends "base.html" %}
+
+{% block title %}Scan & Upload{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { color-scheme: light; }
+    .scan-page { background: #f5f7fb; min-height: calc(100vh - 64px); padding: 32px 20px 100px; padding-top: 80px; }
+    @media (max-width: 768px) {
+        .scan-page { padding: 24px 16px 80px; padding-top: 70px; }
+    }
+    .scan-wrapper { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+    .scan-hero h1 { margin: 0 0 12px 0; font-size: 1.5rem; font-weight: 700; color: #102a43; }
+    .scan-hero.step2-hidden { display: none; }
+    @media (max-width: 768px) {
+        .scan-hero h1 { font-size: 1.25rem; }
+    }
+    .scan-hero p { margin: 0 0 20px 0; color: #5a6b8c; font-size: 1rem; line-height: 1.6; }
+    .step-status { display: flex; flex-direction: column; gap: 12px; }
+    .step-status-text { display: flex; justify-content: space-between; align-items: baseline; color: #0f2d53; font-weight: 600; }
+    .step-status-text span { display: inline-flex; align-items: center; gap: 6px; }
+    .step-status-caption { font-size: 0.95rem; font-weight: 500; color: #6b7a99; }
+    .step-progress { width: 100%; height: 6px; border-radius: 999px; background: #e2ecf8; overflow: hidden; }
+    .step-progress-bar { height: 100%; width: 50%; border-radius: inherit; background: linear-gradient(90deg, #34c759, #22a958); transition: width 0.25s ease; }
+    .scan-card { background: #ffffff; border: 1px solid #d8e2f4; border-radius: 18px; padding: 26px 28px; box-shadow: 0 16px 40px rgba(9, 30, 66, 0.08); }
+    .wizard-step { display: flex; flex-direction: column; gap: 24px; }
+    .scan-card h2 { margin: 0 0 12px 0; font-size: 1.28rem; color: #102a43; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .scan-card p.helper { margin: 0 0 18px 0; color: #6b7a99; font-size: 0.95rem; }
+    .info-button { width: 28px; height: 28px; border-radius: 50%; background: transparent; border: 1px solid #cbd8ef; color: #5a6b8c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; transition: all 0.2s ease; flex-shrink: 0; }
+    .info-button:hover { background: #f5f7fb; border-color: #a8b8d4; color: #102a43; transform: scale(1.1); }
+    .instruction-modal-backdrop { position: fixed; inset: 0; background: rgba(12, 19, 31, 0.55); display: none; align-items: center; justify-content: center; z-index: 1500; backdrop-filter: blur(3px); padding: 16px; }
+    .instruction-modal-backdrop.active { display: flex; }
+    .instruction-modal { width: min(500px, 92vw); max-height: 85vh; background: #ffffff; border-radius: 18px; padding: 28px 24px; box-shadow: 0 30px 60px rgba(9, 30, 66, 0.25); display: flex; flex-direction: column; gap: 18px; border: 1px solid #e2e8f5; overflow-y: auto; }
+    .instruction-modal h3 { margin: 0; font-size: 1.3rem; font-weight: 700; color: #102a43; display: flex; align-items: center; justify-content: space-between; }
+    .instruction-modal h3 .close-btn { width: 32px; height: 32px; border-radius: 50%; background: #f5f7fb; border: 1px solid #d8e2f4; color: #5a6b8c; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s ease; }
+    .instruction-modal h3 .close-btn:hover { background: #e2ecf8; color: #102a43; }
+    .instruction-modal p { margin: 0; color: #4c5d7b; line-height: 1.6; font-size: 0.95rem; }
+    .instruction-modal ol { margin: 0; padding-left: 20px; color: #4c5d7b; line-height: 1.8; }
+    .instruction-modal li { margin-bottom: 8px; }
+    @media (max-width: 640px) {
+        .instruction-modal { width: 95vw; max-height: 90vh; padding: 24px 20px; }
+        .instruction-modal h3 { font-size: 1.15rem; }
+    }
+    .scan-input, .scan-select { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #cbd8ef; background: #ffffff; color: #0f172a; font-size: 1rem; transition: border 0.2s ease, box-shadow 0.2s ease; }
+    .scan-select option { color: #0f172a; background: #ffffff; }
+    .scan-input::placeholder { color: #94a3b8; }
+    .scan-input:focus, .scan-select:focus { outline: none; border-color: #1e9a42; box-shadow: 0 0 0 3px rgba(30,154,66,0.18); }
+    .field-row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .field-col { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 8px; }
+    .field-col label { font-weight: 600; font-size: 0.95rem; color: #1c2f4a; }
+    .search-results { margin-top: 10px; border-radius: 14px; border: 1px solid #dbe4f4; background: #ffffff; max-height: 260px; overflow-y: auto; display: none; box-shadow: 0 18px 36px rgba(15,37,64,0.12); }
+    .result-item { padding: 14px 18px; border-bottom: 1px solid #edf2fb; cursor: pointer; transition: background 0.2s ease, transform 0.2s ease; color: #1d273b; }
+    .result-item:hover { background: #f3f8ff; transform: translateX(4px); color: #102038; }
+    .patient-pill { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 12px; background: #e6f7ed; color: #1b5634; font-weight: 600; border: 1px solid #c4ebd3; }
+    .action-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+    .scan-btn { flex: 1; min-width: 180px; padding: 14px 18px; border-radius: 14px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .scan-btn.primary { background: linear-gradient(92deg, #1f9d3b, #18b05f); color: #ffffff; box-shadow: 0 16px 32px rgba(31,157,59,0.22); }
+    .scan-btn.secondary { background: #edf3ff; color: #1f3b63; border: 1px solid #d7e3fa; }
+    .scan-btn.danger { background: linear-gradient(92deg, #ec5d5d, #d64545); color: #ffffff; }
+    .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; transform: none; }
+    .scan-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 20px 36px rgba(15, 32, 60, 0.18); }
+    .upload-btn-primary { width: 100%; padding: 28px 32px; font-size: 1.4rem; font-weight: 700; border-radius: 18px; background: linear-gradient(92deg, #1f9d3b, #18b05f); color: #ffffff; border: none; cursor: pointer; box-shadow: 0 24px 48px rgba(31,157,59,0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 12px; letter-spacing: 0.4px; min-height: 72px; }
+    .upload-btn-primary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 28px 56px rgba(31,157,59,0.4); }
+    .upload-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; transform: none; }
+    .action-buttons .scan-btn { flex: 1; min-width: auto; padding: 10px 14px; font-size: 0.85rem; font-weight: 500; }
+    .preview-grid { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+    .preview-card { width: 160px; border-radius: 14px; overflow: hidden; background: #f6faff; border: 1px solid #dbe4f7; position: relative; box-shadow: 0 14px 28px rgba(12,36,64,0.12); display: flex; flex-direction: column; }
+    .preview-card img { width: 100%; height: 200px; object-fit: cover; }
+    .preview-card button { width: 100%; border: none; background: #ffffff; padding: 12px; color: #d64545; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-top: 1px solid #e4ecfb; }
+    .preview-card button:hover { background: #fdecec; }
+    .preview-badge { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, 0.82); color: #ffffff; padding: 5px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .summary-text { margin-top: 12px; color: #4c5d7b; font-weight: 500; }
+    .status-banner { margin-top: 18px; padding: 16px 18px; border-radius: 14px; display: none; font-weight: 600; }
+    .status-success { background: #e8f9ee; color: #1f8a47; border: 1px solid #9ddfb9; }
+    .status-error { background: #fde8e9; color: #c93c3c; border: 1px solid #f5b5ba; }
+    .status-info { background: #e9f1ff; color: #2456a5; border: 1px solid #b8d0fb; }
+    .camera-modal { position: fixed; inset: 0; background: rgba(12, 19, 31, 0.7); display: none; align-items: center; justify-content: center; z-index: 2200; backdrop-filter: blur(4px); padding: 16px; overflow-y: auto; }
+    .camera-modal.active { display: flex; }
+    .camera-frame { position: relative; width: min(96vw, 560px); background: #0c1423; border-radius: 18px; overflow: hidden; box-shadow: 0 28px 64px rgba(7, 13, 24, 0.6); display: flex; flex-direction: column; max-height: 92vh; }
+    .camera-preview-wrapper { position: relative; background: #000; width: 100%; padding-top: 75%; overflow: hidden; }
+    .camera-preview-wrapper video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .camera-controls { position: relative; display: flex; justify-content: center; align-items: center; gap: 18px; padding: 14px 16px; background: transparent; flex-wrap: nowrap; }
+    .camera-controls.overlay { position: absolute; left: 50%; bottom: calc(68px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: auto; padding: 0; display: flex; justify-content: center; align-items: center; gap: 20px; pointer-events: none; max-width: 440px; width: calc(100% - 40px); transition: opacity 0.2s ease; }
+    .camera-controls.overlay::before { display: none; }
+    .camera-controls.overlay .camera-control { pointer-events: auto; }
+    .camera-controls.overlay > * { z-index: 1; }
+    .camera-controls.overlay .camera-control.capture { box-shadow: 0 18px 40px rgba(31, 157, 59, 0.36); }
+    .camera-controls.stack { display: none; justify-content: center; align-items: center; gap: 16px; padding: 16px; background: #0c1423; transition: opacity 0.2s ease; }
+    .camera-control { flex: 0 0 auto; min-width: auto; background: rgba(17, 29, 48, 0.7); border: none; color: #e1e8f5; font-size: 0.85rem; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 12px 16px; transition: opacity 0.2s ease, transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.2px; }
+    .camera-control:hover { transform: translateY(-1px); opacity: 0.92; }
+    .camera-control.capture { width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #1f9d3b, #18b05f); color: #ffffff; font-size: 0.9rem; letter-spacing: 0.4px; padding: 0; border: 4px solid rgba(255, 255, 255, 0.55); text-transform: uppercase; }
+    .camera-control.capture:hover { opacity: 1; transform: translateY(-2px) scale(1.03); }
+    .camera-control.flash { background: rgba(17, 29, 48, 0.7); }
+    .camera-control.flash.active { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; }
+    .camera-control:disabled { opacity: 0.45 !important; cursor: not-allowed !important; box-shadow: none !important; transform: none !important; }
+    .orientation-warning { position: absolute; inset: 0; background: rgba(12, 19, 31, 0.82); color: #ffffff; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; gap: 18px; z-index: 3; pointer-events: none; }
+    .orientation-warning h3 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+    .orientation-warning p { margin: 0; font-size: 0.95rem; line-height: 1.5; color: #dae6ff; }
+    .camera-orientation-message { display: none; width: 100%; padding: 14px 16px; border-radius: 18px; background: rgba(12, 19, 31, 0.88); color: #ffffff; font-weight: 600; font-size: 0.95rem; text-align: center; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 18px 40px rgba(9, 22, 46, 0.45); }
+    .camera-orientation-message span { display: inline-flex; align-items: center; gap: 8px; }
+    .camera-controls.orientation-locked { pointer-events: none; gap: 0; }
+    .camera-controls.orientation-locked .camera-orientation-message { display: flex; }
+    .camera-controls.orientation-locked .camera-control { display: none; }
+    .camera-frame.orientation-block .orientation-warning { display: flex; }
+    .wizard-nav { display: flex; justify-content: space-between; gap: 16px; margin-top: 16px; }
+    .wizard-nav button { flex: 1; }
+    .result-dialog-backdrop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(12, 19, 31, 0.55); z-index: 1400; backdrop-filter: blur(3px); }
+    .result-dialog-backdrop.active { display: flex; }
+    .result-dialog { width: min(420px, 92vw); background: #ffffff; border-radius: 18px; padding: 28px 24px; box-shadow: 0 30px 60px rgba(9, 30, 66, 0.25); display: flex; flex-direction: column; gap: 18px; border: 1px solid #e2e8f5; }
+    .result-dialog h3 { margin: 0; font-size: 1.3rem; font-weight: 700; color: #102a43; }
+    .result-dialog p { margin: 0; color: #4c5d7b; line-height: 1.5; }
+    .result-dialog-actions { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+    .dialog-btn { border: none; border-radius: 12px; padding: 12px 20px; font-weight: 600; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .dialog-btn.primary { background: #1f9d3b; color: #ffffff; box-shadow: 0 16px 32px rgba(31, 157, 59, 0.22); }
+    .dialog-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 20px 36px rgba(31, 157, 59, 0.28); }
+    .dialog-btn.ghost { background: transparent; color: #1f3b63; border: 1px solid #d4def4; }
+    .dialog-btn.ghost:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(15, 32, 60, 0.16); }
+    .result-dialog.success h3 { color: #18753c; }
+    .result-dialog.error h3 { color: #c0392b; }
+    .result-dialog button { align-self: flex-end; padding: 12px 22px; border-radius: 12px; border: none; background: #1f9d3b; color: #ffffff; font-weight: 600; cursor: pointer; box-shadow: 0 16px 32px rgba(31, 157, 59, 0.22); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .result-dialog button:hover { transform: translateY(-1px); box-shadow: 0 20px 36px rgba(31, 157, 59, 0.28); }
+    .result-dialog.error .dialog-btn.primary { background: #d64545; box-shadow: 0 16px 32px rgba(214, 69, 69, 0.22); }
+    .result-dialog.error .dialog-btn.primary:hover { box-shadow: 0 20px 36px rgba(214, 69, 69, 0.28); }
+    @media (max-width: 640px) {
+        .step-status-text { flex-direction: column; align-items: flex-start; gap: 4px; }
+        .action-buttons, .wizard-nav { flex-direction: column; gap: 10px; }
+        .scan-btn { min-width: 100%; width: 100%; }
+        .upload-btn-primary { padding: 24px 28px; font-size: 1.25rem; min-height: 68px; }
+        .action-buttons .scan-btn { padding: 10px 12px; font-size: 0.8rem; }
+        .scan-page { padding-bottom: 100px; }
+        .wizard-nav { margin-top: 20px; }
+        .action-buttons { margin-bottom: 12px; }
+        .scan-card { padding: 20px 18px; }
+    }
+        .camera-modal { padding: 0; align-items: stretch; justify-content: center; }
+        .camera-frame { width: 100vw; height: 100vh; border-radius: 0; max-height: none; box-shadow: none; }
+        .camera-preview-wrapper { flex: 1; padding-top: 0; height: 100%; }
+        .camera-preview-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+        .camera-controls.overlay { display: flex; flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 18px; padding: 0; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 36px); max-width: 360px; }
+        .camera-controls.overlay::before { display: none; }
+        .camera-controls.overlay .camera-control { pointer-events: auto; }
+        .camera-control { font-size: 0.8rem; padding: 10px 14px; }
+        .camera-control.capture { width: 72px; height: 72px; font-size: 0.78rem; border-width: 3px; }
+        .camera-controls.stack { display: none; }
+    }
+    @media (max-height: 520px) and (orientation: landscape) {
+        .camera-frame { width: 100vw; height: 100vh; border-radius: 0; max-height: none; box-shadow: none; }
+        .camera-preview-wrapper { padding-top: 0; height: 100%; }
+        .camera-controls.overlay { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; padding: 0; bottom: calc(48px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 36px); max-width: 360px; }
+        .camera-controls.stack { display: none; }
+        .camera-control { padding: 10px 12px; font-size: 0.78rem; }
+        .camera-control.capture { width: 68px; height: 68px; border-width: 3px; font-size: 0.7rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="scan-page">
+    <div class="scan-wrapper">
+        <div class="scan-hero">
+        <h1>Scan &amp; Upload Document</h1>
+            <p>Capture document pages using your device camera or add existing images, then store them under the correct patient.</p>
+            <div class="step-status">
+                <div class="step-status-text">
+                    <span id="stepStatusLabel">Step 1 of 2</span>
+                    <span class="step-status-caption" id="stepStatusCaption">Patient &amp; Document Details</span>
+                </div>
+                <div class="step-progress">
+                    <div class="step-progress-bar" id="stepProgressBar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="wizardStep1" class="wizard-step">
+            <div class="scan-card">
+                <h2>Patient</h2>
+                <p class="helper">Search by name, email, or ID. We’ll limit results to patients you can access.</p>
+                <input type="text" id="patientSearch" class="scan-input" placeholder="Type patient name or ID…" autocomplete="off">
+                <div id="patientResults" class="search-results"></div>
+                <div id="selectedPatient" class="patient-pill" style="display:none;"></div>
+                <input type="hidden" id="patientId">
+            </div>
+
+            <div class="scan-card">
+                <h2>Document Details</h2>
+                <div class="field-row">
+                    <div class="field-col">
+                        <label for="documentType">Document Type</label>
+                        <select id="documentType" class="browser-default scan-select">
+                            {% for option in document_types %}
+                            <option value="{{ option.value }}">{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-col">
+                        <label for="documentName">Document Name (optional)</label>
+                        <input type="text" id="documentName" class="scan-input" placeholder="Leave blank to auto-generate">
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-nav">
+                <span></span>
+                <button type="button" class="scan-btn primary" id="toStep2Btn">Next: Scan Document</button>
+            </div>
+        </div>
+
+        <div id="wizardStep2" class="wizard-step" style="display:none;">
+            <div class="scan-card">
+                <h2>Capture or Attach Pages <button type="button" class="info-button" id="instructionInfoBtn" aria-label="Show instructions">ℹ️</button></h2>
+                <p class="helper">Use the camera to scan document pages or add existing images. When finished, press "Upload Document" to upload all pages as a single PDF.</p>
+                <div class="action-buttons">
+                    <button type="button" class="scan-btn primary" id="openCameraBtn">📷 Scan with Camera</button>
+                    <button type="button" class="scan-btn secondary" id="addImagesBtn">🖼️ Add Images</button>
+                    <button type="button" class="scan-btn danger" id="resetWorkspaceBtn">♻️ Reset</button>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" multiple style="display:none;">
+                <div id="summaryText" class="summary-text">No pages captured yet.</div>
+                <button type="button" class="upload-btn-primary" id="uploadBtn" style="margin-top: 24px; margin-bottom: 24px;">📤 Upload Document</button>
+                <div id="previewGrid" class="preview-grid"></div>
+                <div id="statusBanner" class="status-banner"></div>
+            </div>
+
+            <div class="wizard-nav">
+                <button type="button" class="scan-btn secondary" id="backToStep1Btn">← Back</button>
+                <span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="camera-modal" id="cameraModal">
+    <div class="camera-frame" id="cameraFrame">
+        <div class="orientation-warning" id="orientationWarning">
+            <h3>Hold Your Phone Upright</h3>
+            <p>For the clearest document scan, rotate your device to portrait orientation. Capture will enable once you rotate.</p>
+        </div>
+        <div class="camera-preview-wrapper">
+            <video id="scanVideo" autoplay playsinline></video>
+            <div class="camera-controls overlay" id="cameraControlsOverlay">
+                <div class="camera-orientation-message" id="orientationOverlayMessage" aria-live="polite">
+                    <span>Rotate your device to portrait to continue scanning.</span>
+                </div>
+                <button type="button" class="camera-control" id="switchCameraBtn" aria-label="Switch camera">🔄 Switch</button>
+                <button type="button" class="camera-control flash" id="flashBtn" aria-label="Toggle flash">⚡ Flash</button>
+                <button type="button" class="camera-control capture" id="captureFrameBtn" aria-label="Capture photo">Capture</button>
+                <button type="button" class="camera-control" id="closeCameraBtn" aria-label="Close camera">✕ Close</button>
+            </div>
+        </div>
+        <canvas id="scanCanvas" style="display:none;"></canvas>
+        <div class="camera-controls stack" id="cameraControlsStack">
+            <div class="camera-orientation-message" id="orientationStackMessage" aria-live="polite">
+                <span>Rotate your device to portrait to continue scanning.</span>
+            </div>
+            <button type="button" class="camera-control" id="switchCameraBtnStack" aria-label="Switch camera">🔄 Switch</button>
+            <button type="button" class="camera-control flash" id="flashBtnStack" aria-label="Toggle flash">⚡ Flash</button>
+            <button type="button" class="camera-control capture" id="captureFrameBtnStack" aria-label="Capture photo">Capture</button>
+            <button type="button" class="camera-control" id="closeCameraBtnStack" aria-label="Close camera">✕ Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="result-dialog-backdrop" id="resultDialogBackdrop">
+    <div class="result-dialog" id="resultDialog">
+        <h3 id="resultDialogTitle">Upload Complete</h3>
+        <p id="resultDialogMessage">The document has been uploaded successfully.</p>
+        <div class="result-dialog-actions">
+            <button type="button" class="dialog-btn primary" id="resultDialogPrimary">Done</button>
+            <button type="button" class="dialog-btn ghost" id="resultDialogSecondary">Add another document</button>
+        </div>
+    </div>
+</div>
+
+<div class="instruction-modal-backdrop" id="instructionModalBackdrop">
+    <div class="instruction-modal" id="instructionModal">
+        <h3>
+            How to Scan & Upload Documents
+            <button type="button" class="close-btn" id="closeInstructionModal" aria-label="Close">×</button>
+        </h3>
+        <div>
+            <p><strong>Step-by-step instructions:</strong></p>
+            <ol>
+                <li>Click "Scan with Camera" to open your device camera.</li>
+                <li>Position each document page in the camera view and capture it.</li>
+                <li>Repeat step 2 for all pages you want to include in the document.</li>
+                <li>When you have finished scanning all pages, press the "Upload Document" button.</li>
+                <li>All scanned pages will be automatically combined into a single PDF document and uploaded in its entirety.</li>
+            </ol>
+            <p style="margin-top: 16px;"><strong>Note:</strong> You can also add existing images from your device using the "Add Images" button, or reset and start over using the "Reset" button.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const fallbackDocTypes = [
+        { value: 'sleep_study', label: 'Sleep Study' },
+        { value: 'sleep_test', label: 'Sleep Test' },
+        { value: 'medical_background', label: 'Medical Background' },
+        { value: 'billing', label: 'Billing' },
+        { value: 'questionnaire', label: 'Questionnaire' },
+        { value: 'other', label: 'Other Document' }
+    ];
+
+    const portraitMediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(orientation: portrait)') : null;
+
+    const state = {
+        patient: null,
+        pages: [],
+        cameraStream: null,
+        facingMode: 'environment',
+        flashEnabled: false,
+        flashSupported: false,
+        busy: false,
+        step: 1,
+        orientationWarningShown: false,
+        orientationIntervalId: null,
+        dialogOptions: null
+    };
+
+    const el = {
+        patientSearch: document.getElementById('patientSearch'),
+        patientResults: document.getElementById('patientResults'),
+        selectedPatient: document.getElementById('selectedPatient'),
+        patientId: document.getElementById('patientId'),
+        documentType: document.getElementById('documentType'),
+        documentName: document.getElementById('documentName'),
+        imageInput: document.getElementById('imageInput'),
+        summaryText: document.getElementById('summaryText'),
+        previewGrid: document.getElementById('previewGrid'),
+        uploadBtn: document.getElementById('uploadBtn'),
+        statusBanner: document.getElementById('statusBanner'),
+        openCameraBtn: document.getElementById('openCameraBtn'),
+        addImagesBtn: document.getElementById('addImagesBtn'),
+        resetWorkspaceBtn: document.getElementById('resetWorkspaceBtn'),
+        cameraModal: document.getElementById('cameraModal'),
+        cameraFrame: document.getElementById('cameraFrame'),
+        orientationWarning: document.getElementById('orientationWarning'),
+        cameraControlsOverlay: document.getElementById('cameraControlsOverlay'),
+        cameraControlsStack: document.getElementById('cameraControlsStack'),
+        orientationOverlayMessage: document.getElementById('orientationOverlayMessage'),
+        orientationStackMessage: document.getElementById('orientationStackMessage'),
+        scanVideo: document.getElementById('scanVideo'),
+        scanCanvas: document.getElementById('scanCanvas'),
+        switchCameraBtn: document.getElementById('switchCameraBtn'),
+        flashBtn: document.getElementById('flashBtn'),
+        captureFrameBtn: document.getElementById('captureFrameBtn'),
+        closeCameraBtn: document.getElementById('closeCameraBtn'),
+        switchCameraBtnStack: document.getElementById('switchCameraBtnStack'),
+        flashBtnStack: document.getElementById('flashBtnStack'),
+        captureFrameBtnStack: document.getElementById('captureFrameBtnStack'),
+        closeCameraBtnStack: document.getElementById('closeCameraBtnStack'),
+        wizardStep1: document.getElementById('wizardStep1'),
+        wizardStep2: document.getElementById('wizardStep2'),
+        toStep2Btn: document.getElementById('toStep2Btn'),
+        backToStep1Btn: document.getElementById('backToStep1Btn'),
+        stepStatusLabel: document.getElementById('stepStatusLabel'),
+        stepStatusCaption: document.getElementById('stepStatusCaption'),
+        stepProgressBar: document.getElementById('stepProgressBar'),
+        resultBackdrop: document.getElementById('resultDialogBackdrop'),
+        resultDialog: document.getElementById('resultDialog'),
+        resultDialogTitle: document.getElementById('resultDialogTitle'),
+        resultDialogMessage: document.getElementById('resultDialogMessage'),
+        resultDialogPrimary: document.getElementById('resultDialogPrimary'),
+        resultDialogSecondary: document.getElementById('resultDialogSecondary'),
+        instructionInfoBtn: document.getElementById('instructionInfoBtn'),
+        instructionModalBackdrop: document.getElementById('instructionModalBackdrop'),
+        closeInstructionModal: document.getElementById('closeInstructionModal'),
+        scanHero: document.querySelector('.scan-hero')
+    };
+
+    async function loadImageForAnalysis(file) {
+        if (window.createImageBitmap) {
+            const bitmap = await createImageBitmap(file);
+            return {
+                width: bitmap.width,
+                height: bitmap.height,
+                draw: (ctx, w, h) => ctx.drawImage(bitmap, 0, 0, w, h),
+                cleanup: () => bitmap.close()
+            };
+        }
+        const url = URL.createObjectURL(file);
+        try {
+            const img = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = reject;
+                image.src = url;
+            });
+            return {
+                width: img.naturalWidth || img.width,
+                height: img.naturalHeight || img.height,
+                draw: (ctx, w, h) => ctx.drawImage(img, 0, 0, w, h),
+                cleanup: () => URL.revokeObjectURL(url)
+            };
+        } catch (err) {
+            URL.revokeObjectURL(url);
+            throw err;
+        }
+    }
+
+    async function analyzeImageQuality(file) {
+        try {
+            const img = await loadImageForAnalysis(file);
+            const maxDimension = 512;
+            const aspect = img.width / img.height;
+            let targetWidth = img.width;
+            let targetHeight = img.height;
+            if (Math.max(img.width, img.height) > maxDimension) {
+                if (aspect >= 1) {
+                    targetWidth = maxDimension;
+                    targetHeight = Math.round(maxDimension / aspect);
+                } else {
+                    targetHeight = maxDimension;
+                    targetWidth = Math.round(maxDimension * aspect);
+                }
+            }
+            const canvas = (typeof OffscreenCanvas !== 'undefined')
+                ? new OffscreenCanvas(targetWidth, targetHeight)
+                : Object.assign(document.createElement('canvas'), { width: targetWidth, height: targetHeight });
+            if (!canvas) throw new Error('Canvas not supported');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) throw new Error('Unable to read image data');
+            if (!(canvas instanceof OffscreenCanvas)) {
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+            }
+            img.draw(ctx, targetWidth, targetHeight);
+            img.cleanup();
+            const { data, width, height } = ctx.getImageData(0, 0, targetWidth, targetHeight);
+            const length = width * height;
+            const luminance = new Float32Array(length);
+            let sum = 0;
+            let sumSq = 0;
+            for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                luminance[j] = y;
+                sum += y;
+            }
+            const mean = sum / length;
+            for (let i = 0; i < length; i++) {
+                const diff = luminance[i] - mean;
+                sumSq += diff * diff;
+            }
+            const variance = sumSq / length;
+            const stdDev = Math.sqrt(variance);
+
+            let laplacianSum = 0;
+            let laplacianCount = 0;
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = y * width + x;
+                    const lap =
+                        4 * luminance[idx] -
+                        luminance[idx - 1] -
+                        luminance[idx + 1] -
+                        luminance[idx - width] -
+                        luminance[idx + width];
+                    laplacianSum += lap * lap;
+                    laplacianCount++;
+                }
+            }
+            const laplacianVar = laplacianCount ? laplacianSum / laplacianCount : 0;
+
+            const issues = [];
+            const warnings = [];
+            if (laplacianVar < 60) {
+                issues.push('Image is blurry (low sharpness detected). Please retake.');
+            } else if (laplacianVar < 160) {
+                warnings.push('Image sharpness is borderline. Consider retaking if details are important.');
+            }
+            if (mean < 30) {
+                issues.push('Image is too dark. Increase lighting and retake.');
+            } else if (mean < 50) {
+                warnings.push('Image brightness is on the low side. Ensure details are visible.');
+            }
+            if (stdDev < 18) {
+                issues.push('Image contrast is too low. Retake with better lighting/position.');
+            } else if (stdDev < 24) {
+                warnings.push('Image contrast could be improved. If text looks faint, consider retaking.');
+            }
+
+            return {
+                ok: issues.length === 0,
+                warnings,
+                issues,
+                metrics: {
+                    laplacianVar,
+                    mean,
+                    stdDev
+                }
+            };
+        } catch (err) {
+            console.error('Image analysis failed', err);
+            return {
+                ok: false,
+                warnings: [],
+                issues: ['Unable to analyze image quality. Please try retaking the photo.']
+            };
+        }
+    }
+
+    if (!el.documentType.options.length) {
+        fallbackDocTypes.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            el.documentType.appendChild(option);
+        });
+    }
+
+    function setStep(step) {
+        state.step = step;
+        el.wizardStep1.style.display = step === 1 ? 'flex' : 'none';
+        el.wizardStep2.style.display = step === 2 ? 'flex' : 'none';
+        if (el.scanHero) {
+            if (step === 2) {
+                el.scanHero.classList.add('step2-hidden');
+            } else {
+                el.scanHero.classList.remove('step2-hidden');
+            }
+        }
+        if (el.stepStatusLabel) {
+            el.stepStatusLabel.textContent = `Step ${step} of 2`;
+        }
+        if (el.stepStatusCaption) {
+            el.stepStatusCaption.textContent = step === 1 ? 'Patient & Document Details' : 'Scan & Upload';
+        }
+        if (el.stepProgressBar) {
+            el.stepProgressBar.style.width = step === 1 ? '50%' : '100%';
+        }
+        if (step === 1) clearStatus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showStatus(message, type) {
+        el.statusBanner.textContent = message;
+        el.statusBanner.className = 'status-banner';
+        if (type === 'success') el.statusBanner.classList.add('status-success');
+        else if (type === 'error') el.statusBanner.classList.add('status-error');
+        else el.statusBanner.classList.add('status-info');
+        el.statusBanner.style.display = 'block';
+        requestAnimationFrame(() => {
+            el.statusBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+
+    function clearStatus() {
+        el.statusBanner.style.display = 'none';
+        el.statusBanner.textContent = '';
+    }
+
+    function showResultDialog(type, message, options = {}) {
+        if (!el.resultBackdrop || !el.resultDialog) return;
+        el.resultDialog.classList.remove('success', 'error');
+        const isError = type === 'error';
+        el.resultDialog.classList.add(isError ? 'error' : 'success');
+        if (el.resultDialogTitle) {
+            el.resultDialogTitle.textContent = isError ? 'Upload Failed' : 'Upload Complete';
+        }
+        if (el.resultDialogMessage) {
+            el.resultDialogMessage.textContent = message || (isError ? 'Document upload failed.' : 'Document uploaded successfully.');
+        }
+        const primaryLabel = options.primaryLabel || (isError ? 'Close' : 'Done');
+        if (el.resultDialogPrimary) {
+            el.resultDialogPrimary.textContent = primaryLabel;
+        }
+        const secondaryVisible = !isError && options.showSecondary !== false && (options.secondaryLabel || options.onSecondary);
+        if (el.resultDialogSecondary) {
+            el.resultDialogSecondary.style.display = secondaryVisible ? 'inline-flex' : 'none';
+            if (secondaryVisible) {
+                el.resultDialogSecondary.textContent = options.secondaryLabel || 'Add another document';
+            }
+        }
+        state.dialogOptions = {
+            type,
+            onPrimary: options.onPrimary,
+            onSecondary: secondaryVisible ? options.onSecondary : null
+        };
+        el.resultBackdrop.classList.add('active');
+    }
+
+    function hideResultDialog() {
+        if (!el.resultBackdrop) return;
+        el.resultBackdrop.classList.remove('active');
+        state.dialogOptions = null;
+    }
+
+    async function fetchPatients(query) {
+        if (!query || query.length < 2) {
+            el.patientResults.style.display = 'none';
+            return;
+        }
+        try {
+            const response = await fetch(`/admin/api/patient-search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            const patients = data.patients || [];
+            if (!patients.length) {
+                el.patientResults.innerHTML = '<div class="result-item">No matching patients</div>';
+                el.patientResults.style.display = 'block';
+                return;
+            }
+            el.patientResults.innerHTML = patients.map(patient => {
+                const meta = [];
+                if (patient.email) meta.push(patient.email);
+                if (patient.phone) meta.push(patient.phone);
+                return `
+                    <div class="result-item" data-patient='${JSON.stringify(patient)}'>
+                        <div style="font-weight:600;">${patient.name} (ID: ${patient.id})</div>
+                        <div style="font-size:0.85rem; opacity:0.7;">${meta.join(' • ')}</div>
+                    </div>
+                `;
+            }).join('');
+            el.patientResults.style.display = 'block';
+        } catch (error) {
+            console.error('Patient search failed', error);
+        }
+    }
+
+    function setSelectedPatient(patient) {
+        state.patient = patient || null;
+        if (patient) {
+            el.patientId.value = patient.id;
+            el.selectedPatient.textContent = `Selected: ${patient.name} (ID: ${patient.id})`;
+            el.selectedPatient.style.display = 'inline-flex';
+        } else {
+            el.patientId.value = '';
+            el.selectedPatient.textContent = '';
+            el.selectedPatient.style.display = 'none';
+        }
+        el.patientResults.style.display = 'none';
+        el.patientSearch.value = '';
+        clearStatus();
+    }
+
+    el.patientSearch.addEventListener('input', event => {
+        const query = event.target.value.trim();
+        if (query.length < 2) {
+            el.patientResults.style.display = 'none';
+            return;
+        }
+        fetchPatients(query);
+    });
+
+    el.patientResults.addEventListener('click', event => {
+        const target = event.target.closest('.result-item');
+        if (!target) return;
+        try {
+            const patient = JSON.parse(target.dataset.patient);
+            setSelectedPatient(patient);
+        } catch (err) {
+            console.error('Unable to parse patient payload', err);
+        }
+    });
+
+    document.addEventListener('click', event => {
+        if (!el.patientResults.contains(event.target) && event.target !== el.patientSearch) {
+            el.patientResults.style.display = 'none';
+        }
+    });
+
+    function renderSummary() {
+        const pageCount = state.pages.length;
+        if (!pageCount) {
+            el.summaryText.textContent = 'No pages captured yet.';
+        } else {
+            el.summaryText.textContent = `${pageCount} page${pageCount === 1 ? '' : 's'} ready to upload.`;
+        }
+    }
+
+    function renderPreview() {
+        el.previewGrid.innerHTML = '';
+        state.pages.forEach((page, index) => {
+            const card = document.createElement('div');
+            card.className = 'preview-card';
+            const img = document.createElement('img');
+            img.src = page.previewUrl;
+            const badge = document.createElement('div');
+            badge.className = 'preview-badge';
+            badge.textContent = `Page ${index + 1}`;
+            const btn = document.createElement('button');
+            btn.textContent = 'Remove';
+            btn.addEventListener('click', () => removePage(index));
+            card.appendChild(img);
+            card.appendChild(badge);
+            card.appendChild(btn);
+            el.previewGrid.appendChild(card);
+        });
+        renderSummary();
+    }
+
+    function removePage(index) {
+        const page = state.pages.splice(index, 1)[0];
+        if (page && page.previewUrl) URL.revokeObjectURL(page.previewUrl);
+        renderPreview();
+    }
+
+    function resetWorkspace() {
+        state.pages.forEach(page => page.previewUrl && URL.revokeObjectURL(page.previewUrl));
+        state.pages = [];
+        el.imageInput.value = '';
+        renderPreview();
+        clearStatus();
+    }
+
+    el.resetWorkspaceBtn.addEventListener('click', resetWorkspace);
+
+    if (el.resultDialogPrimary) {
+        el.resultDialogPrimary.addEventListener('click', () => {
+            const handler = state.dialogOptions?.onPrimary;
+            hideResultDialog();
+            if (typeof handler === 'function') handler();
+        });
+    }
+    if (el.resultDialogSecondary) {
+        el.resultDialogSecondary.addEventListener('click', () => {
+            const handler = state.dialogOptions?.onSecondary;
+            hideResultDialog();
+            if (typeof handler === 'function') handler();
+        });
+    }
+    if (el.resultBackdrop) {
+        el.resultBackdrop.addEventListener('click', event => {
+            if (event.target === el.resultBackdrop) {
+                hideResultDialog();
+            }
+        });
+    }
+
+    el.addImagesBtn.addEventListener('click', () => el.imageInput.click());
+    el.imageInput.addEventListener('change', async event => {
+        const files = Array.from(event.target.files || []);
+        if (!files.length) return;
+        let anyAccepted = false;
+        for (const file of files) {
+            const analysis = await analyzeImageQuality(file);
+            if (analysis.ok) {
+                const previewUrl = URL.createObjectURL(file);
+                state.pages.push({ file, previewUrl });
+                anyAccepted = true;
+                if (analysis.warnings && analysis.warnings.length) {
+                    showStatus(analysis.warnings.join(' '), 'info');
+                }
+            } else {
+                const message = analysis.issues.join(' ');
+                showStatus(message, 'error');
+                showResultDialog('error', message);
+            }
+        }
+        if (anyAccepted) {
+            renderPreview();
+        }
+    });
+
+    function setCaptureEnabled(enabled) {
+        if (el.captureFrameBtn) {
+            el.captureFrameBtn.disabled = !enabled;
+        }
+        if (el.captureFrameBtnStack) {
+            el.captureFrameBtnStack.disabled = !enabled;
+        }
+    }
+
+    function setOrientationLock(active) {
+        const method = active ? 'add' : 'remove';
+        el.cameraControlsOverlay?.classList[method]('orientation-locked');
+        el.cameraControlsStack?.classList[method]('orientation-locked');
+        const ariaValue = active ? 'false' : 'true';
+        el.orientationOverlayMessage?.setAttribute('aria-hidden', ariaValue);
+        el.orientationStackMessage?.setAttribute('aria-hidden', ariaValue);
+    }
+
+    function isPortraitViewport() {
+        const mediaQuery = portraitMediaQuery;
+        if (mediaQuery && typeof mediaQuery.matches === 'boolean') {
+            return mediaQuery.matches;
+        }
+        const screenOrientation = window.screen?.orientation;
+        if (screenOrientation && typeof screenOrientation.type === 'string') {
+            return screenOrientation.type.startsWith('portrait');
+        }
+        if (typeof window.orientation === 'number') {
+            return Math.abs(window.orientation) !== 90;
+        }
+        return window.innerHeight >= window.innerWidth;
+    }
+
+    function shouldEnforcePortrait() {
+        // Only enforce portrait orientation on small touch devices where the UX depends on it.
+        // Desktop/larger screens (e.g. PC) should not be blocked just because the viewport is landscape.
+        const smallScreen = typeof window.matchMedia === 'function'
+            ? window.matchMedia('(max-width: 768px)').matches
+            : window.innerWidth <= 768;
+        const touchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
+        return smallScreen && touchDevice;
+    }
+
+    function updateOrientationState() {
+        if (!el.cameraFrame) return;
+        const modalActive = el.cameraModal.classList.contains('active');
+        if (!modalActive) {
+            el.cameraFrame.classList.remove('orientation-block');
+            setCaptureEnabled(true);
+            state.orientationWarningShown = false;
+            setOrientationLock(false);
+            return;
+        }
+
+        // Do not enforce portrait on desktop/large devices.
+        if (!shouldEnforcePortrait()) {
+            el.cameraFrame.classList.remove('orientation-block');
+            setCaptureEnabled(true);
+            if (state.orientationWarningShown) {
+                clearStatus();
+                state.orientationWarningShown = false;
+            }
+            setOrientationLock(false);
+            return;
+        }
+
+        const portrait = isPortraitViewport();
+        if (portrait) {
+            el.cameraFrame.classList.remove('orientation-block');
+            setCaptureEnabled(true);
+            if (state.orientationWarningShown) {
+                clearStatus();
+                state.orientationWarningShown = false;
+            }
+            setOrientationLock(false);
+        } else {
+            el.cameraFrame.classList.add('orientation-block');
+            setCaptureEnabled(false);
+            if (!state.orientationWarningShown) {
+                showStatus('Rotate your device to portrait to scan documents clearly.', 'error');
+                state.orientationWarningShown = true;
+            }
+            setOrientationLock(true);
+        }
+    }
+
+    async function openCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showStatus('Camera access requires Chrome/Safari on mobile or desktop over HTTPS with permissions. Image picker opened as fallback.', 'error');
+            el.imageInput.click();
+            return;
+        }
+        hideResultDialog();
+        try {
+            state.cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: state.facingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
+            el.scanVideo.srcObject = state.cameraStream;
+            el.cameraModal.classList.add('active');
+            
+            // Check if flash/torch is supported on this camera
+            await checkFlashSupport();
+            
+            // Restore flash state if it was on and still supported
+            if (state.flashEnabled && state.flashSupported) {
+                const videoTrack = state.cameraStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    try {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ torch: true }]
+                        });
+                    } catch (err) {
+                        state.flashEnabled = false;
+                        updateFlashButtonState();
+                    }
+                }
+            }
+            
+            updateOrientationState();
+            if (state.orientationIntervalId) {
+                clearInterval(state.orientationIntervalId);
+            }
+            state.orientationIntervalId = setInterval(() => {
+                if (!el.cameraModal.classList.contains('active')) return;
+                updateOrientationState();
+            }, 400);
+        } catch (err) {
+            console.error('Camera error', err);
+            showStatus('Unable to access camera. Ensure permissions are granted. Image picker opened as fallback.', 'error');
+            el.imageInput.click();
+        }
+    }
+
+    function closeCamera() {
+        el.cameraModal.classList.remove('active');
+        if (state.cameraStream) {
+            state.cameraStream.getTracks().forEach(track => track.stop());
+            state.cameraStream = null;
+        }
+        if (state.orientationIntervalId) {
+            clearInterval(state.orientationIntervalId);
+            state.orientationIntervalId = null;
+        }
+        if (el.cameraFrame) {
+            el.cameraFrame.classList.remove('orientation-block');
+        }
+        setCaptureEnabled(true);
+        setOrientationLock(false);
+        state.orientationWarningShown = false;
+        // Reset flash state
+        state.flashEnabled = false;
+        state.flashSupported = false;
+        updateFlashButtonState();
+    }
+
+    async function captureFrame() {
+        updateOrientationState();
+        if (shouldEnforcePortrait() && !isPortraitViewport()) {
+            return;
+        }
+        if (!state.cameraStream) {
+            showStatus('Camera not ready yet.', 'error');
+            return;
+        }
+        const video = el.scanVideo;
+        const canvas = el.scanCanvas;
+        const ctx = canvas.getContext('2d');
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+
+        if (!videoWidth || !videoHeight) {
+            showStatus('Camera still starting – please try again.', 'error');
+            return;
+        }
+
+        const screenOrientation = window.screen?.orientation;
+        const orientationAngle = typeof screenOrientation?.angle === 'number'
+            ? screenOrientation.angle
+            : (typeof window.orientation === 'number' ? window.orientation : 0);
+        const isLandscapeScreen = Math.abs(orientationAngle) === 90 || window.innerWidth > window.innerHeight;
+        const streamIsLandscape = videoWidth >= videoHeight;
+
+        // Determine if we need to rotate the frame to keep the capture upright.
+        let rotation = 0;
+        if (!isLandscapeScreen && streamIsLandscape) {
+            // Device held portrait but stream is sideways → rotate clockwise.
+            rotation = Math.PI / 2;
+        } else if (isLandscapeScreen && !streamIsLandscape) {
+            // Device held landscape but stream is tall → rotate counter-clockwise.
+            rotation = -Math.PI / 2;
+        }
+
+        if (rotation !== 0) {
+            canvas.width = videoHeight;
+            canvas.height = videoWidth;
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(rotation);
+            if (state.facingMode === 'user') {
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, -videoWidth / 2, -videoHeight / 2);
+            ctx.restore();
+        } else {
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+            ctx.save();
+            if (state.facingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+        if (!blob) {
+            showStatus('Failed to capture image.', 'error');
+            return;
+        }
+        const file = new File([blob], `scan_page_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const analysis = await analyzeImageQuality(file);
+        if (!analysis.ok) {
+            const message = analysis.issues.join(' ');
+            showStatus(message, 'error');
+            showResultDialog('error', message);
+            return;
+        }
+        const previewUrl = URL.createObjectURL(file);
+        state.pages.push({ file, previewUrl });
+        if (analysis.warnings && analysis.warnings.length) {
+            showStatus(analysis.warnings.join(' '), 'info');
+        }
+        renderPreview();
+        closeCamera();
+    }
+
+    function switchCamera() {
+        state.facingMode = state.facingMode === 'environment' ? 'user' : 'environment';
+        state.flashEnabled = false; // Reset flash when switching cameras
+        updateFlashButtonState();
+        if (state.cameraStream) {
+            state.cameraStream.getTracks().forEach(track => track.stop());
+            state.cameraStream = null;
+        }
+        openCamera();
+    }
+
+    function updateFlashButtonState() {
+        const buttons = [el.flashBtn, el.flashBtnStack];
+        buttons.forEach(btn => {
+            if (!btn) return;
+            if (state.flashSupported) {
+                btn.style.display = '';
+                btn.disabled = false;
+                if (state.flashEnabled) {
+                    btn.classList.add('active');
+                    btn.textContent = '⚡ Flash On';
+                } else {
+                    btn.classList.remove('active');
+                    btn.textContent = '⚡ Flash';
+                }
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+    }
+
+    async function checkFlashSupport() {
+        state.flashSupported = false;
+        if (!state.cameraStream) return;
+        
+        const videoTrack = state.cameraStream.getVideoTracks()[0];
+        if (!videoTrack) return;
+        
+        try {
+            const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
+            if (capabilities.torch) {
+                state.flashSupported = true;
+            }
+        } catch (err) {
+            console.log('Torch capability check failed:', err);
+        }
+        
+        updateFlashButtonState();
+    }
+
+    async function toggleFlash() {
+        if (!state.cameraStream || !state.flashSupported) return;
+        
+        const videoTrack = state.cameraStream.getVideoTracks()[0];
+        if (!videoTrack) return;
+        
+        try {
+            state.flashEnabled = !state.flashEnabled;
+            await videoTrack.applyConstraints({
+                advanced: [{ torch: state.flashEnabled }]
+            });
+            updateFlashButtonState();
+        } catch (err) {
+            console.error('Failed to toggle flash:', err);
+            state.flashEnabled = false;
+            updateFlashButtonState();
+            showStatus('Unable to toggle flash on this device.', 'error');
+        }
+    }
+
+    const orientationController = window.screen?.orientation;
+    if (orientationController && typeof orientationController.addEventListener === 'function') {
+        orientationController.addEventListener('change', updateOrientationState);
+    } else {
+        window.addEventListener('orientationchange', updateOrientationState);
+    }
+    if (portraitMediaQuery) {
+        const handleMediaOrientation = () => updateOrientationState();
+        if (typeof portraitMediaQuery.addEventListener === 'function') {
+            portraitMediaQuery.addEventListener('change', handleMediaOrientation);
+        } else if (typeof portraitMediaQuery.addListener === 'function') {
+            portraitMediaQuery.addListener(handleMediaOrientation);
+        }
+    }
+    window.addEventListener('resize', updateOrientationState);
+
+    updateOrientationState();
+
+    el.openCameraBtn.addEventListener('click', openCamera);
+    el.closeCameraBtn?.addEventListener('click', closeCamera);
+    el.captureFrameBtn?.addEventListener('click', () => captureFrame());
+    el.switchCameraBtn?.addEventListener('click', switchCamera);
+    el.flashBtn?.addEventListener('click', toggleFlash);
+    el.closeCameraBtnStack?.addEventListener('click', closeCamera);
+    el.captureFrameBtnStack?.addEventListener('click', () => captureFrame());
+    el.switchCameraBtnStack?.addEventListener('click', switchCamera);
+    el.flashBtnStack?.addEventListener('click', toggleFlash);
+
+    async function uploadDocument() {
+        if (state.busy) return;
+        clearStatus();
+        if (!state.patient) {
+            showStatus('Please select a patient first.', 'error');
+            setStep(1);
+            return;
+        }
+        if (!state.pages.length) {
+            showStatus('Capture at least one page or upload images before submitting.', 'error');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('patient_id', state.patient.id);
+        formData.append('document_type', el.documentType.value);
+        const docName = el.documentName.value.trim();
+        if (docName) formData.append('document_name', docName);
+        state.pages.forEach(({ file }, index) => {
+            formData.append('scan_pages[]', file, `page_${index + 1}.jpg`);
+        });
+
+        el.uploadBtn.disabled = true;
+        el.uploadBtn.textContent = 'Uploading…';
+        state.busy = true;
+        try {
+            const response = await fetch('{{ url_for("wizard.scan_upload_files_submit") }}', {
+                method: 'POST',
+                body: formData
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.message || 'Upload failed.');
+            resetWorkspace();
+            el.documentName.value = '';
+            if (el.documentType) {
+                el.documentType.selectedIndex = 0;
+            }
+            setStep(1);
+            const successMessage = payload.message || 'Document uploaded successfully.';
+            showStatus(successMessage, 'success');
+            const finalizeUpload = () => {
+                resetWorkspace();
+                setSelectedPatient(null);
+                el.documentName.value = '';
+                if (el.documentType) el.documentType.selectedIndex = 0;
+                setStep(1);
+            };
+            const prepareNextDocument = () => {
+                resetWorkspace();
+                el.documentName.value = '';
+                if (el.documentType) {
+                    el.documentType.selectedIndex = 0;
+                }
+                setStep(1);
+                showStatus('Patient retained. Select document details for the next upload.', 'info');
+                if (el.documentType) {
+                    setTimeout(() => el.documentType.focus(), 120);
+                }
+            };
+            showResultDialog('success', successMessage, {
+                primaryLabel: 'Done',
+                onPrimary: finalizeUpload,
+                secondaryLabel: 'Add another document',
+                onSecondary: prepareNextDocument,
+                showSecondary: true
+            });
+        } catch (error) {
+            console.error('Upload error', error);
+            const failureMessage = error.message || 'Document upload failed.';
+            showStatus(failureMessage, 'error');
+            showResultDialog('error', failureMessage, {
+                primaryLabel: 'Close',
+                onPrimary: () => {}
+            });
+        } finally {
+            state.busy = false;
+            el.uploadBtn.disabled = false;
+            el.uploadBtn.textContent = '📤 Upload Document';
+        }
+    }
+
+    el.uploadBtn.addEventListener('click', uploadDocument);
+
+    el.toStep2Btn.addEventListener('click', () => {
+        if (!state.patient) {
+            showStatus('Select a patient before continuing.', 'error');
+            return;
+        }
+        if (!el.documentType.value) {
+            showStatus('Choose a document type.', 'error');
+            return;
+        }
+        setStep(2);
+    });
+
+    el.backToStep1Btn.addEventListener('click', () => setStep(1));
+
+    function showInstructionModal() {
+        if (el.instructionModalBackdrop) {
+            el.instructionModalBackdrop.classList.add('active');
+        }
+    }
+
+    function hideInstructionModal() {
+        if (el.instructionModalBackdrop) {
+            el.instructionModalBackdrop.classList.remove('active');
+        }
+    }
+
+    if (el.instructionInfoBtn) {
+        el.instructionInfoBtn.addEventListener('click', showInstructionModal);
+    }
+    if (el.closeInstructionModal) {
+        el.closeInstructionModal.addEventListener('click', hideInstructionModal);
+    }
+    if (el.instructionModalBackdrop) {
+        el.instructionModalBackdrop.addEventListener('click', event => {
+            if (event.target === el.instructionModalBackdrop) {
+                hideInstructionModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && el.instructionModalBackdrop && el.instructionModalBackdrop.classList.contains('active')) {
+            hideInstructionModal();
+        }
+    });
+
+    renderSummary();
+})();
+</script>
+{% endblock %}

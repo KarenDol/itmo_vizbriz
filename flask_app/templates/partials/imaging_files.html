@@ -1,0 +1,51 @@
+<!-- Step: Imaging Files -->
+<div class="form-step" id="step-5" style="display:none;">
+    <h5>Step 5: Imaging Files</h5>
+
+    <h6>Clinical Pictures</h6>
+    <div class="upload-area drop-zone" id="drop-area-clinical">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop clinical pictures here<br>Or select manually</p>
+        <input type="file" id="fileElemClinical" name="clinical_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-clinical" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemClinical', 'file-list-clinical');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemClinical', 'file-list-clinical');">Upload Folder</button>
+    </div>
+
+    <h6>CBCT</h6>
+    <div class="upload-area drop-zone" id="drop-area-cbct">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop CBCT files here<br>Or select manually</p>
+        <input type="file" id="fileElemCbct" name="cbct_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-cbct" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemCbct', 'file-list-cbct');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemCbct', 'file-list-cbct');">Upload Folder</button>
+    </div>
+
+    <h6>Intraoral Scan</h6>
+    <div class="upload-area drop-zone" id="drop-area-intraoral">
+        <i class="material-icons large">cloud_upload</i>
+        <p>Drag & drop intraoral scan files here<br>Or select manually</p>
+        <input type="file" id="fileElemIntraoral" name="intraoral_files[]" style="display:none" multiple>
+    </div>
+    <div id="file-list-intraoral" class="file-list"></div>
+    <div class="upload-btn-group">
+        <button type="button" onclick="uploadFiles('fileElemIntraoral', 'file-list-intraoral');">Upload Files</button>
+        <button type="button" onclick="uploadFolder('fileElemIntraoral', 'file-list-intraoral');">Upload Folder</button>
+    </div>
+
+    <div class="center-align">
+        <button class="btn waves-effect waves-light" type="button" onclick="prevStep(4)">
+            Previous
+            <i class="material-icons left">arrow_back</i>
+        </button>
+        <button class="btn waves-effect waves-light" type="button" onclick="nextStep(6)">
+            Next
+            <i class="material-icons right">arrow_forward</i>
+        </button>
+    </div>
+</div>

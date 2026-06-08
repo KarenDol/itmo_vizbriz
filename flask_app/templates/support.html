@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Support - Vzibriz{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .section-title {
+        color: #bb86fc;
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .protocols-links {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Adds space between links */
+    }
+
+    .protocols-links a {
+        font-size: 1rem;
+        color: #ffffff; /* White text */
+        text-decoration: none;
+    }
+
+    .protocols-links a:hover {
+        text-decoration: underline;
+    }
+
+    .faq-item {
+        margin-bottom: 20px;
+    }
+
+    .faq-question {
+        font-weight: bold;
+        color: #bb86fc; /* Purple for questions */
+    }
+
+    .faq-answer {
+        margin-top: 5px;
+        padding-left: 20px;
+        color: #e0e0e0; /* White for answers */
+    }
+
+    .videos-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 40px; /* Add space above the video section */
+    }
+
+    .video-item {
+        background-color: #1e1e1e;
+        border: 1px solid #555;
+        border-radius: 8px;
+        text-align: center;
+        padding: 16px;
+    }
+
+    .video-item img {
+        max-width: 100%;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    .video-item p {
+        color: #e0e0e0;
+        font-size: 1rem;
+    }
+
+    .video-item a {
+        color: #bb86fc;
+        font-size: 1.1rem;
+        text-decoration: none;
+    }
+
+    .video-item a:hover {
+        text-decoration: underline;
+    }
+
+    .contact-info {
+        margin-top: 40px;
+        text-align: center; /* Centering contact information */
+        color: #e0e0e0;
+    }
+
+    .contact-info a {
+        color: #bb86fc;
+        text-decoration: none;
+    }
+
+    .contact-info a:hover {
+        text-decoration: underline;
+    }
+
+    /* Add spacing between sections */
+    section {
+        margin-bottom: 40px; /* Space between each section */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3 class="center-align" style="color: #bb86fc;">Support</h3>
+
+    <!-- Imaging Protocols Section -->
+    <section id="imaging-protocols">
+        <h5 class="section-title">Imaging Protocols</h5>
+        <div class="protocols-links">
+            <a href="https://vizbriztraining.s3.us-east-2.amazonaws.com/protocols/Vizbriz+Imaging++Protocol.docx.pdf" target="_blank">CBCT Protocol</a>
+            <a href="clinical_imaging_protocols.pdf" target="_blank">Clinical Imaging Protocols</a>
+            <a href="intraoral_scan_protocol.pdf" target="_blank">IntraOral Scan Protocol</a>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq">
+        <h5 class="section-title">Frequently Asked Questions</h5>
+        <div class="faq-item">
+            <p class="faq-question">Q: How do I upload a file?</p>
+            <p class="faq-answer">A: Go to the dashboard, click "Upload File," and select the file you want to upload.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Q: Can I share files with others?</p>
+            <p class="faq-answer">A: Yes, select the files you want to share, and use the "Share Selected Files" button.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Q: What formats are supported for imaging protocols?</p>
+            <p class="faq-answer">A: Supported formats include PDF, DICOM, and JPEG.</p>
+        </div>
+    </section>
+
+    <!-- Tutorial Videos Section -->
+    <section id="tutorial-videos">
+        <h5 class="section-title">Tutorial Videos</h5>
+        <div class="videos-list">
+            <!-- Video 1 -->
+            <div class="video-item">
+                <img src="https://img.youtube.com/vi/rrT6v5sOwJg/0.jpg" alt="Material Design Basics" width="300">
+                <p>Learn Material Design Basics</p>
+                <a href="https://www.youtube.com/watch?v=rrT6v5sOwJg" target="_blank">Watch Video</a>
+            </div>
+            <!-- Video 2 -->
+            <div class="video-item">
+                <img src="https://img.youtube.com/vi/_uQrJ0TkZlc/0.jpg" alt="Python Tutorial for Beginners" width="300">
+                <p>Python Tutorial for Beginners</p>
+                <a href="https://www.youtube.com/watch?v=_uQrJ0TkZlc" target="_blank">Watch Video</a>
+            </div>
+            <!-- Video 3 -->
+            <div class="video-item">
+                <img src="https://img.youtube.com/vi/2LaAJq1lBgw/0.jpg" alt="What is Cloud Computing?" width="300">
+                <p>What is Cloud Computing?</p>
+                <a href="https://www.youtube.com/watch?v=2LaAJq1lBgw" target="_blank">Watch Video</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Information -->
+    <div class="contact-info">
+        <p>Need more help? Contact us at <a href="mailto:info@vizbriz.com">info@vizbriz.com</a></p>
+        <p>Call us at <a href="tel:+16478678346">+1 (647) 867-8346</a></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltips = document.querySelectorAll('.tooltipped');
+        M.Tooltip.init(tooltips);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,393 @@
+{
+  "base_policy": "osa_policy_base_v2",
+  "protocols": {
+    "Vizbriz_Workflow": {
+      "version": "vizbriz_workflow_v1",
+      "generated_at": "2025-08-12T17:29:51.566119",
+      "source": {
+        "name": "Vizbriz Patient Flow",
+        "date": "2025-08-12"
+      },
+      "steps": [
+        "Detection of initial diagnosis of sleep apnea using questionnaire",
+        "QR code for sleep test",
+        "Vizbriz patient questionnaire completion",
+        "Vizbriz review of questionnaire and recommendation for next steps",
+        "CBCT and intraoral scans if patient does not already have them",
+        "Referral to sleep specialist using i-Sleep partners (online scheduling) resulting in SOAP note and sleep test referral",
+        "Sleep test (results typically available within 72 hours for home test)",
+        "Review of sleep test with sleep specialist",
+        "Vizbriz review of sleep test and recommendation of oral appliance device",
+        "Dentist approval of recommendation",
+        "Device ordering (approximately 2 weeks)",
+        "Device fitting with dentist",
+        "Follow-up with dentist one month after fitting"
+      ]
+    },
+    "sOSA_Protocol": {
+      "version": "sosa_protocol_v1",
+      "generated_at": "2025-08-12T17:29:51.566275",
+      "source": {
+        "name": "sOSA Smart OSA Assistant Follow-Up Protocol",
+        "date": "2025-04-29"
+      },
+      "follow_up_protocol": {
+        "description": "Unique follow-up protocol defining key indicators and timing to ensure patient treatment optimization.",
+        "key_indicators": [
+          "Symptom improvement",
+          "Device compliance",
+          "Side effect occurrence",
+          "AHI reduction",
+          "Patient-reported satisfaction"
+        ],
+        "timelines": [
+          {
+            "timepoint": "2 weeks",
+            "activity": "Initial follow-up and side effect assessment"
+          },
+          {
+            "timepoint": "1 month",
+            "activity": "Review device compliance and comfort"
+          },
+          {
+            "timepoint": "3 months",
+            "activity": "Sleep test and titration evaluation"
+          },
+          {
+            "timepoint": "6 months",
+            "activity": "Long-term adherence assessment"
+          }
+        ]
+      },
+      "agent_capabilities": [
+        "Refer for necessary diagnostics (sleep studies, CBCT, Otolaryngologists)",
+        "Collect and integrate diagnostic results",
+        "Generate and send digital prescriptions to dental labs",
+        "Identify potential OSA patients",
+        "Troubleshoot side effects",
+        "Cloud-based follow-up and device titration tracking",
+        "Interactive 3D CBCT airway visualization",
+        "Evidence-based recommendations and therapy implementation",
+        "Patient engagement for long-term adherence"
+      ]
+    },
+    "Lamberg_Protocol": {
+      "version": "lamberg_protocol_v1",
+      "generated_at": "2025-08-12T17:13:40.941019",
+      "source": {
+        "name": "Personalization of Diagnosing The Cause and Selecting the Treatment for Sleep-Related Breathing Disorders: The Lamberg Protocol",
+        "author": "Steve Lamberg DDS, DABDSM",
+        "date": "2025-06-12"
+      },
+      "decision_flow": [
+        {
+          "step": "screen_all_adults",
+          "tool": "Lamberg_Questionnaire_LQ_v16",
+          "trigger": "adult_encounter",
+          "next_if": [
+            {
+              "condition": "LQ_score>=2",
+              "go_to": "order_PSG_or_HSAT"
+            },
+            {
+              "condition": "LQ_score<2",
+              "go_to": "finish_low_risk_with_education"
+            }
+          ]
+        },
+        {
+          "step": "screen_pediatrics",
+          "tool": "LQ_PAS",
+          "trigger": "pediatric_encounter",
+          "next_if": [
+            {
+              "condition": "LQ_PAS_positive==true",
+              "go_to": "order_PSG_or_HSAT"
+            },
+            {
+              "condition": "LQ_PAS_positive==false",
+              "go_to": "finish_low_risk_with_education"
+            }
+          ]
+        },
+        {
+          "step": "order_PSG_or_HSAT",
+          "action": "schedule_sleep_test",
+          "notes": "If PSG/HSAT negative for OSA, evaluate UARS; if positive for OSA, proceed to Nextgen Data Collection."
+        },
+        {
+          "step": "uars_screen_if_OSA_negative",
+          "action": "screen_for_UARS",
+          "enter_if": "sleep_test_result==negative_for_OSA",
+          "uars_criteria": [
+            "AHI<5",
+            "SpO2_nadir>=92",
+            "RERA_index>=5_per_hour OR airflow_limitation_during_sleep>=5_percent_TST AND daytime_sleepiness_or_fatigue==true"
+          ],
+          "next_if": [
+            {
+              "condition": "UARS_positive==true",
+              "go_to": "Nextgen_Data_Collection"
+            },
+            {
+              "condition": "UARS_positive==false",
+              "go_to": "administer_ISI_and_manage_as_indicated"
+            }
+          ]
+        },
+        {
+          "step": "administer_ISI_and_manage_as_indicated",
+          "action": "administer_Insomnia_Severity_Index",
+          "notes": "Screen for insomnia (ISI) in UARS-negative and all patients due to high co-occurrence with OSA/UARS."
+        },
+        {
+          "step": "Nextgen_Data_Collection",
+          "action": "collect_nextgen_data",
+          "notes": "Collect Structure, Function, Behavior + genetics and lifestyle risk factors; then map to treatment targets; ensure transdisciplinary referrals as indicated.",
+          "go_to": "Targeted_Treatment_Algorithms"
+        },
+        {
+          "step": "Targeted_Treatment_Algorithms",
+          "action": "select_treatment_targets_and_interventions",
+          "notes": "Connect diagnosed compensations/causes to specific interventions; schedule follow-up efficacy testing."
+        }
+      ],
+      "action_mapping_additions": {
+        "administer_LQ_adult": {
+          "action_key": "administer_questionnaire",
+          "defaults": {
+            "questionnaire_id": "LQ_v16"
+          },
+          "required_params": [
+            "patient_id",
+            "questionnaire_id"
+          ]
+        },
+        "administer_LQ_PAS": {
+          "action_key": "administer_questionnaire",
+          "defaults": {
+            "questionnaire_id": "LQ_PAS"
+          },
+          "required_params": [
+            "patient_id",
+            "questionnaire_id"
+          ]
+        },
+        "screen_for_UARS": {
+          "action_key": "evaluate_uars_criteria",
+          "required_params": [
+            "patient_id",
+            "AHI",
+            "SpO2_nadir",
+            "RERA_index",
+            "airflow_limitation_pct_TST",
+            "daytime_sleepiness_or_fatigue"
+          ]
+        },
+        "administer_Insomnia_Severity_Index": {
+          "action_key": "administer_questionnaire",
+          "defaults": {
+            "questionnaire_id": "ISI"
+          },
+          "required_params": [
+            "patient_id",
+            "questionnaire_id"
+          ]
+        },
+        "collect_nextgen_data": {
+          "action_key": "collect_struct_func_behavior_genetics_lifestyle",
+          "required_params": [
+            "patient_id"
+          ],
+          "optional_params": [
+            "cbct_available",
+            "clinical_images_available",
+            "intraoral_scans_available"
+          ]
+        },
+        "select_treatment_targets_and_interventions": {
+          "action_key": "map_targets_to_interventions",
+          "required_params": [
+            "patient_id",
+            "identified_targets"
+          ],
+          "optional_params": [
+            "referrals",
+            "patient_preferences"
+          ]
+        }
+      },
+      "required_evidence_additions": [
+        "LQ_score",
+        "LQ_PAS_result",
+        "ISI_score",
+        "RERA_index",
+        "airflow_limitation_pct_TST"
+      ],
+      "nextgen_data_model": {
+        "structure": {
+          "cbct": [
+            "deviated_septum",
+            "septal_spur",
+            "enlarged_swell_body",
+            "concha_bullosa",
+            "adenoids_enlarged",
+            "mucosal_thickening_max_sinus",
+            "hypertrophied_turbinates",
+            "SNA_deg",
+            "SNB_deg",
+            "ANB_deg",
+            "FH_MP_deg",
+            "PV_A_line_mm"
+          ],
+          "clinical": [
+            "tonsils_brodsky_grade",
+            "cottle_maneuver_positive",
+            "enlarged_uvula",
+            "allergic_shiners",
+            "dennie_morgan_lines",
+            "PNIF_lpm",
+            "FEV1_pct",
+            "friedman_tongue_posture",
+            "mallampati_grade",
+            "TRM_MOTIP_MIO_pct",
+            "gingival_display_mm",
+            "mew_indicator_line_mm",
+            "cricomental_space_cm",
+            "tori_presence",
+            "crowded_dentition",
+            "tongue_overflow_max_arch",
+            "scalloped_tongue",
+            "posterior_crossbite"
+          ],
+          "metrics": [
+            "neck_height_ratio",
+            "waist_height_ratio",
+            "BMI",
+            "PHI_pct",
+            "intercuspid_distance_mm",
+            "intermolar_distance_max_first_molars_mm",
+            "intermolar_distance_primary_second_molars_rule"
+          ]
+        },
+        "function": {
+          "airway_control": [
+            "PCrit_high",
+            "ArTH_low",
+            "dilator_muscle_response_low",
+            "loop_gain_high"
+          ]
+        },
+        "behavior": {
+          "habits": [
+            "mouth_breathing",
+            "forward_head_posture",
+            "chest_breathing",
+            "low_tongue_resting_posture"
+          ],
+          "muscle_function": [
+            "lip_incompetence",
+            "palatal_flutter_snoring",
+            "tongue_thrust_on_swallow",
+            "overactive_perioral_muscles"
+          ]
+        },
+        "vitals_and_scores": [
+          "BP",
+          "HR",
+          "ESS",
+          "ISI",
+          "LQ_score",
+          "chronic_pain"
+        ],
+        "referral_roles": [
+          "otolaryngologist",
+          "cardiologist",
+          "pulmonologist",
+          "dentist",
+          "orthodontist_oral_surgeon",
+          "oral_myologist",
+          "neurologist",
+          "psychologist",
+          "dietician"
+        ]
+      },
+      "treatment_targets": [
+        "nasal_resistance_or_obstruction",
+        "soft_tissue_restrictions_or_infringements_or_BMI",
+        "skeletal_and_dental_compensations",
+        "physiologic_dysfunction",
+        "behavioral_issues_muscles_and_habits",
+        "genetic_contributions",
+        "lifestyle_modifications"
+      ],
+      "eligibility_rules_additions": {
+        "UARS_pathway": [
+          "AHI<5",
+          "SpO2_nadir>=92",
+          "(RERA_index>=5) OR (airflow_limitation_pct_TST>=5 AND daytime_sleepiness_or_fatigue==true)"
+        ],
+        "COMISA_or_COMIUARS": [
+          "insomnia_symptoms==true",
+          "(OSA_positive==true OR UARS_positive==true)"
+        ]
+      },
+      "adjunct_therapies_suggestions": [
+        {
+          "name": "positional_therapy",
+          "indications": [
+            "mouth_breathing",
+            "supine_dependency",
+            "AHI<30"
+          ],
+          "priority": "moderate"
+        },
+        {
+          "name": "nasal_airflow_optimization",
+          "indications": [
+            "nasal_resistance_or_obstruction"
+          ],
+          "priority": "high"
+        },
+        {
+          "name": "myofunctional_therapy",
+          "indications": [
+            "lip_incompetence",
+            "tongue_thrust_on_swallow",
+            "low_tongue_resting_posture"
+          ],
+          "priority": "moderate"
+        }
+      ],
+      "followup_protocol_additions": {
+        "efficacy_testing": {
+          "after_intervention_weeks": [
+            6,
+            12
+          ],
+          "tests": [
+            {
+              "name": "sleep_study_post_intervention",
+              "at_week": 12,
+              "required": true
+            }
+          ],
+          "trackers": [
+            "ESS",
+            "ISI",
+            "snoring_intensity_dB",
+            "compliance_hours"
+          ]
+        }
+      },
+      "explainability_additions": {
+        "must_include": [
+          "which Lamberg targets were identified",
+          "how targets mapped to interventions",
+          "why UARS criteria were or were not met",
+          "why COMISA/COMIUARS pathway considered"
+        ]
+      }
+    }
+  }
+}

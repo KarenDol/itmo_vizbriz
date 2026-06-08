@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Stage Summary Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+        background: #fafafa;
+        min-height: 100vh;
+    }
+    
+    .dashboard-header {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .dashboard-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    
+    .refresh-btn {
+        padding: 10px 20px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .refresh-btn:hover {
+        background: #2563eb;
+    }
+    
+    .stats-bar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        flex: 1;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    
+    .summaries-grid {
+        display: grid;
+        gap: 16px;
+    }
+    
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s;
+        cursor: pointer;
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .summary-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+    
+    .summary-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    
+    .summary-card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0;
+    }
+    
+    .summary-card-id {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 4px;
+    }
+    
+    .summary-preview {
+        font-size: 14px;
+        color: #475569;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        max-height: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .summary-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-small {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .btn-primary-small {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    .btn-primary-small:hover {
+        background: #2563eb;
+    }
+    
+    .btn-secondary-small {
+        background: #e2e8f0;
+        color: #475569;
+    }
+    
+    .btn-secondary-small:hover {
+        background: #cbd5e1;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    .empty-state h3 {
+        font-size: 20px;
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: #64748b;
+        margin-bottom: 24px;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 60px;
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div>
+            <h1>📊 Stage Summary Dashboard</h1>
+            <p style="margin: 8px 0 0 0; color: #64748b; font-size: 14px;">
+                View all cached AI operational summaries (no Bedrock calls)
+            </p>
+        </div>
+        <button class="refresh-btn" onclick="loadSummaries()">
+            <span>🔄</span> Refresh
+        </button>
+    </div>
+    
+    <div class="stats-bar" id="statsBar">
+        <div class="stat-card">
+            <div class="stat-label">Total Cached</div>
+            <div class="stat-value" id="totalCount">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Last Updated</div>
+            <div class="stat-value" id="lastUpdated" style="font-size: 16px;">--</div>
+        </div>
+    </div>
+    
+    <div id="summariesContainer">
+        <div class="loading">Loading cached summaries...</div>
+    </div>
+</div>
+
+<script>
+async function loadSummaries() {
+    const container = document.getElementById('summariesContainer');
+    container.innerHTML = '<div class="loading">Loading cached summaries...</div>';
+    
+    try {
+        const response = await fetch('/vizbriz/api/stage_summary_list');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load summaries');
+        }
+        
+        // Update stats
+        document.getElementById('totalCount').textContent = data.count || 0;
+        
+        if (data.count === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <h3>No Cached Summaries</h3>
+                    <p>Summaries will appear here once patients are accessed with AI guidance enabled.</p>
+                    <p style="font-size: 12px; color: #94a3b8;">
+                        Visit a patient's stage summary page to generate and cache AI summaries.
+                    </p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Find most recent cache
+        let mostRecent = null;
+        data.summaries.forEach(summary => {
+            if (summary.cached_at && (!mostRecent || summary.cached_at > mostRecent)) {
+                mostRecent = summary.cached_at;
+            }
+        });
+        
+        if (mostRecent) {
+            const date = new Date(mostRecent);
+            document.getElementById('lastUpdated').textContent = date.toLocaleString();
+        }
+        
+        // Render summaries
+        let html = '<div class="summaries-grid">';
+        
+        data.summaries.forEach(summary => {
+            const cachedDate = summary.cached_at 
+                ? new Date(summary.cached_at).toLocaleString()
+                : 'Unknown';
+            
+            html += `
+                <div class="summary-card" onclick="viewPatientSummary(${summary.patient_id})">
+                    <div class="summary-card-header">
+                        <div>
+                            <h3 class="summary-card-title">${summary.patient_name}</h3>
+                            <div class="summary-card-id">Patient ID: ${summary.patient_id}</div>
+                        </div>
+                    </div>
+                    <div class="summary-preview">${summary.summary_preview || 'No summary available'}</div>
+                    <div class="summary-meta">
+                        <span>Cached: ${cachedDate}</span>
+                        <div class="action-buttons" onclick="event.stopPropagation()">
+                            <button class="btn-small btn-primary-small" onclick="viewPatientSummary(${summary.patient_id})">
+                                View Details
+                            </button>
+                            <button class="btn-small btn-secondary-small" onclick="invalidateCache(${summary.patient_id})">
+                                Refresh Cache
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+        
+    } catch (error) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <h3>Error Loading Summaries</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+function viewPatientSummary(patientId) {
+    window.location.href = `/vizbriz/stage_summary_test?patient_id=${patientId}`;
+}
+
+async function invalidateCache(patientId) {
+    if (!confirm(`Refresh AI summary for Patient ${patientId}? This will regenerate the summary on next view.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/vizbriz/api/stage_summary_cache/invalidate/${patientId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Cache invalidated. Summary will be regenerated on next view.');
+            loadSummaries(); // Refresh the list
+        } else {
+            alert('Error: ' + (data.error || 'Failed to invalidate cache'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSummaries();
+});
+</script>
+{% endblock %}
+

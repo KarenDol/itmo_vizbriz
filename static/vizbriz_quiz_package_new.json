@@ -1,0 +1,1677 @@
+{
+  "metadata": {
+    "id": "vizbriz_osa_quiz",
+    "version": "v4.0",
+    "default_language": "en",
+    "languages": [
+      "en",
+      "he",
+      "ru"
+    ],
+    "notes": "Complete quiz structure matching exact requirements with proper sections and conditional logic.",
+    "display_groups": {
+      "Section_0": {
+        "title": "Section 0 – Patient Profile & Demographics",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_1": {
+        "title": "Section 1 – Sleep Apnea History & Treatments",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_2": {
+        "title": "Section 2 – Medical History & Comorbid Conditions",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3a": {
+        "title": "Section 3a – Sleep Quality & Symptoms",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3b": {
+        "title": "Section 3b – TMJ & Bruxism",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_3c": {
+        "title": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      },
+      "Section_4": {
+        "title": "Section 4 – Personal Notes & Sleep Goals",
+        "trigger_qid": null,
+        "expr": null,
+        "description": null
+      }
+    }
+  },
+  "questions": [
+    {
+      "qid": "DEMO_FULL_NAME",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Full name"
+    },
+    {
+      "qid": "DEMO_DOB",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "date",
+      "input": "date",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Date of birth (DD/MM/YYYY)"
+    },
+    {
+      "qid": "DEMO_EMAIL",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "email",
+      "input": "email",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Email address"
+    },
+    {
+      "qid": "DEMO_REFERRING_DENTIST_OR_CLI",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Referring dentist or clinic"
+    },
+    {
+      "qid": "DEMO_AGE",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Age"
+    },
+    {
+      "qid": "DEMO_SEX",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "male",
+          "label": "Male"
+        },
+        {
+          "value": "female",
+          "label": "Female"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        },
+        {
+          "value": "prefer_not_to_say",
+          "label": "Prefer not to say"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Gender"
+    },
+    {
+      "qid": "DEMO_HEIGHT_CM",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Height (cm)"
+    },
+    {
+      "qid": "DEMO_WEIGHT_KG",
+      "section": "Section 0 – Patient Profile & Demographics",
+      "display_group": "Section_0",
+      "type": "number",
+      "input": "number",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Weight (kg)"
+    },
+    {
+      "qid": "Q1",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0,
+          "not_sure": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Have you ever been diagnosed with sleep apnea (OSA)?"
+    },
+    {
+      "qid": "Q2",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q1 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Are you currently receiving any treatment for your sleep apnea?"
+    },
+    {
+      "qid": "Q3",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q2 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "cpap",
+          "label": "CPAP"
+        },
+        {
+          "value": "oral_appliance",
+          "label": "Oral appliance"
+        },
+        {
+          "value": "positional_therapy",
+          "label": "Positional therapy"
+        },
+        {
+          "value": "nasal_strips",
+          "label": "Nasal strips"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Which type of treatment are you currently using?"
+    },
+    {
+      "qid": "Q4",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q1 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Have you ever undergone surgery related to sleep apnea or airway breathing (such as nasal, palate, jaw, or throat surgery)?"
+    },
+    {
+      "qid": "Q5",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q4 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify which surgery was performed."
+    },
+    {
+      "qid": "Q6",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "When was your most recent sleep study performed?"
+    },
+    {
+      "qid": "Q7",
+      "section": "Section 1 – Sleep Apnea History & Treatments",
+      "display_group": "Section_1",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "yes": 1,
+          "no": 0,
+          "not_sure": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During that study, did you use any therapeutic device (e.g., CPAP, oral appliance, nasal strips)?"
+    },
+    {
+      "qid": "Q8",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "high_blood_pressure",
+          "label": "High blood pressure"
+        },
+        {
+          "value": "heart_disease",
+          "label": "Heart disease"
+        },
+        {
+          "value": "diabetes",
+          "label": "Diabetes"
+        },
+        {
+          "value": "thyroid_disorder",
+          "label": "Thyroid disorder"
+        },
+        {
+          "value": "anxiety_depression",
+          "label": "Anxiety or depression"
+        },
+        {
+          "value": "chronic_nasal_sinus",
+          "label": "Chronic nasal or sinus problems"
+        },
+        {
+          "value": "gerd_heartburn",
+          "label": "Gastroesophageal reflux (GERD) or heartburn"
+        },
+        {
+          "value": "bruxism",
+          "label": "Bruxism (clenching or grinding teeth)"
+        },
+        {
+          "value": "other",
+          "label": "Other (please specify)"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you currently have, or have you ever been diagnosed with, any of the following medical conditions?"
+    },
+    {
+      "qid": "Q8a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q8 && ANS.Q8.includes('other')"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify other medical conditions:"
+    },
+    {
+      "qid": "Q9",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Are you currently taking any medications?"
+    },
+    {
+      "qid": "Q9a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q9 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "If yes, please specify:"
+    },
+    {
+      "qid": "Q10",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have any known allergies (to medications, materials, or others)?"
+    },
+    {
+      "qid": "Q10a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q10 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "If yes, please specify:"
+    },
+    {
+      "qid": "Q11",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you smoke or use tobacco products?"
+    },
+    {
+      "qid": "Q12",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "1_2_times_per_week",
+          "label": "1–2 times per week"
+        },
+        {
+          "value": "3_6_times_per_week",
+          "label": "3–6 times per week"
+        },
+        {
+          "value": "daily",
+          "label": "Daily"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How often do you consume alcohol?"
+    },
+    {
+      "qid": "Q13",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you regularly use sedatives or sleeping pills?"
+    },
+    {
+      "qid": "Q13a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q13 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "If yes, please specify:"
+    },
+    {
+      "qid": "Q14",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Is there a family history of sleep apnea or other sleep-related disorders?"
+    },
+    {
+      "qid": "Q15",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have any chronic nasal or sinus issues (e.g., frequent congestion, nasal obstruction, or sinus infections)?"
+    },
+    {
+      "qid": "Q15a",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q15 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often"
+        },
+        {
+          "value": "5",
+          "label": "5 = Almost Always"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How often do you experience nasal obstruction or difficulty breathing through your nose?"
+    },
+    {
+      "qid": "Q15b",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q15 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often"
+        },
+        {
+          "value": "5",
+          "label": "5 = Almost Always"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How often do you feel the need to blow your nose during the day or night?"
+    },
+    {
+      "qid": "Q15c",
+      "section": "Section 2 – Medical History & Comorbid Conditions",
+      "display_group": "Section_2",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": {
+        "expr": "ANS.Q15 == 'yes'"
+      },
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often"
+        },
+        {
+          "value": "5",
+          "label": "5 = Almost Always"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How often do you feel mucus or drainage at the back of your throat (post-nasal drip)?"
+    },
+    {
+      "qid": "Q16",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How long (in minutes) does it usually take you to fall asleep?"
+    },
+    {
+      "qid": "Q17",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "text",
+      "input": "text",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "How many hours of actual sleep do you get at night? (This may be different than the number of hours you spend in bed.)"
+    },
+    {
+      "qid": "Q18",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "very_good",
+          "label": "Very good"
+        },
+        {
+          "value": "fairly_good",
+          "label": "Fairly good"
+        },
+        {
+          "value": "fairly_bad",
+          "label": "Fairly bad"
+        },
+        {
+          "value": "very_bad",
+          "label": "Very bad"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how would you rate your sleep quality overall?"
+    },
+    {
+      "qid": "Q19",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often"
+        },
+        {
+          "value": "5",
+          "label": "5 = Always"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often did you wake up feeling tired or unrefreshed, even after what seemed like a full night's sleep?"
+    },
+    {
+      "qid": "Q20",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often"
+        },
+        {
+          "value": "5",
+          "label": "5 = Always"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often did you wake up gasping for air, coughing, or with a choking sensation during sleep?"
+    },
+    {
+      "qid": "Q21",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "dont_know",
+          "label": "Don't know"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you snore loudly at night?"
+    },
+    {
+      "qid": "Q22",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "dont_know",
+          "label": "Don't know"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you usually breathe through your mouth while sleeping or wake up with a dry mouth or sore throat?"
+    },
+    {
+      "qid": "Q23",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Rarely"
+        },
+        {
+          "value": "3",
+          "label": "3 = Sometimes"
+        },
+        {
+          "value": "4",
+          "label": "4 = Often"
+        },
+        {
+          "value": "5",
+          "label": "5 = Always"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often did you feel excessively sleepy or drowsy during the day?"
+    },
+    {
+      "qid": "Q24",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have trouble staying awake while driving or during activities requiring attention — or have you ever unintentionally fallen asleep during the day (for example while reading or watching TV)?"
+    },
+    {
+      "qid": "Q25",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Never"
+        },
+        {
+          "value": "2",
+          "label": "2 = Less than once a week"
+        },
+        {
+          "value": "3",
+          "label": "3 = Once or twice a week"
+        },
+        {
+          "value": "4",
+          "label": "4 = Three or more times a week"
+        },
+        {
+          "value": "5",
+          "label": "5 = Every day"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "During the past month, how often have you woken up during the night or early morning and had trouble getting back to sleep?"
+    },
+    {
+      "qid": "Q26",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you snooze or take naps during the day?"
+    },
+    {
+      "qid": "Q27",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you wake up frequently to urinate at night?"
+    },
+    {
+      "qid": "Q28",
+      "section": "Section 3a – Sleep Quality & Symptoms",
+      "display_group": "Section_3a",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you consider yourself overweight (BMI ≥ 25) or have you been told so?"
+    },
+    {
+      "qid": "Q29",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have TMJ (jaw joint) problems?"
+    },
+    {
+      "qid": "Q30",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience jaw joint or chewing-muscle pain when you wake up?"
+    },
+    {
+      "qid": "Q31",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you grind your teeth, have signs of worn teeth, or has anyone told you that you suffer from bruxism?"
+    },
+    {
+      "qid": "Q32",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "ear_pain",
+          "label": "Ear pain"
+        },
+        {
+          "value": "tinnitus",
+          "label": "Tinnitus (ringing in ears)"
+        },
+        {
+          "value": "vertigo",
+          "label": "Vertigo (dizziness)"
+        },
+        {
+          "value": "other",
+          "label": "Other (please specify)"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you experience any of the following? (Select all that apply)"
+    },
+    {
+      "qid": "Q32a",
+      "section": "Section 3b – TMJ & Bruxism",
+      "display_group": "Section_3b",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q32 && ANS.Q32.includes('other')"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify other symptoms:"
+    },
+    {
+      "qid": "Q33",
+      "section": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+      "display_group": "Section_3c",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Yes, extreme difficulty"
+        },
+        {
+          "value": "2",
+          "label": "2 = Yes, moderate difficulty"
+        },
+        {
+          "value": "3",
+          "label": "3 = Yes, a little difficulty"
+        },
+        {
+          "value": "4",
+          "label": "4 = No difficulty"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "4": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have difficulty concentrating on the things you do because you are sleepy or tired?"
+    },
+    {
+      "qid": "Q34",
+      "section": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+      "display_group": "Section_3c",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Yes, extreme difficulty"
+        },
+        {
+          "value": "2",
+          "label": "2 = Yes, moderate difficulty"
+        },
+        {
+          "value": "3",
+          "label": "3 = Yes, a little difficulty"
+        },
+        {
+          "value": "4",
+          "label": "4 = No difficulty"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "4": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have difficulty visiting with family or friends in their home because you become sleepy or tired?"
+    },
+    {
+      "qid": "Q35",
+      "section": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+      "display_group": "Section_3c",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Yes, extreme difficulty"
+        },
+        {
+          "value": "2",
+          "label": "2 = Yes, moderate difficulty"
+        },
+        {
+          "value": "3",
+          "label": "3 = Yes, a little difficulty"
+        },
+        {
+          "value": "4",
+          "label": "4 = No difficulty"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "4": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you generally have difficulty remembering things because you are sleepy or tired?"
+    },
+    {
+      "qid": "Q36",
+      "section": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+      "display_group": "Section_3c",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Yes, extreme difficulty"
+        },
+        {
+          "value": "2",
+          "label": "2 = Yes, moderate difficulty"
+        },
+        {
+          "value": "3",
+          "label": "3 = Yes, a little difficulty"
+        },
+        {
+          "value": "4",
+          "label": "4 = No difficulty"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "4": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have difficulty operating a motor vehicle for short distances (less than 100 miles) because you become sleepy or tired?"
+    },
+    {
+      "qid": "Q37",
+      "section": "Section 3c – Daytime Function & Fatigue (FOSQ-5)",
+      "display_group": "Section_3c",
+      "type": "single_choice",
+      "input": "select",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1 = Yes, extreme difficulty"
+        },
+        {
+          "value": "2",
+          "label": "2 = Yes, moderate difficulty"
+        },
+        {
+          "value": "3",
+          "label": "3 = Yes, a little difficulty"
+        },
+        {
+          "value": "4",
+          "label": "4 = No difficulty"
+        }
+      ],
+      "score_map": {
+        "mode": "option",
+        "weights": {
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "4": 0
+        },
+        "polarity": "positive"
+      },
+      "score_flag": false,
+      "score_source": "inferred_binary",
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Do you have difficulty working on a hobby (for example: gardening, sewing, or other leisure activities) because you are sleepy or tired?"
+    },
+    {
+      "qid": "Q38",
+      "section": "Section 4 – Personal Notes & Sleep Goals",
+      "display_group": "Section_4",
+      "type": "multi_choice",
+      "input": "checkbox",
+      "required": true,
+      "display_if": null,
+      "display_if_inferred": false,
+      "options": [
+        {
+          "value": "reduce_snoring",
+          "label": "Reduce snoring"
+        },
+        {
+          "value": "improve_sleep_quality",
+          "label": "Improve sleep quality"
+        },
+        {
+          "value": "increase_daytime_energy",
+          "label": "Increase daytime energy"
+        },
+        {
+          "value": "reduce_morning_headaches",
+          "label": "Reduce morning headaches"
+        },
+        {
+          "value": "reduce_jaw_discomfort",
+          "label": "Reduce jaw discomfort or TMJ pain"
+        },
+        {
+          "value": "improve_concentration",
+          "label": "Improve concentration or mood"
+        },
+        {
+          "value": "improve_overall_health",
+          "label": "Improve or maintain overall health and well-being"
+        },
+        {
+          "value": "other",
+          "label": "Other"
+        }
+      ],
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "What would you most like to improve about your sleep or health? (Select all that apply)"
+    },
+    {
+      "qid": "Q38a",
+      "section": "Section 4 – Personal Notes & Sleep Goals",
+      "display_group": "Section_4",
+      "type": "text",
+      "input": "text",
+      "required": false,
+      "display_if": {
+        "expr": "ANS.Q38 && ANS.Q38.includes('other')"
+      },
+      "display_if_inferred": false,
+      "options": null,
+      "score_map": null,
+      "score_flag": false,
+      "score_source": null,
+      "score_polarity_inferred": false,
+      "needs_scoring_review": false,
+      "title_en": "Please specify other goals:"
+    }
+  ]
+}

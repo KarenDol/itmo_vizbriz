@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Patient for Treatment Assessment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .patient-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .patient-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .search-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .patient-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .no-patients {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h3">
+                        <i class="fas fa-user-md me-2"></i>
+                        Select Patient for Treatment Assessment
+                    </h1>
+                    <a href="{{ url_for('conversion_quiz_agent.quiz_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+                <p class="text-muted mt-2">
+                    Choose a patient from your clinic to create a treatment assessment
+                </p>
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="patientSearch" 
+                               placeholder="Search patients by name, email, or ID...">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <span class="badge bg-primary fs-6">
+                            <i class="fas fa-users me-1"></i>
+                            {{ patients|length }} Patient{{ 's' if patients|length != 1 else '' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient List -->
+        {% if patients %}
+            <div class="row" id="patientList">
+                {% for patient in patients %}
+                <div class="col-md-6 col-lg-4 mb-3 patient-item" 
+                     data-name="{{ patient.name|lower }}" 
+                     data-email="{{ patient.email|lower if patient.email else '' }}"
+                     data-id="{{ patient.id }}">
+                    <div class="card patient-card h-100" onclick="selectPatient({{ patient.id }})">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-user me-2 text-primary"></i>
+                                    {{ patient.name }}
+                                </h5>
+                                <span class="badge bg-secondary">ID: {{ patient.id }}</span>
+                            </div>
+                            
+                            <div class="patient-info">
+                                {% if patient.email %}
+                                <div class="mb-1">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    {{ patient.email }}
+                                </div>
+                                {% endif %}
+                                
+                                {% if patient.phone %}
+                                <div class="mb-1">
+                                    <i class="fas fa-phone me-1"></i>
+                                    {{ patient.phone }}
+                                </div>
+                                {% endif %}
+                                
+                                {% if patient.clinic %}
+                                <div class="mb-1">
+                                    <i class="fas fa-hospital me-1"></i>
+                                    {{ patient.clinic.name }}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="mb-1">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Created: {{ patient.create_date.strftime('%Y-%m-%d') if patient.create_date else 'N/A' }}
+                                </div>
+                                
+                                <div>
+                                    <i class="fas fa-tag me-1"></i>
+                                    Status: 
+                                    <span class="badge bg-{{ 'success' if patient.status == 'Active' else 'warning' if patient.status == 'New' else 'info' }}">
+                                        {{ patient.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Last updated: {{ patient.last_update.strftime('%Y-%m-%d') if patient.last_update else 'N/A' }}
+                                </small>
+                                <button class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Create Assessment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-patients">
+                <i class="fas fa-users fa-3x mb-3 text-muted"></i>
+                <h4>No Patients Found</h4>
+                <p class="mb-3">
+                    {% if current_user.role == 'admin' %}
+                        No patients are currently in the system.
+                    {% else %}
+                        No patients are associated with your clinics.
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('conversion_quiz_agent.quiz_dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Patient search functionality
+        document.getElementById('patientSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const patientItems = document.querySelectorAll('.patient-item');
+            
+            patientItems.forEach(item => {
+                const name = item.dataset.name;
+                const email = item.dataset.email;
+                const id = item.dataset.id;
+                
+                const matches = name.includes(searchTerm) || 
+                               email.includes(searchTerm) || 
+                               id.includes(searchTerm);
+                
+                item.style.display = matches ? 'block' : 'none';
+            });
+        });
+        
+        // Select patient function
+        function selectPatient(patientId) {
+            // Show language selection modal or redirect directly
+            const language = confirm('Select language for the assessment:\n\nClick OK for English\nClick Cancel for Hebrew');
+            const lang = language ? 'en' : 'he';
+            
+            window.location.href = `{{ base_url }}/dentist-treatment-quiz/${patientId}?language=${lang}`;
+        }
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.activeElement.id === 'patientSearch') {
+                const firstVisiblePatient = document.querySelector('.patient-item[style="display: block"], .patient-item:not([style*="display: none"])');
+                if (firstVisiblePatient) {
+                    const patientId = firstVisiblePatient.dataset.id;
+                    selectPatient(patientId);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

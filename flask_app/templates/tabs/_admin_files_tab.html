@@ -1,0 +1,474 @@
+<div id="admin-files-tab" class="col s12 tab-content">
+    <div class="card dark-card">
+        <div class="card-content">
+            <span class="card-title">Admin Files</span>
+
+            <div id="large-file-links" class="center-align" style="margin-top: 20px; display: none;">
+                <h5>Large Files (Download Individually)</h5>
+                <ul id="large-files-list" class="collection"></ul>
+            </div>
+
+            <div class="center-align" style="margin-top: 20px;">
+                <form id="upload-report-form">
+                    <div class="input-field" style="margin-bottom: 1.25rem;">
+                        <button type="button" id="add-file-row-btn" class="btn green waves-effect waves-light">
+                            Add File
+                        </button>
+                    </div>
+                    <!-- Per-file configuration list (each file gets its own category + public flag) -->
+                    <div id="file-config-wrapper" style="margin-top: 1.5rem; display: none;">
+                        <div id="file-config-list"></div>
+                    </div>
+                    <button type="button" id="submit-admin-files-btn" class="btn green waves-effect waves-light" style="margin-top: 1.5rem;">Submit Report(s)</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Uploaded Admin Files List -->
+<div class="admin-files-list" style="margin-top: 2.5rem;">
+    <h6 style="color: #fff;">Uploaded Admin Files</h6>
+    <ul class="file-list" id="admin-files-list">
+        {% for file in uploaded_files.reports %}
+            <li style="display: flex; align-items: center; justify-content: space-between;">
+                <span>
+                    <a href="{{ url_for('filemgmt.download_admin_file', file_id=file.id) }}" target="_blank" style="color: #90caf9;">{{ file.name }}</a>
+                    <span style="color: #bbb; font-size: 0.95em; margin-left: 0.5em;">({{ file.file_category or 'Uncategorized' }})</span>
+                </span>
+                {% if is_admin %}
+                <button class="btn btn-small" style="margin-left: 0.5rem; min-width: 48px; padding: 0 10px;" onclick="deleteAdminFile({{ file.id }})">
+                    Delete
+                </button>
+                {% endif %}
+            </li>
+        {% else %}
+            <li style="color: #bbb;">No admin files uploaded yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Custom Loader Component -->
+<div id="custom-loader-wrapper" class="custom-loader-hidden">
+    <div class="custom-loader"></div>
+</div>
+
+<!-- Inline CSS for the custom loader -->
+<style>
+    #custom-loader-wrapper {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        align-items: center;
+        justify-content: center;
+        z-index: 10500;
+    }
+
+    .custom-loader {
+        border: 12px solid #f3f3f3;
+        border-top: 12px solid #4096ff;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: custom-spin 1.5s linear infinite;
+    }
+
+    @keyframes custom-spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .custom-loader-hidden {
+        display: none !important;
+    }
+    /* Fix for dark background: make labels and selects white */
+    .input-field label, .input-field span, .input-field select, .input-field option {
+        color: #fff !important;
+        background-color: #222 !important;
+    }
+    .input-field input[type="checkbox"] + span {
+        color: #fff !important;
+    }
+    .input-field select {
+        border: 1px solid #888;
+        background-color: #222 !important;
+        color: #fff !important;
+    }
+    
+    /* Drag and drop styles */
+    .file-drop-zone {
+        position: relative;
+        border: 2px dashed #666;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        background-color: #1a1a1a;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .file-drop-zone:hover {
+        border-color: #4096ff;
+        background-color: #252525;
+    }
+    
+    .file-drop-zone.drag-over {
+        border-color: #4096ff;
+        background-color: #2a3a4a;
+        border-style: solid;
+    }
+    
+    .file-drop-zone.has-file {
+        border-color: #4CAF50;
+        background-color: #1a3a2a;
+    }
+    
+    .file-drop-zone-text {
+        color: #bbb;
+        font-size: 14px;
+        margin: 5px 0;
+    }
+    
+    .file-drop-zone-text.drag-over {
+        color: #4096ff;
+        font-weight: bold;
+    }
+    
+    .file-name-display {
+        color: #4CAF50;
+        font-size: 13px;
+        margin-top: 8px;
+        word-break: break-all;
+        max-width: 100%;
+    }
+    
+    .file-input-wrapper {
+        position: relative;
+        width: 100%;
+        min-width: 200px;
+    }
+    
+    .file-input-wrapper input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        z-index: 2;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const customLoaderWrapper = document.getElementById('custom-loader-wrapper');
+        const addFileRowBtn = document.getElementById('add-file-row-btn');
+        const submitAdminFilesBtn = document.getElementById('submit-admin-files-btn');
+        const fileConfigWrapper = document.getElementById('file-config-wrapper');
+        const fileConfigList = document.getElementById('file-config-list');
+
+        function showCustomLoader() {
+            console.log('Displaying custom loader...');
+            customLoaderWrapper.classList.remove('custom-loader-hidden');
+            customLoaderWrapper.style.display = 'flex';
+        }
+
+        function hideCustomLoader() {
+            console.log('Hiding custom loader...');
+            customLoaderWrapper.classList.add('custom-loader-hidden');
+            customLoaderWrapper.style.display = 'none';
+        }
+
+        async function uploadFile(file, perFile) {
+            try {
+                const presignedResponse = await fetch('{{ url_for("filemgmt.generate_client_presigned_url") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        patient_id: '{{ patient.id }}',
+                        section: 'admin-files',
+                        category: 'reports'
+                    })
+                });
+
+                const presignedData = await presignedResponse.json();
+
+                if (!presignedResponse.ok || !presignedData.success) {
+                    throw new Error(presignedData.message || 'Failed to get presigned URL');
+                }
+
+                const formData = new FormData();
+                for (const key in presignedData.fields) {
+                    formData.append(key, presignedData.fields[key]);
+                }
+                formData.append('file', file);
+
+                const uploadResponse = await fetch(presignedData.url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!uploadResponse.ok) {
+                    throw new Error(`Upload failed for ${file.name}`);
+                }
+
+                // Update metadata after successful upload using per-file config
+                const isPublic = perFile.isPublic;
+                const fileCategory = perFile.category;
+                const metadataPayload = {
+                    patient_id: '{{ patient.id }}',
+                    s3_key: presignedData.s3_key,
+                    file_size: file.size,
+                    file_type: file.type || 'application/octet-stream',
+                    category: 'reports',
+                    subcategory: 'reports',
+                    is_public: isPublic,
+                    file_category: fileCategory
+                };
+
+                const metadataResponse = await fetch('{{ url_for("main.store_admin_file_metadata") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(metadataPayload)
+                });
+
+                const metadataResult = await metadataResponse.json();
+
+                if (!metadataResponse.ok || !metadataResult.success) {
+                    throw new Error(metadataResult.message || 'Failed to store metadata');
+                }
+
+                return true;
+            } catch (error) {
+                console.error(`Error uploading file ${file.name}: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Add null checks before attaching event listeners
+        if (submitAdminFilesBtn) {
+            submitAdminFilesBtn.addEventListener('click', async () => {
+                // Collect per-file configs from rows
+                const rows = document.querySelectorAll('.file-config-row');
+                const perFileConfigs = [];
+                let invalid = false;
+                const files = [];
+                rows.forEach((row) => {
+                    const fileInput = row.querySelector('input[type="file"]');
+                    const dropZone = row.querySelector('.file-drop-zone');
+                    const select = row.querySelector('select');
+                    const checkbox = row.querySelector('input[type="checkbox"]');
+                    const file = fileInput.files && fileInput.files[0];
+                    const category = select.value;
+                    if (!file || !category) {
+                        invalid = true;
+                        if (!file && dropZone) {
+                            dropZone.style.border = '2px solid #ff5252';
+                            dropZone.style.borderStyle = 'dashed';
+                        }
+                        if (!category) select.style.border = '2px solid #ff5252';
+                    } else {
+                        if (dropZone) dropZone.style.border = '';
+                        select.style.border = '';
+                        files.push(file);
+                        perFileConfigs.push({ category, isPublic: checkbox.checked });
+                    }
+                });
+
+                if (invalid) {
+                    alert('Please choose a file and category for each row.');
+                    return;
+                }
+
+                showCustomLoader();
+
+                let successCount = 0;
+                for (let i = 0; i < files.length; i++) {
+                    const success = await uploadFile(files[i], perFileConfigs[i]);
+                    if (success) successCount++;
+                }
+
+                hideCustomLoader();
+
+                const resultMessage = successCount === files.length
+                    ? `All files uploaded successfully!`
+                    : `Uploaded ${successCount} out of ${files.length} files successfully.`;
+
+                alert(resultMessage); // Display the results before page reload
+
+                if (successCount > 0) {
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            });
+        }
+
+        // Helper function to update file display in drop zone
+        function updateFileDisplay(dropZone, file) {
+            const fileNameDisplay = dropZone.querySelector('.file-name-display');
+            if (file) {
+                dropZone.classList.add('has-file');
+                if (!fileNameDisplay) {
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'file-name-display';
+                    dropZone.appendChild(nameDiv);
+                }
+                dropZone.querySelector('.file-name-display').textContent = file.name;
+            } else {
+                dropZone.classList.remove('has-file');
+                if (fileNameDisplay) {
+                    fileNameDisplay.remove();
+                }
+            }
+        }
+
+        // Helper function to setup drag and drop for a row
+        function setupDragAndDrop(row) {
+            const dropZone = row.querySelector('.file-drop-zone');
+            const fileInput = row.querySelector('input[type="file"]');
+            
+            if (!dropZone || !fileInput) return;
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop zone when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.add('drag-over');
+                    dropZone.querySelector('.file-drop-zone-text').classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.remove('drag-over');
+                    dropZone.querySelector('.file-drop-zone-text').classList.remove('drag-over');
+                }, false);
+            });
+
+            // Handle dropped files
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    // Only accept the first file (1 file per row)
+                    const file = files[0];
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Trigger change event to update UI
+                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }, false);
+
+            // Handle file input change (from click)
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                updateFileDisplay(dropZone, file);
+            });
+        }
+
+        // Helper to add one empty row (file + category + public + remove)
+        function addFileRow() {
+            const row = document.createElement('div');
+            row.className = 'file-config-row';
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '12px';
+            row.style.margin = '8px 0';
+
+            row.innerHTML = `
+                <div class="file-input-wrapper" style="flex: 1; min-width: 200px;">
+                    <div class="file-drop-zone">
+                        <div class="file-drop-zone-text">Drag & drop file here or click to browse</div>
+                        <input type="file" class="file-input" required />
+                    </div>
+                </div>
+                <select class="browser-default" style="background:#222;color:#fff;border:1px solid #888;padding:6px 8px;border-radius:4px;min-width:200px;">
+                    <option value="" disabled selected>Select report level</option>
+                    <option value="Level 1 - Screening (Questionnaire Only)">Level 1 – Screening (Questionnaire Only)</option>
+                    <option value="Level 2 - Screening (Questionnaire + CBCT)">Level 2 – Screening (Questionnaire + CBCT)</option>
+                    <option value="Level 3 - Data Assessment (Dental Treatment suggestions)">Level 3 – Data Assessment (Dental Treatment suggestions)</option>
+                    <option value="Level 4 - Full Data Assessment (With Oral Appliance Prescription)">Level 4 – Full Data Assessment (With Oral Appliance Prescription)</option>
+                    <option value="Level 5 - First Follow-Up Report">Level 5 – First Follow-Up Report</option>
+                    <option value="Level 6 - Second Follow-Up Report">Level 6 – Second Follow-Up Report</option>
+                    <option value="Level 7 - OSA Transitional Re-Assessment Report">Level 7 – OSA Transitional Re-Assessment Report</option>
+                </select>
+                <label style="display:flex;align-items:center;color:#fff;">
+                    <input type="checkbox" class="public-checkbox" checked style="margin-right:6px;" />
+                    <span>Public</span>
+                </label>
+                <button type="button" class="btn-flat remove-file-row" style="color:#ff7675;">Remove</button>
+            `;
+
+            row.querySelector('.remove-file-row').addEventListener('click', () => {
+                row.remove();
+                if (!fileConfigList.children.length) fileConfigWrapper.style.display = 'none';
+            });
+
+            fileConfigList.appendChild(row);
+            fileConfigWrapper.style.display = 'block';
+            
+            // Setup drag and drop for this row
+            setupDragAndDrop(row);
+        }
+
+        // First row by default
+        addFileRow();
+        // Add new rows
+        addFileRowBtn.addEventListener('click', addFileRow);
+    });
+
+    // Delete admin file function (calls the new backend API)
+    function deleteAdminFile(fileId) {
+        console.log('Delete admin file called for ID:', fileId);
+        if (!confirm('Are you sure you want to delete this file?')) return;
+        
+        const url = `/delete_admin_file/${fileId}`;
+        console.log('Making request to:', url);
+        
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Failed to delete file: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Error deleting file:', err);
+            alert('Error deleting file: ' + err);
+        });
+    }
+</script>

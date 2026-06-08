@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}OSA Report Normalization{% endblock %}
+
+{% block extra_css %}
+<style>
+    .normalize-wrapper {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        margin-top: 32px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+        color: #1a1a1a;
+    }
+    .normalize-wrapper h4 {
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+    }
+    .normalize-wrapper p {
+        color: #333333;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 24px 0 12px;
+        color: #1a1a1a;
+    }
+    .normalize-wrapper label {
+        font-weight: 600;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .normalize-wrapper textarea {
+        width: 100%;
+        min-height: 300px;
+        padding: 12px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        font-family: "Source Code Pro", "Courier New", monospace;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1a1a1a;
+        line-height: 1.6;
+        resize: vertical;
+    }
+    .normalize-wrapper textarea:focus {
+        border-color: #26a69a;
+        box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.2);
+        outline: none;
+    }
+    .normalize-wrapper input[type="radio"] + span {
+        font-weight: 500;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+    }
+    pre {
+        background: #1a1a1a;
+        color: #f0f0f0;
+        padding: 16px;
+        border-radius: 8px;
+        max-height: 600px;
+        overflow-y: auto;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.6;
+        border: 2px solid #333;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    .response-box {
+        background: #ffffff;
+        border: 2px solid #26a69a;
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 300px;
+        white-space: pre-wrap;
+        font-family: "Source Code Pro", "Courier New", monospace;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1a1a1a;
+        line-height: 1.6;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 12px;
+        background: #26a69a;
+        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    #normalize-btn {
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+    .copy-btn {
+        display: inline-block;
+        padding: 6px 14px;
+        background: #26a69a;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 12px;
+        transition: background 0.2s;
+    }
+    .copy-btn:hover {
+        background: #1e8e82;
+    }
+    .copy-btn:active {
+        background: #1a7a70;
+    }
+    .copy-btn.copied {
+        background: #10a37f;
+    }
+    .prompt-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .prompt-tab {
+        padding: 10px 20px;
+        background: #f5f5f5;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.2s;
+        margin-bottom: -2px;
+    }
+    .prompt-tab:hover {
+        background: #e8e8e8;
+        color: #1a1a1a;
+    }
+    .prompt-tab.active {
+        background: #ffffff;
+        color: #26a69a;
+        border-bottom-color: #26a69a;
+    }
+    .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 12px 16px;
+        margin: 16px 0;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        color: #1565c0;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="normalize-wrapper">
+    <h4>OSA Report Normalization</h4>
+    <p class="grey-text text-darken-1">
+        Normalize any raw OSA clinical report into a standardized Level-4 format suitable for knowledge base ingestion.
+    </p>
+
+    <div class="info-box">
+        <strong>Instructions:</strong> Paste or type a raw clinical report (text or OCR'd) in the input field below. 
+        The system will normalize it into the standardized Level-4 OSA Report format with consistent structure, 
+        headings, and clinical vocabulary. Missing data will be marked as "Not provided" - no values will be fabricated.
+    </div>
+
+    <div class="section-title">1. Input Raw Report</div>
+    <div>
+        <label for="raw-report-input">Raw Clinical Report (text/OCR)</label>
+        <textarea id="raw-report-input" placeholder="Paste the raw clinical report here..."></textarea>
+    </div>
+
+    <div class="section-title">2. LLM Provider</div>
+    <div>
+        <p>
+            <label><input name="provider" type="radio" value="bedrock" checked /> <span>Bedrock (default)</span></label><br>
+            <label><input name="provider" type="radio" value="openai" /> <span>OpenAI</span></label><br>
+            <label><input name="provider" type="radio" value="claude" /> <span>Claude API</span></label>
+        </p>
+        <button id="normalize-btn" class="btn waves-effect waves-light">
+            <i class="material-icons left">transform</i>Normalize Report
+        </button>
+    </div>
+
+    <div class="section-title">
+        3. Prompts Used
+        <button id="copy-prompt-btn" class="copy-btn" style="display:none;" title="Copy active prompt tab to clipboard">
+            📋 Copy Active Tab
+        </button>
+    </div>
+    <div class="prompt-tabs">
+        <button class="prompt-tab active" data-tab="system">System Prompt</button>
+        <button class="prompt-tab" data-tab="user">User Prompt</button>
+    </div>
+    <pre id="prompt-preview" data-tab-content="system" style="display:none;">System prompt will appear here after normalization...</pre>
+    <pre id="prompt-preview-user" data-tab-content="user" style="display:none;">User prompt will appear here after normalization...</pre>
+
+    <div class="section-title">
+        4. Normalized Report
+        <span id="response-model" class="badge" style="display:none;"></span>
+        <button id="copy-response-btn" class="copy-btn" style="display:none;" title="Copy normalized report to clipboard">
+            📋 Copy Report
+        </button>
+    </div>
+    <div id="response-area" class="response-box">Awaiting normalization...</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const rawReportInput = document.getElementById('raw-report-input');
+    const normalizeBtn = document.getElementById('normalize-btn');
+    const responseArea = document.getElementById('response-area');
+    const responseModel = document.getElementById('response-model');
+    const promptPreview = document.getElementById('prompt-preview');
+    const promptPreviewUser = document.getElementById('prompt-preview-user');
+    const promptTabs = document.querySelectorAll('.prompt-tab');
+    const copyPromptBtn = document.getElementById('copy-prompt-btn');
+    const copyResponseBtn = document.getElementById('copy-response-btn');
+
+    let currentSystemPrompt = '';
+    let currentUserPrompt = '';
+    let currentNormalizedReport = '';
+    let activePromptTab = 'system';
+
+    // Tab switching functionality
+    promptTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.dataset.tab;
+            activePromptTab = tabName;
+            
+            // Update tab active state
+            promptTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Show/hide corresponding pre elements
+            if (tabName === 'system') {
+                promptPreview.style.display = 'block';
+                promptPreviewUser.style.display = 'none';
+            } else {
+                promptPreview.style.display = 'none';
+                promptPreviewUser.style.display = 'block';
+            }
+        });
+    });
+
+    // Copy prompt button - copies active tab
+    if (copyPromptBtn) {
+        copyPromptBtn.addEventListener('click', () => {
+            let textToCopy = '';
+            if (activePromptTab === 'system') {
+                textToCopy = currentSystemPrompt || promptPreview.textContent;
+            } else {
+                textToCopy = currentUserPrompt || promptPreviewUser.textContent;
+            }
+            
+            if (textToCopy && textToCopy !== 'System prompt will appear here after normalization...' && 
+                textToCopy !== 'User prompt will appear here after normalization...') {
+                const tabName = activePromptTab === 'system' ? 'System Prompt' : 'User Prompt';
+                copyToClipboard(textToCopy, copyPromptBtn, tabName);
+            } else {
+                M.toast({html: 'No prompt available to copy.'});
+            }
+        });
+    }
+
+    // Copy response button
+    if (copyResponseBtn) {
+        copyResponseBtn.addEventListener('click', () => {
+            if (currentNormalizedReport) {
+                copyToClipboard(currentNormalizedReport, copyResponseBtn, 'Normalized Report');
+            } else {
+                const reportText = responseArea.textContent;
+                if (reportText && reportText !== 'Awaiting normalization...') {
+                    copyToClipboard(reportText, copyResponseBtn, 'Normalized Report');
+                } else {
+                    M.toast({html: 'No normalized report available to copy.'});
+                }
+            }
+        });
+    }
+
+    // Normalize button handler
+    normalizeBtn.addEventListener('click', async () => {
+        const rawReport = rawReportInput.value.trim();
+        if (!rawReport) {
+            M.toast({html: 'Please enter a raw report to normalize.'});
+            return;
+        }
+        
+        const provider = document.querySelector('input[name="provider"]:checked').value;
+        normalizeBtn.classList.add('disabled');
+        responseArea.textContent = 'Normalizing report...';
+        responseModel.style.display = 'none';
+        copyPromptBtn.style.display = 'none';
+        copyResponseBtn.style.display = 'none';
+        promptPreview.style.display = 'none';
+        promptPreviewUser.style.display = 'none';
+
+        try {
+            const resp = await fetch('/reports/api/normalize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ raw_report: rawReport, provider })
+            });
+            const data = await resp.json();
+            if (!data.success) throw new Error(data.error || 'Normalization failed');
+            
+            // Store prompts and response
+            currentSystemPrompt = data.system_prompt || '';
+            currentUserPrompt = data.user_prompt || '';
+            currentNormalizedReport = data.normalized_report || '';
+            
+            // Display prompts
+            promptPreview.textContent = currentSystemPrompt || 'System prompt unavailable.';
+            promptPreviewUser.textContent = currentUserPrompt || 'User prompt unavailable.';
+            
+            // Show system prompt tab by default
+            promptTabs.forEach(t => t.classList.remove('active'));
+            promptTabs[0].classList.add('active');
+            promptPreview.style.display = 'block';
+            promptPreviewUser.style.display = 'none';
+            activePromptTab = 'system';
+            
+            // Display normalized report
+            responseArea.textContent = currentNormalizedReport || 'No normalized report returned.';
+            
+            // Show copy buttons if content is available
+            if (currentSystemPrompt || currentUserPrompt) {
+                copyPromptBtn.style.display = 'inline-block';
+            }
+            if (currentNormalizedReport) {
+                copyResponseBtn.style.display = 'inline-block';
+            }
+            
+            if (data.model_used) {
+                responseModel.textContent = data.model_used;
+                responseModel.style.display = 'inline-block';
+            }
+            
+            M.toast({html: 'Report normalized successfully!'});
+        } catch (err) {
+            console.error(err);
+            M.toast({html: `Error: ${err.message}`});
+            responseArea.textContent = err.message;
+        } finally {
+            normalizeBtn.classList.remove('disabled');
+        }
+    });
+
+    // Copy to clipboard functionality
+    async function copyToClipboard(text, buttonElement, buttonText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = '✓ Copied!';
+            buttonElement.classList.add('copied');
+            setTimeout(() => {
+                buttonElement.textContent = originalText;
+                buttonElement.classList.remove('copied');
+            }, 2000);
+            M.toast({html: `${buttonText} copied to clipboard!`});
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                M.toast({html: `${buttonText} copied to clipboard!`});
+            } catch (e) {
+                M.toast({html: `Failed to copy. Please select and copy manually.`});
+            }
+            document.body.removeChild(textarea);
+        }
+    }
+});
+</script>
+{% endblock %}
+

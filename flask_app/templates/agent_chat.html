@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI OSA Agent Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts: Quicksand only -->
+    <link href="https://fonts.googleapis.com/css?family=Quicksand:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='branding/agent_style.css') }}">
+</head>
+<body>
+    <div class="chat-app-layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <img src="{{ url_for('static', filename='branding/vizbrizz_logo color.svg') }}" class="vizbriz-logo" alt="VizBriz Logo">
+            <h3>Patient Analysis</h3>
+            <div class="tabs-container">
+                <button class="tab active" id="tab-observations" onclick="switchTab('observations')">Observations</button>
+                <button class="tab" id="tab-prompt" onclick="switchTab('prompt')">AI Prompts</button>
+                <button class="tab" id="tab-validation" onclick="switchTab('validation')">Validation</button>
+            </div>
+            <div id="observations-panel" class="sidebar-panel">
+                <div class="sidebar-section">
+                    <h4>Data Source Observations <span id="datasource-count">(0)</span></h4>
+                    <ul id="datasource-observations">
+                        <li>Loading observations...</li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h4>General Observations <span id="general-count">(0)</span></h4>
+                    <ul id="general-observations">
+                        <li>Loading observations...</li>
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Analyzed Files <span id="file-count">(0)</span></h4>
+                    <ul id="file-list">
+                        <li>Loading files...</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="prompt-panel" class="sidebar-panel" style="display: none;">
+                <div class="sidebar-section">
+                    <h4>OpenAI Prompt</h4>
+                    <pre id="openai-prompt" style="white-space:pre-wrap; max-height:300px; overflow:auto; margin: 0; font-size: 0.85em;"></pre>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Last Response</h4>
+                    <pre id="last-response" style="white-space:pre-wrap; max-height:200px; overflow:auto; margin: 0; font-size: 0.85em;">No responses yet</pre>
+                </div>
+            </div>
+            <div id="validation-panel" class="sidebar-panel" style="display: none;">
+                <div class="sidebar-section">
+                    <h4>Response Validation</h4>
+                    <div id="validation-info">
+                        <p>Validation metrics will appear here after each response.</p>
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h4>Observation Details</h4>
+                    <div id="observation-stats">
+                        <p><b>Total Observations:</b> <span id="total-obs-count">0</span></p>
+                        <p><b>High Confidence:</b> <span id="high-conf-count">0</span></p>
+                        <p><b>Medium Confidence:</b> <span id="med-conf-count">0</span></p>
+                        <p><b>Low Confidence:</b> <span id="low-conf-count">0</span></p>
+                        <p><b>Average Confidence:</b> <span id="avg-conf">0%</span></p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- RIGHT CHAT CARD -->
+        <main class="chat-card">
+            <div class="chat-header">
+                <span class="drbriz-avatar">
+                    <img src="{{ url_for('static', filename='branding/Dr Briz.svg') }}" alt="Dr. Briz">
+                </span>
+                Dr. Briz <span style="font-size:0.9rem;font-weight:400;opacity:0.8;">— AI OSA Agent</span>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Initial welcome message -->
+                <div class="message ai">
+                    <div class="drbriz-avatar"><img src="{{ url_for('static', filename='branding/Dr Briz.svg') }}" alt="Dr. Briz"></div>
+                    <div class="bubble">
+                        Hello, I'm Dr. Briz, your AI assistant for sleep apnea analysis. I can help you interpret sleep study results, discuss symptoms, and provide guidance on OSA treatment options. How can I assist you today?
+                    </div>
+                </div>
+            </div>
+            <form class="chat-input-area" id="chat-form" autocomplete="off">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type your question about OSA or sleep study results..." required autofocus>
+                <button type="submit" class="send-btn" title="Send">
+                    <span class="material-icons">send</span>
+                </button>
+            </form>
+        </main>
+    </div>
+    <script>
+        // Add at the start of your script
+        console.log('Agent interface script loaded');
+
+        // Get patient_id from the URL if available
+        function getPatientIdFromUrl() {
+            const match = window.location.pathname.match(/(\d+)$/);
+            return match ? match[1] : null;
+        }
+        const patientId = getPatientIdFromUrl();
+        
+        // Now we can log the patient ID
+        console.log('Patient ID from URL:', patientId);
+
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        
+        // Store all observations and responses for validation
+        let allObservations = [];
+        let lastUserMessage = "";
+        let lastAIResponse = "";
+        let lastPrompt = "";
+        
+        function switchTab(tabName) {
+            // Hide all panels
+            document.querySelectorAll('.sidebar-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected panel and activate tab
+            document.getElementById(`${tabName}-panel`).style.display = 'block';
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function appendMessage(role, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + role;
+            if (role === 'ai') {
+                messageDiv.innerHTML = `
+                    <div class="drbriz-avatar"><img src="/static/branding/Dr%20Briz.svg" alt="Dr. Briz"></div>
+                    <div class="bubble">${text}</div>
+                `;
+                lastAIResponse = text;
+                validateResponse();
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="bubble">${text}</div>
+                    <div class="user-avatar"><span class="material-icons">person</span></div>
+                `;
+                lastUserMessage = text;
+            }
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateObservationDisplay(observations) {
+            const datasourceObsList = document.getElementById('datasource-observations');
+            const generalObsList = document.getElementById('general-observations');
+            const datasourceCount = document.getElementById('datasource-count');
+            const generalCount = document.getElementById('general-count');
+            
+            // Filter and sort observations by confidence
+            const datasourceObs = observations.filter(o => o.source === 'datasource')
+                .sort((a, b) => b.confidence - a.confidence);
+            const generalObs = observations.filter(o => o.source === 'general')
+                .sort((a, b) => b.confidence - a.confidence);
+            
+            // Update counts
+            datasourceCount.textContent = `(${datasourceObs.length})`;
+            generalCount.textContent = `(${generalObs.length})`;
+            
+            // Update observation statistics
+            document.getElementById('total-obs-count').textContent = observations.length;
+            document.getElementById('high-conf-count').textContent = observations.filter(o => o.confidence >= 80).length;
+            document.getElementById('med-conf-count').textContent = observations.filter(o => o.confidence >= 60 && o.confidence < 80).length;
+            document.getElementById('low-conf-count').textContent = observations.filter(o => o.confidence < 60).length;
+            
+            // Calculate average confidence
+            const avgConf = observations.length > 0 ? 
+                observations.reduce((sum, o) => sum + o.confidence, 0) / observations.length : 0;
+            document.getElementById('avg-conf').textContent = `${Math.round(avgConf)}%`;
+            
+            // Display datasource observations
+            datasourceObsList.innerHTML = "";
+            if (datasourceObs.length > 0) {
+                datasourceObs.forEach(o => {
+                    let confidenceClass = '';
+                    if (o.confidence >= 80) confidenceClass = 'confidence-high';
+                    else if (o.confidence >= 60) confidenceClass = 'confidence-medium';
+                    else confidenceClass = 'confidence-low';
+                    
+                    datasourceObsList.innerHTML += `
+                        <li class="observation-item ${confidenceClass}" data-observation="${o.observation}">
+                            <span>${o.observation}${o.value ? `: <b>${o.value}</b>` : ""}${o.unit ? ` ${o.unit}` : ""}</span>
+                            <div style="font-size:0.8em; color:#aaa;">Confidence: ${o.confidence}%</div>
+                        </li>`;
+                });
+            } else {
+                datasourceObsList.innerHTML = "<li>No datasource observations found.</li>";
+            }
+            
+            // Display general observations
+            generalObsList.innerHTML = "";
+            if (generalObs.length > 0) {
+                generalObs.forEach(o => {
+                    let confidenceClass = '';
+                    if (o.confidence >= 80) confidenceClass = 'confidence-high';
+                    else if (o.confidence >= 60) confidenceClass = 'confidence-medium';
+                    else confidenceClass = 'confidence-low';
+                    
+                    generalObsList.innerHTML += `
+                        <li class="observation-item ${confidenceClass}" data-observation="${o.observation}">
+                            <span>${o.observation}${o.value ? `: <b>${o.value}</b>` : ""}${o.unit ? ` ${o.unit}` : ""}</span>
+                            <div style="font-size:0.8em; color:#aaa;">Confidence: ${o.confidence}%</div>
+                        </li>`;
+                });
+            } else {
+                generalObsList.innerHTML = "<li>No general observations found.</li>";
+            }
+            
+            // Add click event listeners to highlight observations
+            document.querySelectorAll('.observation-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    highlightObservation(this.getAttribute('data-observation'));
+                });
+            });
+        }
+        
+        function highlightObservation(obsText) {
+            // Remove previous highlights
+            document.querySelectorAll('.highlighted').forEach(el => {
+                el.classList.remove('highlighted');
+            });
+            
+            // Highlight the clicked observation
+            document.querySelectorAll(`[data-observation="${obsText}"]`).forEach(el => {
+                el.classList.add('highlighted');
+            });
+            
+            // Check if this observation appears in the last response
+            const validationInfo = document.getElementById('validation-info');
+            if (lastAIResponse.includes(obsText)) {
+                validationInfo.innerHTML = `
+                    <p class="validation-good">✓ The observation "${obsText}" appears in the AI response.</p>
+                    <p>This indicates accurate information transfer between the data and the response.</p>
+                `;
+            } else {
+                validationInfo.innerHTML = `
+                    <p class="validation-issue">⚠ The observation "${obsText}" does not appear in the last AI response.</p>
+                    <p>Click other observations to check if they are referenced in the response.</p>
+                `;
+            }
+        }
+        
+        function updateFileList(files) {
+            const fileList = document.getElementById('file-list');
+            const fileCount = document.getElementById('file-count');
+            
+            fileCount.textContent = `(${files.length})`;
+            fileList.innerHTML = "";
+            
+            if (files.length > 0) {
+                files.forEach(file => {
+                    fileList.innerHTML += `<li>${file}</li>`;
+                });
+            } else {
+                fileList.innerHTML = "<li>No files analyzed.</li>";
+            }
+        }
+        
+        function validateResponse() {
+            if (!lastAIResponse || !lastUserMessage) return;
+            
+            const validationInfo = document.getElementById('validation-info');
+            const relevantObservations = findRelevantObservations(lastUserMessage);
+            
+            // Update the last response display
+            document.getElementById('last-response').textContent = lastAIResponse;
+            
+            if (relevantObservations.length === 0) {
+                validationInfo.innerHTML = `
+                    <p>No specific observations were identified as relevant to your query.</p>
+                    <p>Try asking about specific symptoms or test results.</p>
+                `;
+                return;
+            }
+            
+            // Check how many relevant observations appear in the response
+            const mentionedObs = relevantObservations.filter(obs => 
+                lastAIResponse.toLowerCase().includes(obs.observation.toLowerCase())
+            );
+            
+            const percentage = Math.round((mentionedObs.length / relevantObservations.length) * 100);
+            
+            if (percentage >= 75) {
+                validationInfo.innerHTML = `
+                    <p class="validation-good">✓ The AI response references ${mentionedObs.length} of ${relevantObservations.length} relevant observations (${percentage}%).</p>
+                    <p>This indicates strong correlation between the data and response.</p>
+                `;
+            } else if (percentage >= 40) {
+                validationInfo.innerHTML = `
+                    <p class="validation-good">✓ The AI response references ${mentionedObs.length} of ${relevantObservations.length} relevant observations (${percentage}%).</p>
+                    <p>This indicates moderate correlation between the data and response.</p>
+                `;
+            } else {
+                validationInfo.innerHTML = `
+                    <p class="validation-issue">⚠ The AI response only references ${mentionedObs.length} of ${relevantObservations.length} relevant observations (${percentage}%).</p>
+                    <p>This may indicate low correlation between the data and response.</p>
+                `;
+            }
+            
+            // Highlight referenced observations in the sidebar
+            highlightReferencedObservations(mentionedObs);
+        }
+        
+        function findRelevantObservations(query) {
+            // Simple keyword matching for now - could be improved with NLP
+            const queryLower = query.toLowerCase();
+            const relevantKeywords = [
+                'ahi', 'apnea', 'hypopnea', 'sleep', 'breathing', 'oxygen', 'saturation',
+                'rdi', 'snore', 'snoring', 'tired', 'fatigue', 'daytime', 'sleepiness',
+                'pressure', 'cpap', 'study', 'test', 'diagnosis', 'treatment', 'score'
+            ];
+            
+            // Find keywords in the query
+            const foundKeywords = relevantKeywords.filter(keyword => 
+                queryLower.includes(keyword)
+            );
+            
+            if (foundKeywords.length === 0) {
+                return allObservations; // Return all if no specific keywords
+            }
+            
+            // Find observations that contain any of the found keywords
+            return allObservations.filter(obs => {
+                const obsLower = obs.observation.toLowerCase();
+                return foundKeywords.some(keyword => obsLower.includes(keyword));
+            });
+        }
+        
+        function highlightReferencedObservations(observations) {
+            // Remove previous highlights
+            document.querySelectorAll('.highlighted').forEach(el => {
+                el.classList.remove('highlighted');
+            });
+            
+            // Highlight observations that were referenced
+            observations.forEach(obs => {
+                document.querySelectorAll(`[data-observation="${obs.observation}"]`).forEach(el => {
+                    el.classList.add('highlighted');
+                });
+            });
+        }
+
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+            
+            console.log('=== Chat Request ===');
+            console.log('Patient ID:', patientId);
+            console.log('User message:', userMessage);
+            
+            appendMessage('user', userMessage);
+            chatInput.value = '';
+            chatInput.disabled = true;
+
+            // Show a loading indicator
+            appendMessage('ai', '<span class="material-icons" style="vertical-align:middle;">hourglass_empty</span> Analyzing patient data...');
+
+            try {
+                console.log('Making API request to /agent/chat/' + patientId);
+                const response = await fetch(`/agent/chat/${patientId}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message: userMessage,
+                        patient_id: patientId  // Add patient ID to request
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Full response data:', data);
+                
+                // Remove the loading indicator
+                const loadingMsg = chatMessages.querySelector('.message.ai:last-child');
+                if (loadingMsg && loadingMsg.innerText.includes('Analyzing patient data...')) {
+                    chatMessages.removeChild(loadingMsg);
+                }
+                
+                if (data.success) {
+                    appendMessage('ai', data.message);
+                    
+                    // Update prompt if available
+                    if (data.prompt) {
+                        lastPrompt = data.prompt;
+                        document.getElementById('openai-prompt').textContent = data.prompt;
+                    }
+                    
+                    // Show validation panel after response
+                    switchTab('validation');
+                } else {
+                    appendMessage('ai', `<span style="color:#ff5252;">${data.message}</span>`);
+                }
+            } catch (err) {
+                console.error('Error in chat request:', err);
+                // Remove the loading indicator
+                const loadingMsg = chatMessages.querySelector('.message.ai:last-child');
+                if (loadingMsg && loadingMsg.innerText.includes('Analyzing patient data...')) {
+                    chatMessages.removeChild(loadingMsg);
+                }
+                appendMessage('ai', `<span style="color:#ff5252;">Error: Could not reach the AI agent. Please check the console for details.</span>`);
+            }
+            chatInput.disabled = false;
+            chatInput.focus();
+        });
+
+        // Initial analysis and sidebar population
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM Content Loaded');
+            console.log('Attempting to fetch initial analysis for patient:', patientId);
+            
+            if (!patientId) {
+                console.error('No patient ID found in URL');
+                return;
+            }
+
+            try {
+                console.log('Making fetch request to /agent/initial_analysis/' + patientId);
+                const response = await fetch(`/agent/initial_analysis/${patientId}`);
+                console.log('Initial analysis response status:', response.status);
+                const data = await response.json();
+                console.log('Initial analysis data received:', data);
+
+                // Process observations
+                if (data.observations && data.observations.length > 0) {
+                    // Add source field to each observation for filtering
+                    allObservations = data.observations.map(obs => {
+                        const source = (obs.observation.toLowerCase().includes('ahi') || 
+                                       obs.observation.toLowerCase().includes('rdi') ||
+                                       obs.observation.toLowerCase().includes('sleep study')) 
+                                       ? 'datasource' : 'general';
+                        return {...obs, source: source};
+                    });
+                    
+                    // Update the sidebar
+                    updateObservationDisplay(allObservations);
+                } else {
+                    document.getElementById('datasource-observations').innerHTML = "<li>No observations found.</li>";
+                    document.getElementById('general-observations').innerHTML = "<li>No observations found.</li>";
+                }
+                
+                // Update file list
+                if (data.analyzed_files) {
+                    updateFileList(data.analyzed_files);
+                } else {
+                    updateFileList(['patient_sleep_study.pdf', 'questionnaire.pdf']);
+                }
+
+                // Display the OpenAI prompt
+                if (data.openai_prompt) {
+                    lastPrompt = data.openai_prompt;
+                    document.getElementById('openai-prompt').textContent = data.openai_prompt;
+                }
+
+                // Parse diagnosis for key findings and next steps
+                if (data.diagnosis) {
+                    // Add initial diagnosis message to chat
+                    const diagnosisMessage = document.createElement('div');
+                    diagnosisMessage.className = 'message ai';
+                    diagnosisMessage.innerHTML = `
+                        <div class="drbriz-avatar"><img src="/static/branding/Dr%20Briz.svg" alt="Dr. Briz"></div>
+                        <div class="bubble">
+                            <p><strong>Initial Analysis:</strong> ${data.diagnosis.split(/Key Findings:/i)[0].trim()}</p>
+                        </div>
+                    `;
+                    
+                    // Insert after welcome message
+                    const welcomeMsg = chatMessages.querySelector('.message.ai');
+                    if (welcomeMsg) {
+                        chatMessages.insertBefore(diagnosisMessage, welcomeMsg.nextSibling);
+                    } else {
+                        chatMessages.appendChild(diagnosisMessage);
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading initial analysis:', err);
+            }
+        });
+    </script>
+</body>
+</html>

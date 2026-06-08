@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBCT MPR Viewer - {{ patient_name }} - {{ folder_name }}</title>
+    
+    <!-- JSZip for unzipping -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- AMI Medical Imaging Library -->
+    <script src="https://cdn.jsdelivr.net/npm/ami.js@0.32.0/build/ami.min.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0d0d12;
+            --panel: #15151d;
+            --viewport: #0a0a0e;
+            --accent: #00e5c7;
+            --text: #f0f0f5;
+            --dim: #888899;
+            --border: #252530;
+            --red: #ff5555;
+            --green: #50fa7b;
+            --blue: #8be9fd;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        
+        #app { display: flex; flex-direction: column; height: 100vh; }
+        
+        header {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: var(--bg); font-size: 14px;
+        }
+        .logo h1 { font-size: 16px; font-weight: 600; }
+        .logo h1 span { color: var(--accent); }
+        .badge {
+            font-size: 12px; color: var(--dim);
+            background: var(--bg);
+            padding: 4px 12px; border-radius: 20px; margin-left: 16px;
+        }
+        
+        .btn {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn:hover { background: rgba(0,229,199,0.15); border-color: var(--accent); color: var(--accent); }
+        .btn-close { border-color: var(--red); color: var(--red); }
+        
+        .toolbar {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 20px;
+            display: flex; gap: 24px; align-items: center;
+        }
+        .tool-group { display: flex; align-items: center; gap: 8px; }
+        .tool-group label { font-size: 11px; color: var(--dim); text-transform: uppercase; }
+        .tool-group select, .tool-group input {
+            background: var(--bg); border: 1px solid var(--border);
+            color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 12px;
+        }
+        .tool-group input[type="range"] { width: 100px; accent-color: var(--accent); }
+        .tool-group input[type="number"] { width: 70px; }
+        
+        .viewer-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 2px;
+            background: var(--border);
+            padding: 2px;
+        }
+        
+        .viewport { position: relative; background: var(--viewport); overflow: hidden; }
+        .viewport canvas { width: 100% !important; height: 100% !important; }
+        
+        .viewport-label {
+            position: absolute; top: 8px; left: 8px;
+            background: rgba(0,0,0,0.75); color: var(--accent);
+            padding: 4px 10px; border-radius: 4px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            z-index: 100;
+        }
+        .viewport-info, .viewport-wl {
+            position: absolute; bottom: 8px;
+            background: rgba(0,0,0,0.75); color: var(--dim);
+            padding: 4px 10px; border-radius: 4px; font-size: 10px; z-index: 100;
+        }
+        .viewport-info { left: 8px; }
+        .viewport-wl { right: 8px; }
+        
+        .orient { position: absolute; font-size: 14px; font-weight: 700; z-index: 100; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+        .orient-t { top: 8px; left: 50%; transform: translateX(-50%); }
+        .orient-b { bottom: 28px; left: 50%; transform: translateX(-50%); }
+        .orient-l { left: 8px; top: 50%; transform: translateY(-50%); }
+        .orient-r { right: 8px; top: 50%; transform: translateY(-50%); }
+        
+        .viewport-axial .orient-t, .viewport-axial .orient-b { color: var(--green); }
+        .viewport-axial .orient-l, .viewport-axial .orient-r { color: var(--red); }
+        .viewport-coronal .orient-t, .viewport-coronal .orient-b { color: var(--blue); }
+        .viewport-coronal .orient-l, .viewport-coronal .orient-r { color: var(--red); }
+        .viewport-sagittal .orient-t, .viewport-sagittal .orient-b { color: var(--blue); }
+        .viewport-sagittal .orient-l, .viewport-sagittal .orient-r { color: var(--green); }
+        
+        #loading {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(13,13,18,0.97);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10000;
+        }
+        .loader { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { margin-top: 16px; font-size: 14px; color: var(--dim); }
+        .loader-progress { margin-top: 12px; width: 300px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+        .loader-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
+        .loader-status { margin-top: 8px; font-size: 11px; color: var(--dim); }
+        
+        #error {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(13,13,18,0.97);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10001;
+        }
+        .error-title { margin-top: 16px; font-size: 18px; font-weight: 600; color: var(--red); }
+        .error-msg { margin-top: 8px; font-size: 13px; color: var(--dim); max-width: 400px; text-align: center; }
+        
+        #container-axial, #container-coronal, #container-sagittal, #container-3d { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">3D</div>
+                <h1>CBCT <span>MPR</span></h1>
+                <span class="badge">{{ patient_name }} • {{ folder_name }}</span>
+            </div>
+            <div style="display:flex;gap:8px">
+                <button class="btn" onclick="resetView()">↻ Reset</button>
+                <button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                <button class="btn btn-close" onclick="window.close()">✕ Close</button>
+            </div>
+        </header>
+        
+        <div class="toolbar">
+            <div class="tool-group">
+                <label>Preset</label>
+                <select id="preset" onchange="applyPreset(this.value)">
+                    <option value="bone">Bone</option>
+                    <option value="soft">Soft Tissue</option>
+                    <option value="cbct" selected>CBCT</option>
+                </select>
+            </div>
+            <div class="tool-group">
+                <label>Window</label>
+                <input type="range" id="ww" min="1" max="4000" value="2000" oninput="updateWL()">
+                <input type="number" id="ww-val" value="2000" onchange="syncWL()">
+            </div>
+            <div class="tool-group">
+                <label>Level</label>
+                <input type="range" id="wc" min="-2000" max="2000" value="500" oninput="updateWL()">
+                <input type="number" id="wc-val" value="500" onchange="syncWL()">
+            </div>
+        </div>
+        
+        <div class="viewer-grid">
+            <div class="viewport viewport-axial" id="viewport-axial">
+                <div class="viewport-label">AXIAL</div>
+                <div class="orient orient-t">A</div><div class="orient orient-b">P</div>
+                <div class="orient orient-l">R</div><div class="orient orient-r">L</div>
+                <div id="container-axial"></div>
+                <div class="viewport-info" id="info-axial">Slice: --</div>
+                <div class="viewport-wl" id="wl-axial">W/L: --</div>
+            </div>
+            
+            <div class="viewport viewport-sagittal" id="viewport-sagittal">
+                <div class="viewport-label">SAGITTAL</div>
+                <div class="orient orient-t">S</div><div class="orient orient-b">I</div>
+                <div class="orient orient-l">A</div><div class="orient orient-r">P</div>
+                <div id="container-sagittal"></div>
+                <div class="viewport-info" id="info-sagittal">Slice: --</div>
+                <div class="viewport-wl" id="wl-sagittal">W/L: --</div>
+            </div>
+            
+            <div class="viewport viewport-coronal" id="viewport-coronal">
+                <div class="viewport-label">CORONAL</div>
+                <div class="orient orient-t">S</div><div class="orient orient-b">I</div>
+                <div class="orient orient-l">R</div><div class="orient orient-r">L</div>
+                <div id="container-coronal"></div>
+                <div class="viewport-info" id="info-coronal">Slice: --</div>
+                <div class="viewport-wl" id="wl-coronal">W/L: --</div>
+            </div>
+            
+            <div class="viewport" id="viewport-3d">
+                <div class="viewport-label">3D</div>
+                <div id="container-3d"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading">
+        <div class="loader"></div>
+        <div class="loader-text">Loading CBCT</div>
+        <div class="loader-progress"><div class="loader-bar" id="progress-bar"></div></div>
+        <div class="loader-status" id="progress-status">Initializing...</div>
+    </div>
+    
+    <div id="error">
+        <div class="error-title">Failed to Load</div>
+        <div class="error-msg" id="error-msg"></div>
+        <button class="btn" style="margin-top:20px" onclick="location.reload()">Retry</button>
+    </div>
+    
+    <script>
+        // Config from Flask
+        const ZIP_URL = '{{ zip_url|safe }}';
+        const USE_API = {{ 'true' if use_api else 'false' }};
+        const PATIENT_ID = {{ patient_id }};
+        const FOLDER_NAME = '{{ folder_name }}';
+        
+        const PRESETS = { bone: {ww:2000,wc:500}, soft: {ww:400,wc:40}, cbct: {ww:2000,wc:1200} };
+        let stack, scenes={}, cameras={}, renderers={}, controls={}, sliceHelpers={};
+        
+        async function init() {
+            try {
+                console.log('Config:', { ZIP_URL: ZIP_URL ? 'present' : 'empty', USE_API, PATIENT_ID, FOLDER_NAME });
+                
+                let urls;
+                
+                if (ZIP_URL && !USE_API) {
+                    // Load from ZIP
+                    urls = await loadFromZip(ZIP_URL);
+                } else {
+                    // Fallback: Load individual DICOM files via API
+                    urls = await loadFromApi();
+                }
+                
+                if (!urls || urls.length === 0) {
+                    throw new Error('No DICOM files found');
+                }
+                
+                setStatus(`Building volume from ${urls.length} files...`);
+                setProgress(80);
+                
+                // Load with AMI
+                const loader = new AMI.VolumeLoader();
+                const files = await loader.load(urls);
+                if (!files?.length) throw new Error('Failed to parse DICOM files');
+                
+                const series = files[0].mergeSeries(files)[0];
+                stack = series.stack[0];
+                stack.prepare();
+                
+                setStatus('Creating views...');
+                setProgress(90);
+                
+                // Setup viewports
+                setupViewport('axial', 0);
+                setupViewport('sagittal', 1);
+                setupViewport('coronal', 2);
+                setup3D();
+                
+                setProgress(100);
+                document.getElementById('loading').style.display = 'none';
+                
+                animate();
+                window.addEventListener('resize', onResize);
+                
+            } catch (err) {
+                console.error('Init error:', err);
+                showError(err.message);
+            }
+        }
+        
+        async function loadFromZip(zipUrl) {
+            setStatus('Downloading ZIP...');
+            setProgress(5);
+            
+            console.log('Fetching ZIP from:', zipUrl.substring(0, 100) + '...');
+            
+            const response = await fetch(zipUrl);
+            if (!response.ok) {
+                console.error('ZIP download failed:', response.status, response.statusText);
+                throw new Error(`ZIP download failed: ${response.status} ${response.statusText}`);
+            }
+            
+            const total = parseInt(response.headers.get('content-length') || 0);
+            const reader = response.body.getReader();
+            const chunks = [];
+            let received = 0;
+            
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                received += value.length;
+                if (total) {
+                    setProgress(5 + Math.round((received/total)*35));
+                    setStatus(`Downloading... ${(received/1024/1024).toFixed(1)} MB`);
+                }
+            }
+            
+            setProgress(45);
+            setStatus('Extracting ZIP...');
+            
+            const blob = new Blob(chunks);
+            const zip = await JSZip.loadAsync(blob);
+            
+            // Find DICOM files (flexible detection)
+            const fileNames = Object.keys(zip.files).filter(n => {
+                if (zip.files[n].dir) return false;
+                const l = n.toLowerCase();
+                // DICOM files: .dcm, .dicom, no extension, or numeric names
+                return l.endsWith('.dcm') || l.endsWith('.dicom') || 
+                       (!l.includes('.') && !l.endsWith('/')) || 
+                       /\/\d+$/.test(n) || /^\d+$/.test(n.split('/').pop());
+            });
+            
+            console.log(`Found ${fileNames.length} potential DICOM files in ZIP`);
+            
+            if (fileNames.length === 0) {
+                // List all files for debugging
+                console.log('All files in ZIP:', Object.keys(zip.files));
+                throw new Error('No DICOM files found in ZIP');
+            }
+            
+            setStatus(`Extracting ${fileNames.length} files...`);
+            setProgress(50);
+            
+            // Extract to blob URLs
+            const urls = [];
+            for (let i = 0; i < fileNames.length; i++) {
+                const data = await zip.files[fileNames[i]].async('arraybuffer');
+                urls.push(URL.createObjectURL(new Blob([data], {type:'application/dicom'})));
+                if (i % 50 === 0) {
+                    setProgress(50 + Math.round((i/fileNames.length)*25));
+                    setStatus(`Extracting ${i}/${fileNames.length}...`);
+                }
+            }
+            
+            return urls;
+        }
+        
+        async function loadFromApi() {
+            setStatus('Fetching DICOM file list...');
+            setProgress(10);
+            
+            const apiUrl = `/api/patient/${PATIENT_ID}/cbct/${encodeURIComponent(FOLDER_NAME)}/dicom_files`;
+            console.log('Fetching from API:', apiUrl);
+            
+            const response = await fetch(apiUrl, { credentials: 'include' });
+            const data = await response.json();
+            
+            if (!data.success || !data.files?.length) {
+                throw new Error('No DICOM files found via API');
+            }
+            
+            setStatus(`Loading ${data.files.length} DICOM files...`);
+            setProgress(30);
+            
+            // Return presigned URLs directly (AMI can fetch them)
+            return data.files.map(f => f.url);
+        }
+        
+        function setupViewport(name, orientation) {
+            const container = document.getElementById(`container-${name}`);
+            const rect = container.getBoundingClientRect();
+            
+            const scene = new THREE.Scene();
+            scenes[name] = scene;
+            
+            const camera = new AMI.OrthographicCamera(rect.width/-2, rect.width/2, rect.height/2, rect.height/-2, 0.1, 10000);
+            cameras[name] = camera;
+            
+            const renderer = new THREE.WebGLRenderer({antialias:true});
+            renderer.setSize(rect.width, rect.height);
+            renderer.setClearColor(0x0a0a0e);
+            container.appendChild(renderer.domElement);
+            renderers[name] = renderer;
+            
+            const ctrl = new AMI.TrackballOrthoControl(camera, renderer.domElement);
+            ctrl.staticMoving = true;
+            ctrl.noRotate = true;
+            controls[name] = ctrl;
+            
+            const helper = new AMI.StackHelper(stack);
+            helper.bbox.visible = false;
+            helper.border.color = 0x00e5c7;
+            helper.orientation = orientation;
+            helper.index = Math.floor(stack.dimensionsIJK[['z','x','y'][orientation]] / 2);
+            scene.add(helper);
+            sliceHelpers[name] = helper;
+            
+            const c = stack.worldCenter();
+            camera.position.set(c.x, c.y, c.z + 500);
+            camera.lookAt(c);
+            ctrl.target.set(c.x, c.y, c.z);
+            
+            renderer.domElement.addEventListener('wheel', e => {
+                e.preventDefault();
+                navigateSlice(name, e.deltaY > 0 ? 1 : -1);
+            });
+            
+            updateInfo(name);
+        }
+        
+        function setup3D() {
+            const container = document.getElementById('container-3d');
+            const rect = container.getBoundingClientRect();
+            
+            const scene = new THREE.Scene();
+            scenes['3d'] = scene;
+            
+            const camera = new THREE.PerspectiveCamera(45, rect.width/rect.height, 0.1, 10000);
+            cameras['3d'] = camera;
+            
+            const renderer = new THREE.WebGLRenderer({antialias:true});
+            renderer.setSize(rect.width, rect.height);
+            renderer.setClearColor(0x0a0a0e);
+            container.appendChild(renderer.domElement);
+            renderers['3d'] = renderer;
+            
+            const box = new THREE.BoxHelper(new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    stack.dimensionsIJK.x * stack.spacing.x,
+                    stack.dimensionsIJK.y * stack.spacing.y,
+                    stack.dimensionsIJK.z * stack.spacing.z
+                )
+            ), 0x00e5c7);
+            scene.add(box);
+            
+            const c = stack.worldCenter();
+            const m = Math.max(stack.dimensionsIJK.x*stack.spacing.x, stack.dimensionsIJK.y*stack.spacing.y, stack.dimensionsIJK.z*stack.spacing.z);
+            camera.position.set(c.x+m, c.y+m, c.z+m);
+            camera.lookAt(c);
+            
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            Object.values(controls).forEach(c => c?.update?.());
+            Object.keys(renderers).forEach(n => renderers[n].render(scenes[n], cameras[n]));
+        }
+        
+        function navigateSlice(name, delta) {
+            const h = sliceHelpers[name];
+            if (!h) return;
+            const axis = {axial:'z', sagittal:'x', coronal:'y'}[name];
+            h.index = Math.max(0, Math.min(stack.dimensionsIJK[axis]-1, h.index + delta));
+            updateInfo(name);
+        }
+        
+        function updateInfo(name) {
+            const h = sliceHelpers[name];
+            if (!h) return;
+            const axis = {axial:'z', sagittal:'x', coronal:'y'}[name];
+            document.getElementById(`info-${name}`).textContent = `Slice: ${h.index+1}/${stack.dimensionsIJK[axis]}`;
+            document.getElementById(`wl-${name}`).textContent = `W:${document.getElementById('ww').value} L:${document.getElementById('wc').value}`;
+        }
+        
+        function updateWL() {
+            document.getElementById('ww-val').value = document.getElementById('ww').value;
+            document.getElementById('wc-val').value = document.getElementById('wc').value;
+            ['axial','sagittal','coronal'].forEach(updateInfo);
+        }
+        
+        function syncWL() {
+            document.getElementById('ww').value = document.getElementById('ww-val').value;
+            document.getElementById('wc').value = document.getElementById('wc-val').value;
+            updateWL();
+        }
+        
+        function applyPreset(name) {
+            const p = PRESETS[name];
+            if (!p) return;
+            document.getElementById('ww').value = p.ww;
+            document.getElementById('wc').value = p.wc;
+            updateWL();
+        }
+        
+        function resetView() {
+            Object.keys(sliceHelpers).forEach(n => {
+                const h = sliceHelpers[n];
+                if (!h) return;
+                h.index = Math.floor(stack.dimensionsIJK[{axial:'z',sagittal:'x',coronal:'y'}[n]] / 2);
+                updateInfo(n);
+            });
+            applyPreset('cbct');
+        }
+        
+        function toggleFullscreen() {
+            document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+        }
+        
+        function onResize() {
+            Object.keys(renderers).forEach(n => {
+                const c = document.getElementById(`container-${n}`);
+                const r = c.getBoundingClientRect();
+                renderers[n].setSize(r.width, r.height);
+                if (cameras[n].isOrthographicCamera) {
+                    cameras[n].left = r.width/-2; cameras[n].right = r.width/2;
+                    cameras[n].top = r.height/2; cameras[n].bottom = r.height/-2;
+                } else cameras[n].aspect = r.width/r.height;
+                cameras[n].updateProjectionMatrix();
+            });
+        }
+        
+        function setProgress(p) { document.getElementById('progress-bar').style.width = p+'%'; }
+        function setStatus(s) { document.getElementById('progress-status').textContent = s; }
+        function showError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'flex';
+            document.getElementById('error-msg').textContent = msg;
+        }
+        
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

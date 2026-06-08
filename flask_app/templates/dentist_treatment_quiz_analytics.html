@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dentist Treatment Quiz Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analytics-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="h3">Treatment Quiz Analytics</h1>
+                    <div>
+                        <select id="date-range-select" class="form-select" onchange="changeDateRange()">
+                            <option value="week" {{ 'selected' if date_filter == 'week' else '' }}>Last Week</option>
+                            <option value="month" {{ 'selected' if date_filter == 'month' else '' }}>Last Month</option>
+                            <option value="quarter" {{ 'selected' if date_filter == 'quarter' else '' }}>Last Quarter</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-muted">
+                    Period: {{ start_date.strftime('%Y-%m-%d') }} to {{ end_date.strftime('%Y-%m-%d') }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="analytics-card text-center">
+                    <div class="stat-number">{{ analytics.total_quizzes }}</div>
+                    <div class="stat-label">Total Assessments</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="analytics-card text-center">
+                    <div class="stat-number">{{ analytics.unique_patients }}</div>
+                    <div class="stat-label">Unique Patients</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="analytics-card text-center">
+                    <div class="stat-number">{{ analytics.language_breakdown.get('en', 0) }}</div>
+                    <div class="stat-label">English Assessments</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="analytics-card text-center">
+                    <div class="stat-number">{{ analytics.language_breakdown.get('he', 0) }}</div>
+                    <div class="stat-label">Hebrew Assessments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="analytics-card">
+                    <h5>Language Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="languageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="analytics-card">
+                    <h5>Status Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="analytics-card">
+                    <h5>Recent Activity</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient ID</th>
+                                    <th>Language</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in analytics.recent_activity %}
+                                <tr>
+                                    <td>{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ activity.patient_id }}</td>
+                                    <td>
+                                        {% if activity.language == 'he' %}
+                                            <span class="badge bg-primary">Hebrew</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">English</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif activity.status == 'draft' %}
+                                            <span class="badge bg-warning">Draft</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ activity.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('conversion_quiz_agent.dentist_treatment_quiz_history', patient_id=activity.patient_id) }}" 
+                                           class="btn btn-sm btn-outline-primary">View History</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Common Findings -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="analytics-card">
+                    <h5>Common Findings</h5>
+                    <div class="row">
+                        {% for question, answers in analytics.common_findings.items() %}
+                        {% if answers|length > 0 %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">{{ question.replace('_', ' ').title() }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        {% for answer, count in answers.items() %}
+                                        <li class="d-flex justify-content-between">
+                                            <span>{{ answer }}</span>
+                                            <span class="badge bg-primary">{{ count }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Language Chart
+        const languageCtx = document.getElementById('languageChart').getContext('2d');
+        new Chart(languageCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['English', 'Hebrew'],
+                datasets: [{
+                    data: [
+                        {{ analytics.language_breakdown.get('en', 0) }},
+                        {{ analytics.language_breakdown.get('he', 0) }}
+                    ],
+                    backgroundColor: ['#007bff', '#28a745']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for status, count in analytics.status_breakdown.items() %}'{{ status }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Count',
+                    data: [{% for status, count in analytics.status_breakdown.items() %}{{ count }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        function changeDateRange() {
+            const dateRange = document.getElementById('date-range-select').value;
+            window.location.href = `{{ url_for('conversion_quiz_agent.dentist_treatment_quiz_analytics') }}?date_range=${dateRange}`;
+        }
+    </script>
+</body>
+</html>

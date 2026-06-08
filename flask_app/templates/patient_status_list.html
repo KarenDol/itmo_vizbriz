@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}Patient Status List - Dentist Management System{% endblock %}
+{% block extra_css %}
+<style>
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.search-container .input-field {
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    padding: 0 10px;
+}
+
+.search-container input[type="text"] {
+    color: #e0e0e0;
+    border-bottom: 1px solid #bb86fc !important;
+}
+
+.search-container input[type="text"]:focus {
+    border-bottom: 1px solid #bb86fc !important;
+    box-shadow: 0 1px 0 0 #bb86fc !important;
+}
+
+.search-container .material-icons {
+    color: #bb86fc;
+}
+
+table.striped {
+    width: 100%;
+    margin: 0 auto;
+    table-layout: fixed;
+    font-size: 0.9rem;
+}
+
+table.striped > tbody > tr:nth-child(odd) {
+    background-color: #1e1e1e;
+}
+
+table.striped > tbody > tr:nth-child(even) {
+    background-color: #2a2a2a;
+}
+
+table.striped > tbody > tr:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+    cursor: pointer;
+}
+
+table.striped th, table.striped td {
+    color: #e0e0e0;
+    padding: 6px;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+table.striped th {
+    color: #bb86fc;
+    text-align: center;
+    font-size: 0.8rem;
+    white-space: normal;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+.status-yes { background-color: green; }
+.status-no { background-color: red; }
+.status-other { background-color: gray; }
+
+.action-icons {
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.action-icons i {
+    margin: 0 5px;
+}
+
+.comment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e1e1e;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    color: #e0e0e0;
+}
+
+.comment-item .comment-content {
+    font-size: 0.9rem;
+}
+
+.comment-item .comment-meta {
+    font-size: 0.8rem;
+    color: #bb86fc;
+}
+h4 {
+    margin: 0;
+    font-size: 1.8rem; /* Larger font size for page header */
+    line-height: 50px;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h4 style="margin: 0;">Patient Status List</h4>
+        <div class="input-field" style="width: 300px; margin: 0;">
+            <i class="material-icons prefix">search</i>
+            <input type="text" id="patient-search" placeholder="Search patients...">
+        </div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Patient Status</th>
+                    <th>Payment Method</th>
+                    <th>Comments</th>
+                    {% if status_headers %}
+                        {% for header in status_headers %}
+                            <th>{{ header }}</th>
+                        {% endfor %}
+                    {% else %}
+                        <th>No Status Headers</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr class="patient-row" data-patient-id="{{ patient.id }}">
+                    <td>{{ patient.id }}</td>
+                    <td>{{ patient.name }}</td>
+                    <td>{{ patient.phone if patient.phone else 'N/A' }}</td>
+                    <td>{{ patient.status if patient.status else 'N/A' }}</td>
+                    <td>{{ patient.payment_method if patient.payment_method else 'N/A' }}</td>
+                    <td>
+                        <div class="action-icons">
+                            <i class="material-icons tooltipped" data-tooltip="View/Add Comments" onclick="viewComments({{ patient.id }})">comment</i>
+                        </div>
+                    </td>
+                    {% if status_headers %}
+                        {% for header in status_headers %}
+                            <td>
+                                <span class="status-indicator {% if patient.statuses.get(header) | lower == 'yes' %}status-yes {% elif patient.statuses.get(header) | lower == 'no' %}status-no {% else %}status-other{% endif %}">
+                                </span>
+                            </td>
+                        {% endfor %}
+                    {% else %}
+                        <td>No Data</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="comments-modal" class="modal">
+    <div class="modal-content">
+        <h5>Patient Comments</h5>
+        <ul id="comments-list"></ul>
+        <textarea id="new-comment" placeholder="Add a new comment..."></textarea>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" id="add-comment" class="waves-effect waves-green btn-flat">Add Comment</a>
+        <a href="#!" class="modal-close waves-effect waves-red btn-flat">Close</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modals = document.querySelectorAll('.modal');
+    M.Modal.init(modals);
+    const tooltips = document.querySelectorAll('.tooltipped');
+    M.Tooltip.init(tooltips);
+
+    // Search functionality
+    const searchInput = document.getElementById('patient-search');
+    searchInput.addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.patient-row');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchValue) ? '' : 'none';
+        });
+    });
+
+    // Redirect to patient details on row click
+    document.querySelectorAll('.patient-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            const patientId = this.getAttribute('data-patient-id');
+            window.location.href = "{{ url_for('main.patient_details', patient_id=0) }}".replace('0', patientId);
+        });
+    });
+
+    // Prevent row click event when interacting with action icons
+    document.querySelectorAll('.action-icons i').forEach(function (icon) {
+        icon.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+    });
+
+    // View/Add comments
+    window.viewComments = function (patientId) {
+        const newCommentInput = document.getElementById('new-comment');
+        if (newCommentInput) {
+            newCommentInput.dataset.patientId = patientId;
+        }
+        
+        fetch(`/api/patients/${patientId}/comments`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Error fetching comments: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                const commentsList = document.getElementById('comments-list');
+                commentsList.innerHTML = '';
+                
+                if (!data.success || data.comments.length === 0) {
+                    commentsList.innerHTML = '<li>No comments found.</li>';
+                } else {
+                    data.comments.forEach((comment) => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('comment-item');
+                        
+                        // Format date in the requested format: "July 22,2025:04:30p"
+                        const date = new Date(comment.created_date);
+                        const monthNames = ["January", "February", "March", "April", "May", "June",
+                            "July", "August", "September", "October", "November", "December"];
+                        const month = monthNames[date.getMonth()];
+                        const day = date.getDate();
+                        const year = date.getFullYear();
+                        let hours = date.getHours();
+                        const minutes = date.getMinutes().toString().padStart(2, '0');
+                        const ampm = hours >= 12 ? 'p' : 'a';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12;
+                        const formattedDate = `${month} ${day},${year}:${hours.toString().padStart(2, '0')}:${minutes}${ampm}`;
+                        
+                        listItem.innerHTML = `
+                            <div class="comment-content">${comment.content}</div>
+                            <div class="comment-meta">
+                                ${formattedDate} - ${comment.dentist}
+                            </div>
+                        `;
+                        commentsList.appendChild(listItem);
+                    });
+                }
+                M.Modal.getInstance(document.getElementById('comments-modal')).open();
+            })
+            .catch((error) => {
+                console.error("Error fetching comments:", error);
+                M.toast({
+                    html: `Error fetching comments: ${error.message}`,
+                    displayLength: 2000
+                });
+            });
+    };
+
+    // Add a new comment
+    document.getElementById('add-comment').addEventListener('click', function () {
+        const newCommentInput = document.getElementById('new-comment');
+        const patientId = newCommentInput.dataset.patientId;
+        const newComment = newCommentInput.value.trim();
+
+        if (!newComment) {
+            M.toast({ html: 'Comment cannot be empty.', displayLength: 2000 });
+            return;
+        }
+
+        fetch(`/api/patients/${patientId}/comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: newComment })
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Error adding comment: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            if (!data.success) {
+                throw new Error(data.message || "Error adding comment.");
+            }
+            M.toast({ html: 'Comment added successfully!', displayLength: 2000 });
+            newCommentInput.value = '';
+            window.viewComments(patientId);
+        })
+        .catch((error) => {
+            console.error("Error adding comment:", error);
+            M.toast({
+                html: `Error adding comment: ${error.message}`,
+                displayLength: 2000
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

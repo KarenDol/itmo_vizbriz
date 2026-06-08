@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Support Documentation{% endblock %}
+
+{% block extra_css %}
+<style>
+  .docs-light-surface {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .docs-light-surface h4 {
+    color: #1f2937;
+    font-weight: 700;
+    margin-top: 0;
+  }
+  .docs-light-surface p {
+    color: #4b5563;
+    margin-top: 6px;
+  }
+  .doc-tree {
+    margin: 14px 0 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .doc-tree li { list-style: none; margin: 10px 0; }
+  
+  /* Root language folder styling - distinct design */
+  .doc-tree .root-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 18px;
+    color: #1f2937;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+  }
+  .doc-tree .root-node:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+  }
+  .doc-tree .root-node .material-icons { 
+    color: #0ea5e9; 
+    font-size: 24px; 
+  }
+  .doc-tree .root-node .expand-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: #0ea5e9;
+  }
+  .doc-tree .root-node.collapsed .expand-icon {
+    transform: rotate(-90deg);
+  }
+  
+  /* Regular folder styling */
+  .doc-tree .node {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #374151;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+  }
+  .doc-tree .node:hover {
+    background-color: #f3f4f6;
+  }
+  .doc-tree .node .material-icons { 
+    color: #10b981; 
+    font-size: 20px; 
+  }
+  .doc-tree .node .expand-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: #6b7280;
+    font-size: 18px;
+  }
+  .doc-tree .node.collapsed .expand-icon {
+    transform: rotate(-90deg);
+  }
+  
+  .doc-tree .children { 
+    margin: 4px 0 0 28px; 
+    padding: 0; 
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.2s ease;
+  }
+  .doc-tree .children.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+  }
+  .doc-tree .children:not(.collapsed) {
+    max-height: 5000px;
+    opacity: 1;
+  }
+  
+  .doc-tree .file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #1565c0;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 6px 0;
+  }
+  .doc-tree .file-link:hover { text-decoration: underline; }
+  .doc-tree .file-link .material-icons {
+    color: rgba(17, 24, 39, 0.65);
+    font-size: 18px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="docs-light-surface">
+    <h4>Support Documentation</h4>
+    <p>Support documentation for imaging and patient documents.</p>
+
+    {% macro file_icon(item) -%}
+      {# Prefer file path; fall back to URL for extension #}
+      {% set ref = (item.get('path') or item.get('url') or '') %}
+      {% set ext = ref.rsplit('.', 1)[-1].lower() if '.' in ref else '' %}
+      {% if ext in ['pdf'] %}
+        picture_as_pdf
+      {% elif ext in ['doc', 'docx', 'rtf'] %}
+        description
+      {% elif ext in ['xls', 'xlsx', 'csv'] %}
+        table_chart
+      {% elif ext in ['ppt', 'pptx'] %}
+        slideshow
+      {% elif ext in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'tif', 'tiff', 'bmp'] %}
+        image
+      {% elif ext in ['txt', 'md'] %}
+        article
+      {% else %}
+        insert_drive_file
+      {% endif %}
+    {%- endmacro %}
+
+    <ul class="doc-tree">
+      <li>
+        <div class="root-node" onclick="toggleFolder(this)">
+          <i class="material-icons">language</i>
+          <span>English</span>
+          <i class="material-icons expand-icon">keyboard_arrow_down</i>
+        </div>
+        <ul class="children">
+          {% set english_folders = doc_manifest.get('english', {}) or {} %}
+          {% for folder_name, folder_items in english_folders.items() %}
+          {% set folder_items = folder_items or [] %}
+          {% if folder_items|length > 0 %}
+          <li>
+            <div class="node" onclick="toggleFolder(this)">
+              <i class="material-icons">folder</i>
+              <span>{{ folder_name }}</span>
+              <i class="material-icons expand-icon">keyboard_arrow_down</i>
+            </div>
+            <ul class="children">
+              {% for item in folder_items %}
+                <li>
+                  <a class="file-link"
+                     href="{{ item.get('url') if item.get('url') else url_for('main.download_local_document', lang='english', relpath=item.get('path','')) }}"
+                     target="_blank" rel="noopener">
+                    <i class="material-icons">{{ file_icon(item) }}</i>
+                    {{ (item.get('title') or item.get('path') or 'Untitled') }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </li>
+
+      <li dir="rtl">
+        <div class="root-node" onclick="toggleFolder(this)">
+          <i class="material-icons">language</i>
+          <span>עברית</span>
+          <i class="material-icons expand-icon">keyboard_arrow_down</i>
+        </div>
+        <ul class="children">
+          {% set hebrew_folders = doc_manifest.get('hebrew', {}) or {} %}
+          {% for folder_name, folder_items in hebrew_folders.items() %}
+          {% set folder_items = folder_items or [] %}
+          {% if folder_items|length > 0 %}
+          <li>
+            <div class="node" onclick="toggleFolder(this)">
+              <i class="material-icons">folder</i>
+              <span>{{ folder_name }}</span>
+              <i class="material-icons expand-icon">keyboard_arrow_down</i>
+            </div>
+            <ul class="children">
+              {% for item in folder_items %}
+                <li>
+                  <a class="file-link"
+                     href="{{ item.get('url') if item.get('url') else url_for('main.download_local_document', lang='hebrew', relpath=item.get('path','')) }}"
+                     target="_blank" rel="noopener">
+                    <i class="material-icons">{{ file_icon(item) }}</i>
+                    {{ (item.get('title') or item.get('path') or 'Untitled') }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+function toggleFolder(nodeElement) {
+  // Find the next sibling <ul> element (the children container)
+  const children = nodeElement.nextElementSibling;
+  if (!children || !children.classList.contains('children')) {
+    return;
+  }
+  
+  // Toggle collapsed class on both the node and children
+  nodeElement.classList.toggle('collapsed');
+  children.classList.toggle('collapsed');
+}
+</script>
+{% endblock %}
+
+
+

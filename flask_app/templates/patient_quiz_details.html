@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Details - {{ submission[1].name if submission[1] else submission[0].patient_email }} | Dr. Briz{% endblock %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .header-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .header-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .back-button {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background-color 0.3s ease;
+    }
+    
+    .back-button:hover {
+        background: #2980b9;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #7f8c8d;
+    }
+    
+    .info-value {
+        color: #2c3e50;
+        font-weight: 500;
+    }
+    
+    .section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .answers-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .answers-table th {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    .answers-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #ecf0f1;
+        vertical-align: top;
+    }
+    
+    .answers-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .answers-table tr:hover {
+        background-color: #ecf0f1;
+    }
+    
+    .question-cell {
+        font-weight: 500;
+        color: #2c3e50;
+        min-width: 200px;
+    }
+    
+    .answer-cell {
+        color: #34495e;
+        word-wrap: break-word;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #27ae60, #229954);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-outline {
+        background: transparent;
+        color: #3498db;
+        border: 2px solid #3498db;
+    }
+    
+    .btn-outline:hover {
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+</style>
+
+<div class="container">
+    <div class="header-section">
+        <div class="header-title">
+            <a href="{{ url_for('main.patient_workflow_test', patient_id=patient_id) }}" class="back-button">
+                <i class="material-icons">arrow_back</i>
+                Back to Patient Journey
+            </a>
+            <span>Quiz Submission Details</span>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-label">Patient Name:</div>
+            <div class="info-value">{{ submission[1].name if submission[1] else 'Not available' }}</div>
+            
+            <div class="info-label">Patient Email:</div>
+            <div class="info-value">{{ submission[0].patient_email }}</div>
+            
+            <div class="info-label">Clinic:</div>
+            <div class="info-value">{{ submission[2].name if submission[2] else 'Unknown Clinic' }}</div>
+            
+            <div class="info-label">Quiz Type:</div>
+            <div class="info-value">
+                <span class="status-badge status-completed">
+                    {{ 'Basic OSA Screening' if submission[0].quiz_type == 'basic_quiz' else 'Advanced Assessment' }}
+                </span>
+            </div>
+            
+            <div class="info-label">Referral Doctor:</div>
+            <div class="info-value">{{ submission[0].referral_doctor if submission[0].referral_doctor else 'Not specified' }}</div>
+            
+            <div class="info-label">Submitted:</div>
+            <div class="info-value">{{ submission[0].created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('main.patient_quiz_pdf', patient_id=patient_id, quiz_id=submission[0].id) }}" class="btn btn-primary" target="_blank">
+                <i class="material-icons">picture_as_pdf</i>
+                Download PDF
+            </a>
+            <a href="{{ url_for('conversion_quiz_agent.submission_details', submission_id=submission[0].id) }}" class="btn btn-secondary" target="_blank">
+                <i class="material-icons">visibility</i>
+                View Full Report
+            </a>
+            <a href="{{ url_for('conversion_quiz_agent.quiz_dashboard') }}" class="btn btn-outline" target="_blank">
+                <i class="material-icons">dashboard</i>
+                Quiz Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">
+            <i class="material-icons">quiz</i>
+            Quiz Answers
+        </div>
+        
+        <table class="answers-table">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Patient's Answer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question, answer in quiz_answers.items() %}
+                <tr>
+                    <td class="question-cell">{{ question.replace('_', ' ')|title }}</td>
+                    <td class="answer-cell">
+                        {% if answer == 'yes' %}
+                            <span style="color: #27ae60; font-weight: 600;">✓ Yes</span>
+                        {% elif answer == 'no' %}
+                            <span style="color: #e74c3c; font-weight: 600;">✗ No</span>
+                        {% else %}
+                            {{ answer }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if submission[0].ai_response %}
+    <div class="section">
+        <div class="section-title">
+            <i class="material-icons">psychology</i>
+            AI Analysis
+        </div>
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3498db;">
+            <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ submission[0].ai_response }}</pre>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

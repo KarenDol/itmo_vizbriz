@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Dentist Questionnaire - Vizbriz{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Fix page title to be white */
+    .page-title {
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 2rem !important;
+        margin-bottom: 8px;
+    }
+    
+    .page-subtitle {
+        color: #e0e0e0 !important;
+        font-size: 1rem !important;
+        margin-bottom: 20px;
+    }
+    
+    /* Fix table text contrast */
+    .card-content table tbody tr td {
+        color: #333 !important;
+        font-weight: 500 !important;
+    }
+    
+    .card-content table tbody tr td strong {
+        color: #222 !important;
+        font-weight: 600 !important;
+    }
+    
+    .card-content table tbody tr td small {
+        color: #555 !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Fix table header */
+    .card-content table thead tr th {
+        color: #333 !important;
+        font-weight: 600 !important;
+        background-color: #f5f5f5 !important;
+    }
+    
+    /* Fix button styling */
+    .btn {
+        color: white !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Fix search input */
+    .input-field label {
+        color: #333 !important;
+        font-weight: 500 !important;
+    }
+    
+    .input-field input[type="text"] {
+        color: #333 !important;
+        border-bottom: 2px solid #2196F3 !important;
+    }
+    
+    .input-field input[type="text"]:focus {
+        border-bottom: 2px solid #1976D2 !important;
+        box-shadow: 0 1px 0 0 #1976D2 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 20px;">
+    <div class="row">
+        <div class="col s12">
+            <h1 class="page-title">Dentist Questionnaire</h1>
+            <p class="page-subtitle">View and manage dentist treatment questionnaires</p>
+        </div>
+    </div>
+
+    <!-- Search Bar Section -->
+    <div class="row">
+        <div class="col s12">
+            <div class="input-field">
+                <input type="text" id="search_patient" placeholder="Search by Patient Name..." class="validate">
+                <label for="search_patient">Search Patients</label>
+            </div>
+        </div>
+    </div>
+
+    {% if quizzes %}
+    <div class="row">
+        <div class="col s12">
+            <div class="card">
+                <div class="card-content">
+                    <table class="striped responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Patient</th>
+                                <th>Dentist</th>
+                                <th>Clinic</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        {% for quiz in quizzes %}
+        <tr>
+          <td>
+            <strong>{{ quiz.created_at.strftime('%Y-%m-%d') }}</strong><br>
+            <small style="color: #666;">{{ quiz.created_at.strftime('%H:%M') }}</small>
+          </td>
+          <td>
+            <strong>{{ quiz.patient.name }}</strong><br>
+            <small style="color: #666;">ID: {{ quiz.patient.id }}</small>
+          </td>
+          <td>
+            <strong>{{ quiz.dentist.name if quiz.dentist else 'Unknown' }}</strong><br>
+            <small style="color: #666;">{{ quiz.dentist.email if quiz.dentist else 'N/A' }}</small>
+          </td>
+          <td>
+            <strong>{{ quiz.patient.clinic.name if quiz.patient.clinic else 'N/A' }}</strong><br>
+            <small style="color: #666;">{{ quiz.patient.clinic.dso.name if quiz.patient.clinic and quiz.patient.clinic.dso else 'N/A' }}</small>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <a href="{{ url_for('conversion_quiz_agent.get_dentist_treatment_quiz_html_report', quiz_id=quiz.id) }}" 
+                 class="btn btn-primary">
+                <i class="fas fa-eye"></i>View
+              </a>
+              <a href="{{ url_for('conversion_quiz_agent.dentist_treatment_quiz_history', patient_id=quiz.patient.id) }}" 
+                 class="btn btn-info">
+                <i class="fas fa-history"></i>History
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Summary Statistics Section -->
+    <div class="row">
+        <div class="col s12">
+            <div class="card">
+                <div class="card-content">
+                    <h5><i class="material-icons left">analytics</i>Assessment Overview</h5>
+                    <div class="row">
+                        <div class="col s12 m6 l3">
+                            <div class="card-panel teal lighten-2 white-text center">
+                                <i class="material-icons large">assignment</i>
+                                <h4>{{ quizzes|length }}</h4>
+                                <p>Total Assessments</p>
+                            </div>
+                        </div>
+                        <div class="col s12 m6 l3">
+                            <div class="card-panel blue lighten-2 white-text center">
+                                <i class="material-icons large">schedule</i>
+                                <h4>{{ quizzes|selectattr('created_at')|list|length }}</h4>
+                                <p>This Month</p>
+                            </div>
+                        </div>
+                        <div class="col s12 m6 l3">
+                            <div class="card-panel green lighten-2 white-text center">
+                                <i class="material-icons large">check_circle</i>
+                                <h4>{{ quizzes|selectattr('completed', 'equalto', true)|list|length }}</h4>
+                                <p>Completed</p>
+                            </div>
+                        </div>
+                        <div class="col s12 m6 l3">
+                            <div class="card-panel orange lighten-2 white-text center">
+                                <i class="material-icons large">pending</i>
+                                <h4>{{ quizzes|selectattr('completed', 'equalto', false)|list|length }}</h4>
+                                <p>Pending</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('search_patient');
+      const tableRows = document.querySelectorAll('tbody tr');
+      
+      function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+          const patientName = row.cells[1].textContent.toLowerCase();
+          const matchesSearch = patientName.includes(searchTerm);
+          
+          if (matchesSearch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+      
+      searchInput.addEventListener('input', filterTable);
+    });
+</script>
+{% endblock %}

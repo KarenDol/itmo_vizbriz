@@ -1,0 +1,618 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Submissions Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .quiz-header {
+        color: white;
+        padding: 30px 0;
+        text-align: left;
+    }
+
+    .quiz-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .quiz-title i {
+        font-size: 2.2rem;
+    }
+
+    .quiz-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+
+    .quiz-stats {
+        font-size: 0.95rem;
+        opacity: 0.8;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-btn {
+        position: absolute;
+        top: 30px;
+        right: 0;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+        text-decoration: none;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        position: relative;
+    }
+
+    .filters-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .filters-row {
+        display: flex;
+        align-items: end;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select {
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        font-size: 0.95rem;
+        transition: border-color 0.3s ease;
+    }
+
+    .filter-group select:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Make sure filter-select class has the same styling - Override Materialize CSS */
+    .filter-select, 
+    .filter-group select,
+    select.filter-select,
+    select[name="quiz_type"],
+    select[name="risk_level"],
+    select[name="date_range"] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        width: 100% !important;
+        min-width: 150px !important;
+        padding: 12px 16px !important;
+        border: 2px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        background: white !important;
+        background-color: white !important;
+        font-size: 0.95rem !important;
+        transition: border-color 0.3s ease !important;
+        cursor: pointer !important;
+        position: relative !important;
+        z-index: 1 !important;
+        margin: 0 !important;
+        font-family: inherit !important;
+        color: #333 !important;
+        box-sizing: border-box !important;
+        appearance: auto !important;
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+    }
+
+    .filter-select:focus,
+    .filter-group select:focus,
+    select.filter-select:focus,
+    select[name="quiz_type"]:focus,
+    select[name="risk_level"]:focus,
+    select[name="date_range"]:focus {
+        border-color: #667eea !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    }
+
+    .apply-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .apply-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .clear-btn {
+        background: transparent;
+        color: #666;
+        border: 2px solid #e0e0e0;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .clear-btn:hover {
+        background: #f5f5f5;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .export-group {
+        display: flex;
+        gap: 12px;
+        margin-left: auto;
+    }
+
+    .export-btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .export-btn.csv {
+        background: #28a745;
+        color: white;
+    }
+
+    .export-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+        color: white;
+    }
+
+    .submissions-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .submissions-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .submission-card {
+        border: 2px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        background: #fafafa;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .submission-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+    }
+
+    .submission-content {
+        flex: 1;
+    }
+
+    .submission-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .submission-id {
+        background: #667eea;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .submission-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .patient-email {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+        text-decoration: none;
+    }
+
+    .patient-email:hover {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .quiz-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-basic {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+
+    .badge-advanced {
+        background: linear-gradient(135deg, #6f42c1, #5a32a3);
+        color: white;
+    }
+
+    .badge-high {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+    }
+
+    .badge-moderate {
+        background: linear-gradient(135deg, #fd7e14, #e55a00);
+        color: white;
+    }
+
+    .badge-low {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: white;
+    }
+
+    .clinic-info {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+    .clinic-info strong {
+        color: #333;
+    }
+
+    .submission-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 200px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-direction: column;
+    }
+
+    .action-btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: transform 0.2s ease;
+        font-size: 0.9rem;
+        min-width: 140px;
+        height: 44px;
+        box-sizing: border-box;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .action-btn.view {
+        background: #007bff;
+        color: white;
+    }
+
+    .action-btn.view:hover {
+        background: #0056b3;
+        color: white;
+    }
+
+    .action-btn.email {
+        background: #28a745;
+        color: white;
+    }
+
+    .action-btn.email:hover {
+        background: #1e7e34;
+        color: white;
+    }
+
+    .action-btn.clinic {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .action-btn.clinic:hover {
+        background: #138496;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+
+        .export-group {
+            margin-left: 0;
+            margin-top: 20px;
+        }
+
+        .quiz-title {
+            font-size: 2rem;
+        }
+
+        .submission-card {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-buttons {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="quiz-header">
+        <h1 class="quiz-title">
+            <i class="fas fa-clipboard-list"></i>
+            Quiz Submissions Management
+        </h1>
+        <p class="quiz-subtitle">Manage and review quiz submissions from your DSO network</p>
+        <div class="quiz-stats">
+            <i class="fas fa-chart-bar"></i>
+            Showing {{ quiz_submissions|length }} submission(s) | 
+            {% set basic_count = quiz_submissions|selectattr('quiz_type', 'equalto', 'basic_quiz')|list|length %}
+            {% set advanced_count = quiz_submissions|selectattr('quiz_type', 'equalto', 'advanced_quiz')|list|length %}
+            {{ basic_count }} basic, {{ advanced_count }} advanced
+        </div>
+        <a href="{{ url_for('forms_mgmt.dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-card">
+        <form method="GET" action="{{ url_for('forms_mgmt.quiz_submissions') }}" class="filters-row" id="filterForm">
+            <div class="filter-group">
+                <label for="quiz_type">Filter by Quiz Type</label>
+                <select name="quiz_type" id="quiz_type" class="filter-select">
+                    <option value="all" {{ 'selected' if quiz_type_filter == 'all' or not quiz_type_filter }}>All Types</option>
+                    <option value="basic_quiz" {{ 'selected' if quiz_type_filter == 'basic_quiz' }}>Basic Quiz</option>
+                    <option value="advanced_quiz" {{ 'selected' if quiz_type_filter == 'advanced_quiz' }}>Advanced Quiz</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="risk_level">Filter by Risk Level</label>
+                <select name="risk_level" id="risk_level" class="filter-select">
+                    <option value="all" {{ 'selected' if risk_filter == 'all' or not risk_filter }}>All Levels</option>
+                    <option value="Low" {{ 'selected' if risk_filter == 'Low' }}>Low Risk</option>
+                    <option value="Moderate" {{ 'selected' if risk_filter == 'Moderate' }}>Moderate Risk</option>
+                    <option value="High" {{ 'selected' if risk_filter == 'High' }}>High Risk</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="date_range">Filter by Date</label>
+                <select name="date_range" id="date_range" class="filter-select">
+                    <option value="" {{ 'selected' if not date_filter }}>All Time</option>
+                    <option value="today" {{ 'selected' if date_filter == 'today' }}>Today</option>
+                    <option value="week" {{ 'selected' if date_filter == 'week' }}>This Week</option>
+                    <option value="month" {{ 'selected' if date_filter == 'month' }}>This Month</option>
+                </select>
+            </div>
+            <button type="submit" class="apply-btn">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            <a href="{{ url_for('forms_mgmt.quiz_submissions') }}" class="clear-btn">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            <div class="export-group">
+                <a href="{{ url_for('forms_mgmt.export_quiz_submissions', format='csv') }}{% if (quiz_type_filter and quiz_type_filter != 'all') or (risk_filter and risk_filter != 'all') or date_filter %}?{% if quiz_type_filter and quiz_type_filter != 'all' %}quiz_type={{ quiz_type_filter }}{% endif %}{% if ((quiz_type_filter and quiz_type_filter != 'all') or (risk_filter and risk_filter != 'all')) and date_filter %}&{% endif %}{% if risk_filter and risk_filter != 'all' %}{% if quiz_type_filter and quiz_type_filter != 'all' %}&{% endif %}risk_level={{ risk_filter }}{% endif %}{% if date_filter %}{% if (quiz_type_filter and quiz_type_filter != 'all') or (risk_filter and risk_filter != 'all') %}&{% endif %}date_range={{ date_filter }}{% endif %}{% endif %}" class="export-btn csv">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Submissions -->
+    <div class="submissions-section">
+        <h2 class="submissions-title">
+            <i class="fas fa-list"></i>
+            Quiz Submissions
+        </h2>
+
+        {% if quiz_submissions %}
+            {% for submission in quiz_submissions %}
+            <div class="submission-card">
+                <div class="submission-content">
+                    <div class="submission-header">
+                        <span class="submission-id">ID: {{ submission.id }}</span>
+                        <span class="submission-date">
+                            <i class="fas fa-calendar"></i> 
+                            {{ submission.created_at.strftime('%Y-%m-%d at %H:%M') }}
+                        </span>
+                    </div>
+
+                    <a href="{{ url_for('forms_mgmt.quiz_submission_detail', submission_id=submission.id) }}" class="patient-email">
+                        {{ submission.patient_email }}
+                    </a>
+                    
+                    <div class="quiz-info">
+                        <span class="status-badge {{ 'badge-basic' if submission.quiz_type == 'basic_quiz' else 'badge-advanced' }}">
+                            {{ 'Basic Quiz' if submission.quiz_type == 'basic_quiz' else 'Advanced Quiz' }}
+                        </span>
+                        
+                        {% if submission.ai_response %}
+                            {% set ai_data = submission.ai_response|from_json %}
+                            {% if ai_data and ai_data.risk_level %}
+                                <span class="status-badge badge-{{ ai_data.risk_level.lower() }}">
+                                    {{ ai_data.risk_level }} Risk
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    {% if submission.clinic_email %}
+                    <div class="clinic-info">
+                        <strong>Clinic:</strong> {{ submission.clinic_email }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.referral_doctor %}
+                    <div class="clinic-info">
+                        <strong>Referral Doctor:</strong> {{ submission.referral_doctor }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="submission-actions">
+                    <div class="action-buttons">
+                        <a href="{{ url_for('forms_mgmt.quiz_submission_detail', submission_id=submission.id) }}" class="action-btn view">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        
+                        <a href="mailto:{{ submission.patient_email }}" class="action-btn email">
+                            <i class="fas fa-envelope"></i> Email Patient
+                        </a>
+                        
+                        {% if submission.clinic_email %}
+                        <a href="mailto:{{ submission.clinic_email }}" class="action-btn clinic">
+                            <i class="fas fa-hospital"></i> Email Clinic
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No Quiz Submissions Found</h3>
+                <p>
+                    {% if quiz_type_filter or date_filter or risk_filter %}
+                        Try adjusting your filters to see more results.
+                    {% else %}
+                        No quiz submissions have been completed yet for your DSO network.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

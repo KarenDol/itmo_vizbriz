@@ -1,0 +1,2730 @@
+<!DOCTYPE html>
+<html lang="{{ language }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VizBriz Multilingual Quiz</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px 0;
+        }
+        .quiz-container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+            padding: 20px; 
+        }
+        .quiz-header { 
+            text-align: center; 
+            margin-bottom: 10px; 
+            border-bottom: 1px solid #eee; 
+            padding-bottom: 8px; 
+        }
+        .brand-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+        .brand-left, .brand-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .quiz-logo { height: 180px; width: auto; object-fit: contain; }
+        .dso-logo { height: 180px; width: auto; object-fit: contain; }
+        .quiz-title { 
+            color: #2c3e50; 
+            font-weight: 700; 
+            margin-bottom: 4px;
+            font-size: 1.2rem;
+        }
+        .quiz-subtitle {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        .section-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin: 20px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .question-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        .quiz-textarea-input {
+            width: 100%;
+            min-height: 88px;
+            resize: vertical;
+        }
+        .form-check {
+            margin-bottom: 10px;
+        }
+        .form-check-input:checked {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        /* Validation styles */
+        .question-card.invalid { border-left-color: #dc3545; background: #fff5f5; }
+        .is-invalid { border-color: #dc3545 !important; box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25) !important; }
+        .invalid-feedback { color: #dc3545; font-size: 0.9rem; margin-top: 6px; display: none; }
+        .btn-quiz {
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 10px 5px;
+            min-width: 160px;
+            height: 48px;
+            font-size: 16px;
+        }
+        .btn-quiz-primary {
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
+        .btn-quiz-secondary {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+        }
+        .btn-quiz:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+            gap: 10px;
+        }
+        .progress-section {
+            background: #e8f4fd;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .clinic-card {
+            transition: all 0.3s ease;
+            border: 2px solid #e9ecef;
+        }
+        .clinic-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+        }
+        .clinic-card.selected {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        /* RTL support for Hebrew */
+        [dir="rtl"] .question-card {
+            border-left: none;
+            border-right: 4px solid #3498db;
+            text-align: right;
+            padding-right: 20px;
+            padding-left: 20px;
+        }
+        [dir="rtl"] .question-card.invalid {
+            border-right-color: #dc3545;
+        }
+        /* Canonical RTL-safe navigation:
+           Keep logical order in HTML (Previous first, Next/Submit second),
+           but flip visual order only when dir="rtl". */
+        .rtl-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        html[dir="rtl"] .rtl-actions {
+            direction: rtl;
+            width: 100%;
+        }
+        /* Hebrew requirement: Next on LEFT, Previous on RIGHT */
+        html[dir="rtl"] #nextBtn { order: 1; }
+        html[dir="rtl"] #submitBtn { order: 2; }
+        html[dir="rtl"] #prevBtn { order: 3; }
+        [dir="rtl"] .brand-bar {
+            flex-direction: row-reverse;
+        }
+        .unit-toggle-card {
+            border-left-color: #6c757d;
+        }
+        .unit-toggle-bar {
+            display: inline-flex;
+            gap: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+            margin: 8px 0;
+        }
+        .unit-toggle-bar .unit-btn {
+            border-radius: 0;
+            border: none;
+            padding: 8px 16px;
+            font-weight: 600;
+            background: #f1f3f5;
+            color: #495057;
+        }
+        .unit-toggle-bar .unit-btn.active {
+            background: #3498db;
+            color: #fff;
+        }
+        .unit-toggle-bar .unit-btn:hover:not(.active) {
+            background: #e9ecef;
+        }
+        .demographics-imperial-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .demographics-imperial-row input {
+            max-width: 120px;
+        }
+        .computed-bmi-strip {
+            border-left-color: #20c997;
+            background: linear-gradient(135deg, #f8fffe 0%, #f0fff8 100%);
+        }
+        [dir="rtl"] .intro-text-box {
+            border-left: none;
+            border-right: 6px solid #3498db;
+        }
+        [dir="rtl"] .assessment-results-box {
+            border-left: none;
+            border-right: 5px solid #3498db;
+        }
+        [dir="rtl"] .question-title {
+            text-align: right;
+            padding-right: 0;
+            padding-left: 0;
+        }
+        [dir="rtl"] .question-card {
+            text-align: right;
+        }
+        /* RTL form controls */
+        [dir="rtl"] .form-control {
+            text-align: right;
+            direction: rtl;
+        }
+        [dir="rtl"] .form-select {
+            text-align: right;
+            direction: rtl;
+            padding-right: 15px;
+            padding-left: 40px; /* Space for dropdown arrow on left side */
+            background-position: left 0.75rem center;
+        }
+        /* Ensure select dropdown arrow is on the left for RTL */
+        [dir="rtl"] .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: left 0.75rem center;
+            background-size: 16px 12px;
+        }
+        [dir="rtl"] .form-check {
+            text-align: right;
+            padding-right: 1.5em;
+            padding-left: 0;
+        }
+        [dir="rtl"] .form-check-input {
+            float: right;
+            margin-right: -1.5em;
+            margin-left: 0;
+        }
+        [dir="rtl"] .form-check-label {
+            margin-right: 0.5em;
+            margin-left: 0;
+        }
+        [dir="rtl"] .other-text-input {
+            margin-right: 20px;
+            margin-left: 0;
+        }
+        /* RTL section title */
+        [dir="rtl"] .section-title {
+            text-align: right;
+        }
+        /* RTL progress section */
+        [dir="rtl"] .progress-section {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Quiz Header -->
+        <div class="quiz-header">
+            <div class="brand-bar">
+                <div class="brand-left">
+                    <img class="quiz-logo" src="/flask_static/images/logos/vizbrizz_logo%20color%20without%20grad.png" alt="VizBriz Logo">
+                </div>
+                {% if dso_info and dso_info.logo_url and language != 'he' %}
+                <div class="brand-right">
+                    <img class="dso-logo" src="{{ dso_info.logo_url }}" alt="{{ dso_info.name }}">
+                </div>
+                {% endif %}
+            </div>
+            <h1 class="quiz-title" id="introTitle">{% if quiz_mode == 'followup' %}VizBriz SQUARE Follow-Up Questionnaire{% else %}Vizbriz Sleep Apnea Risk Assessment{% endif %}</h1>
+            <div id="introHeaderExtras">
+                <p class="quiz-subtitle" id="introSubtitle">{% if quiz_mode == 'followup' %}Sleep quality and appliance response evaluation since starting therapy.{% else %}Complete this brief questionnaire to assess your sleep apnea risk.{% endif %}</p>
+                <div class="small text-muted" style="font-size: 0.75rem; margin-bottom: 4px;">Version: {{ quiz_version }} • Built: {{ build_ts }}</div>
+                <div class="mt-1" style="max-width: 760px; margin: 0 auto;" id="introTextContainer">
+                    <div class="intro-text-box" style="background: #f8f9fa; padding: 8px 12px; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <h5 style="color: #2c3e50; margin-bottom: 4px; font-size: 0.9rem;" id="whyTitle">Why this questionnaire?</h5>
+                        <p style="margin-bottom: 4px; color: #555; font-size: 0.85rem;" id="whyText1">Your clinic partners with VizBriz to provide a quick sleep screening. This helps spot hidden symptoms that may affect your energy, focus, or overall health.</p>
+                        <p style="margin-bottom: 0; color: #555; font-size: 0.85rem;" id="whyText2"><strong>It's quick, private, and easy to complete — and can be the first step toward better sleep and better daily well‑being.</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DSO and Clinic Selection (English and Hebrew when dso_info present) -->
+        {% if dso_info %}
+        <div id="clinicSelectionSection" class="mb-3">
+            <div class="fw-semibold mb-2">{{ dso_info.name }}</div>
+            <select id="clinicSelect" class="form-select" style="max-width: 400px;" onchange="selectClinicFromDropdown(this)">
+                <option value="">{% if language == 'he' %}בחר מרפאה...{% else %}Select clinic...{% endif %}</option>
+                {% for clinic in clinics %}
+                <option value="{{ clinic.id }}" data-name="{{ clinic.name | e }}">{{ clinic.name }}{% if clinic.address %} — {{ clinic.address | e }}{% endif %}</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" id="selectedClinicId" name="clinic_id" value="">
+            <input type="hidden" id="selectedClinicName" name="clinic_name" value="">
+        </div>
+        {% endif %}
+
+        <!-- Progress Indicator -->
+        <div class="progress-section">
+            <div class="progress mb-2">
+                <div class="progress-bar" role="progressbar" style="width: 0%" id="progressBar"></div>
+            </div>
+            <div id="progressText">Section 1 of 8</div>
+        </div>
+
+        <form id="quizForm">
+            <div id="questionsContainer"></div>
+
+            <div class="quiz-navigation rtl-actions">
+                <button type="button" class="btn-quiz btn-quiz-secondary" id="prevBtn" onclick="navigateSection(-1)" style="display:none;">
+                    <span id="prevBtnText">Previous Section</span>
+                </button>
+                <button type="button" class="btn-quiz btn-quiz-primary" id="nextBtn" onclick="navigateSection(1)">
+                    <span id="nextBtnText">Next Section</span>
+                </button>
+                <button type="button" class="btn-quiz btn-quiz-primary" id="submitBtn" onclick="submitQuiz()" style="display:none;">
+                    <span id="submitBtnText">{% if quiz_mode == 'followup' %}Submit Questionnaire{% else %}Submit Quiz{% endif %}</span>
+                </button>
+            </div>
+        </form>
+
+        <div id="resultContainer" class="text-center" style="display:none;">
+            <h2 id="resultTitle"></h2>
+            <p id="resultMessage"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const quizPackage = {{ quiz_package | tojson | safe }};
+        const quizMode = {{ quiz_mode | default('assessment') | tojson }};
+        let currentLanguage = '{{ language }}';
+        const urlDentistId = {{ dentist_id | tojson | default('null') | safe }};
+        let currentSectionIndex = 0;
+        let answers = {};
+        let visibleQuestions = [];
+        let sections = [];
+
+        /** English defaults to imperial (lb, ft/in); Hebrew and others default to metric (kg, cm). */
+        function defaultUseMetricForLang(lang) {
+            return lang !== 'en';
+        }
+        let useMetricUnits = defaultUseMetricForLang(currentLanguage);
+
+        const KG_PER_LB = 0.45359237;
+        function kgToLb(kg) {
+            const n = parseFloat(kg);
+            if (isNaN(n) || n <= 0) return '';
+            return String(Math.round(n / KG_PER_LB * 10) / 10);
+        }
+        function lbToKg(lb) {
+            const n = parseFloat(lb);
+            if (isNaN(n) || n <= 0) return '';
+            return String(Math.round(n * KG_PER_LB * 100) / 100);
+        }
+        function cmToFtIn(cm) {
+            const n = parseFloat(cm);
+            if (isNaN(n) || n <= 0) return { ft: '', inch: '' };
+            const totalIn = n / 2.54;
+            let ft = Math.floor(totalIn / 12);
+            let inch = totalIn - ft * 12;
+            inch = Math.round(inch * 10) / 10;
+            if (inch >= 12) {
+                ft += 1;
+                inch = Math.round((inch - 12) * 10) / 10;
+            }
+            return { ft: String(ft), inch: String(inch) };
+        }
+        function ftInToCm(ftStr, inStr) {
+            const ft = parseFloat(ftStr);
+            const inches = parseFloat(inStr);
+            const ftOk = !isNaN(ft);
+            const inOk = !isNaN(inches);
+            if (!ftOk && !inOk) return '';
+            const f = ftOk ? ft : 0;
+            const i = inOk ? inches : 0;
+            const totalIn = f * 12 + i;
+            if (totalIn <= 0) return '';
+            return String(Math.round(totalIn * 2.54 * 10) / 10);
+        }
+        function syncDemographicsMetricFromUi() {
+            if (currentSectionIndex !== 0) return;
+            const hHidden = document.getElementById('DEMO_HEIGHT_CM');
+            const wHidden = document.getElementById('DEMO_WEIGHT_KG');
+            if (useMetricUnits) {
+                if (hHidden && hHidden.type !== 'hidden') {
+                    answers['DEMO_HEIGHT_CM'] = hHidden.value.trim();
+                }
+                if (wHidden && wHidden.type !== 'hidden') {
+                    answers['DEMO_WEIGHT_KG'] = wHidden.value.trim();
+                }
+            } else {
+                const ftEl = document.getElementById('DEMO_HEIGHT_FT');
+                const inEl = document.getElementById('DEMO_HEIGHT_IN');
+                const lbEl = document.getElementById('DEMO_WEIGHT_LB');
+                if (ftEl && inEl) {
+                    const cm = ftInToCm(ftEl.value, inEl.value);
+                    if (cm !== '') answers['DEMO_HEIGHT_CM'] = cm;
+                }
+                if (lbEl) {
+                    const kg = lbToKg(lbEl.value);
+                    if (kg !== '') answers['DEMO_WEIGHT_KG'] = kg;
+                }
+                if (hHidden && hHidden.type === 'hidden') {
+                    hHidden.value = answers['DEMO_HEIGHT_CM'] || '';
+                }
+                if (wHidden && wHidden.type === 'hidden') {
+                    wHidden.value = answers['DEMO_WEIGHT_KG'] || '';
+                }
+            }
+            answers['DEMO_UNITS'] = useMetricUnits ? 'metric' : 'imperial';
+        }
+        /** CDC adult BMI categories (same screening cut points used clinically in the US). */
+        function cdcBmiCategory(bmi) {
+            if (bmi < 18.5) return getUIText('bmiCatUnderweight');
+            if (bmi < 25) return getUIText('bmiCatNormal');
+            if (bmi < 30) return getUIText('bmiCatOverweight');
+            return getUIText('bmiCatObese');
+        }
+        function updateComputedBmiDisplay() {
+            const el = document.getElementById('computedBmiDisplay');
+            const h = parseFloat(answers['DEMO_HEIGHT_CM']);
+            const w = parseFloat(answers['DEMO_WEIGHT_KG']);
+            if (!h || !w || h <= 0 || w <= 0) {
+                if (el) {
+                    el.style.display = 'none';
+                }
+                delete answers['DEMO_BMI_COMPUTED_CDC'];
+                return;
+            }
+            const m = h / 100;
+            const bmi = w / (m * m);
+            const rounded = Math.round(bmi * 10) / 10;
+            // Always set answer key (needed on submit from later sections when demographics DOM is not mounted)
+            answers['DEMO_BMI_COMPUTED_CDC'] = String(rounded);
+            if (!el) {
+                return;
+            }
+            const cat = cdcBmiCategory(bmi);
+            el.innerHTML = `
+                <div class="question-title">${getUIText('bmiComputedTitle')}</div>
+                <p style="margin:0 0 6px 0; font-size:1.15rem; font-weight:700; color:#0d6efd;">${rounded} kg/m²</p>
+                <p style="margin:0 0 6px 0; color:#374151;">${cat}</p>
+                <small class="form-text text-muted">${getUIText('bmiFormulaNote')}</small>
+            `;
+            el.style.display = 'block';
+        }
+        function onDemographicsFieldChange() {
+            syncDemographicsMetricFromUi();
+            updateComputedBmiDisplay();
+            updateConditionalQuestions();
+        }
+        function setUnitSystem(metric) {
+            syncDemographicsMetricFromUi();
+            useMetricUnits = metric;
+            answers['DEMO_UNITS'] = metric ? 'metric' : 'imperial';
+            renderCurrentSection();
+            updateComputedBmiDisplay();
+            updateConditionalQuestions();
+        }
+        function appendDemographicsUnitToggle(sectionDiv) {
+            const wrap = document.createElement('div');
+            wrap.className = 'question-card unit-toggle-card';
+            wrap.id = 'demographics-unit-toggle';
+            const mActive = useMetricUnits ? 'active' : '';
+            const iActive = !useMetricUnits ? 'active' : '';
+            wrap.innerHTML = `
+                <div class="question-title">${getUIText('unitsTitle')}</div>
+                <div class="unit-toggle-bar" role="group">
+                    <button type="button" class="btn btn-sm unit-btn ${mActive}" id="unitBtnMetric" onclick="setUnitSystem(true)">${getUIText('unitsMetric')}</button>
+                    <button type="button" class="btn btn-sm unit-btn ${iActive}" id="unitBtnImperial" onclick="setUnitSystem(false)">${getUIText('unitsImperial')}</button>
+                </div>
+                <small class="form-text text-muted">${getUIText('unitsHint')}</small>
+            `;
+            sectionDiv.appendChild(wrap);
+        }
+        function buildDemographicsMeasureHtml(question) {
+            const qid = question.qid;
+            const title = `<div class="question-title">${getText(`Q.${qid}.title`)}</div>`;
+            if (qid === 'DEMO_HEIGHT_CM') {
+                const cmVal = (answers['DEMO_HEIGHT_CM'] || '').replace(/"/g, '&quot;');
+                if (useMetricUnits) {
+                    return title + `<input type="number" step="0.1" min="50" max="280" inputmode="decimal" id="DEMO_HEIGHT_CM" class="form-control" value="${cmVal}" onchange="onDemographicsFieldChange()" oninput="onDemographicsFieldChange()">`;
+                }
+                const fi = cmToFtIn(answers['DEMO_HEIGHT_CM']);
+                const ftV = (fi.ft || '').replace(/"/g, '&quot;');
+                const inV = (fi.inch || '').replace(/"/g, '&quot;');
+                const hiddenCm = (answers['DEMO_HEIGHT_CM'] || '').replace(/"/g, '&quot;');
+                return title + `
+                    <input type="hidden" id="DEMO_HEIGHT_CM" value="${hiddenCm}">
+                    <div class="demographics-imperial-row">
+                        <input type="number" step="1" min="0" max="8" inputmode="numeric" id="DEMO_HEIGHT_FT" class="form-control" placeholder="${getUIText('heightFt')}" value="${ftV}" onchange="onDemographicsFieldChange()" oninput="onDemographicsFieldChange()">
+                        <span>${getUIText('heightFt')}</span>
+                        <input type="number" step="0.1" min="0" max="11.99" inputmode="decimal" id="DEMO_HEIGHT_IN" class="form-control" placeholder="${getUIText('heightIn')}" value="${inV}" onchange="onDemographicsFieldChange()" oninput="onDemographicsFieldChange()">
+                        <span>${getUIText('heightIn')}</span>
+                    </div>`;
+            }
+            if (qid === 'DEMO_WEIGHT_KG') {
+                const kgVal = (answers['DEMO_WEIGHT_KG'] || '').replace(/"/g, '&quot;');
+                if (useMetricUnits) {
+                    return title + `<input type="number" step="0.1" min="20" max="400" inputmode="decimal" id="DEMO_WEIGHT_KG" class="form-control" value="${kgVal}" onchange="onDemographicsFieldChange()" oninput="onDemographicsFieldChange()">`;
+                }
+                const lbVal = kgToLb(answers['DEMO_WEIGHT_KG']).replace(/"/g, '&quot;');
+                const hiddenKg = (answers['DEMO_WEIGHT_KG'] || '').replace(/"/g, '&quot;');
+                return title + `
+                    <input type="hidden" id="DEMO_WEIGHT_KG" value="${hiddenKg}">
+                    <div class="demographics-imperial-row">
+                        <input type="number" step="0.1" min="40" max="900" inputmode="decimal" id="DEMO_WEIGHT_LB" class="form-control" placeholder="${getUIText('weightLb')}" value="${lbVal}" onchange="onDemographicsFieldChange()" oninput="onDemographicsFieldChange()">
+                        <span>${getUIText('weightLb')}</span>
+                    </div>`;
+            }
+            return '';
+        }
+
+        function applyFollowupIntroFromMetadata() {
+            if (quizMode !== 'followup') return;
+            const intro = (quizPackage.metadata && quizPackage.metadata.intro) || {};
+            const titleEl = document.getElementById('introTitle');
+            const subtitleEl = document.getElementById('introSubtitle');
+            const whyTitle = document.getElementById('whyTitle');
+            const whyText1 = document.getElementById('whyText1');
+            const whyText2 = document.getElementById('whyText2');
+            const langKey = currentLanguage === 'he' ? '_he' : '_en';
+            if (titleEl && intro['title' + langKey]) titleEl.textContent = intro['title' + langKey];
+            else if (titleEl && intro.title_en) titleEl.textContent = intro.title_en;
+            if (subtitleEl && intro['subtitle' + langKey]) subtitleEl.textContent = intro['subtitle' + langKey];
+            else if (subtitleEl && intro.subtitle_en) subtitleEl.textContent = intro.subtitle_en;
+            if (whyTitle) {
+                whyTitle.textContent = currentLanguage === 'he' ? 'אודות השאלון' : 'About this questionnaire';
+            }
+            const bodyKey = 'body' + langKey;
+            if (whyText1 && intro[bodyKey]) whyText1.textContent = intro[bodyKey];
+            else if (whyText1 && intro.body_en) whyText1.textContent = intro.body_en;
+            if (whyText2) whyText2.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyFollowupIntroFromMetadata();
+            applyPatientParamsFromUrl();
+            // Populate clinic options first (options for clinic select)
+            populateClinicOptions();
+            // If testing flag present, prefill defaults before first render
+            maybeApplyTestDefaults();
+            if (answers['DEMO_UNITS'] === 'imperial') useMetricUnits = false;
+            else if (answers['DEMO_UNITS'] === 'metric') useMetricUnits = true;
+            else useMetricUnits = defaultUseMetricForLang(currentLanguage);
+            // Update UI texts based on current language
+            updateUITexts();
+            if (!ensureFollowupPatientIdentity()) return;
+            renderQuestions();
+            updateConditionalQuestions();
+            // Show intro extras only on first page
+            updateIntroHeader();
+        });
+
+        function populateClinicOptions() {
+            // Get clinics from server
+            const clinics = {{ clinics | tojson | safe }};
+            const clinicInfo = {{ clinic_info | tojson | safe }};
+            const dsoInfo = {{ dso_info | tojson | safe }};
+            
+            console.log('Available clinics:', clinics);
+            console.log('Pre-selected clinic:', clinicInfo);
+            console.log('DSO info:', dsoInfo);
+            console.log('Number of clinics:', clinics ? clinics.length : 0);
+            
+            // Find the question in the quiz package and populate options
+            const question = quizPackage.questions.find(q => q.qid === 'DEMO_REFERRING_DENTIST_OR_CLI');
+            console.log('Found question:', question);
+            
+            if (question && clinics && clinics.length > 0) {
+                question.options = clinics.map(clinic => ({
+                    value: clinic.id.toString(),
+                    label: clinic.name,
+                    weight: 0
+                }));
+                
+                console.log('Populated options:', question.options);
+                
+                // If there's a pre-selected clinic, set it as the answer and sync dropdown
+                if (clinicInfo) {
+                    answers['DEMO_REFERRING_DENTIST_OR_CLI'] = clinicInfo.id.toString();
+                    document.getElementById('selectedClinicId').value = clinicInfo.id;
+                    document.getElementById('selectedClinicName').value = clinicInfo.name || '';
+                    const clinicSelect = document.getElementById('clinicSelect');
+                    if (clinicSelect) clinicSelect.value = clinicInfo.id;
+                    console.log('Pre-selected clinic:', clinicInfo.name);
+                } else if (clinics.length === 1) {
+                    // Auto-select when only one clinic (English and Hebrew)
+                    const first = clinics[0];
+                    answers['DEMO_REFERRING_DENTIST_OR_CLI'] = first.id.toString();
+                    document.getElementById('selectedClinicId').value = first.id;
+                    document.getElementById('selectedClinicName').value = first.name || '';
+                    const clinicSelect = document.getElementById('clinicSelect');
+                    if (clinicSelect) clinicSelect.value = first.id;
+                    console.log('Auto-selected single clinic:', first.name);
+                }
+            } else {
+                console.log('No clinics available or question not found');
+                if (question) {
+                    console.log('Question exists but no clinics');
+                } else {
+                    console.log('Question DEMO_REFERRING_DENTIST_OR_CLI not found');
+                }
+            }
+        }
+
+        function applyPatientParamsFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get('email') || params.get('patient_email') || params.get('patientEmail');
+            const name = params.get('name') || params.get('patient_name') || params.get('full_name') || params.get('patientName');
+            const patientId = params.get('patient_id');
+
+            let didPrefill = false;
+            if (email && String(email).trim()) {
+                const e = String(email).trim();
+                answers['DEMO_EMAIL'] = e;
+                answers['EMAIL'] = e;
+                didPrefill = true;
+            }
+            if (name && String(name).trim()) {
+                answers['DEMO_FULL_NAME'] = String(name).trim();
+                didPrefill = true;
+            }
+            if (patientId && String(patientId).trim()) {
+                answers['_PATIENT_ID'] = String(patientId).trim();
+            }
+
+        }
+
+        function ensureFollowupPatientIdentity() {
+            if (quizMode !== 'followup') return true;
+            const email = (answers['EMAIL'] || answers['DEMO_EMAIL'] || '').trim();
+            if (email) return true;
+            const container = document.getElementById('questionsContainer');
+            const form = document.getElementById('quizForm');
+            if (form) form.style.display = 'none';
+            const progressSection = document.querySelector('.progress-section');
+            if (progressSection) progressSection.style.display = 'none';
+            if (container) {
+                container.innerHTML = `
+                    <div class="alert alert-warning" style="margin: 20px 0;">
+                        <h5 style="margin-bottom: 8px;">Personalized link required</h5>
+                        <p style="margin: 0;">This questionnaire must be opened from the link your clinic sent you (it includes your name and email automatically). If you received this message, please use the original link from your email or contact your clinic.</p>
+                    </div>`;
+            }
+            return false;
+        }
+
+        function maybeApplyTestDefaults() {
+            const params = new URLSearchParams(window.location.search);
+            const testing = params.get('testing');
+            if (!testing) return;
+            // Basic identity
+            answers['DEMO_FULL_NAME'] = 'Test Patient';
+            // Use today minus 30 years for DOB
+            try {
+                const d = new Date(); d.setFullYear(d.getFullYear() - 30);
+                const dob = d.toISOString().slice(0,10);
+                answers['DEMO_DOB'] = dob;
+            } catch(e) {}
+            // In testing mode, allow overriding the default email from the URL so you can receive the message:
+            // Example: /vizbriz/quiz_hebrew?testing=1&email=you@domain.com
+            const emailOverride = params.get('email') || params.get('patient_email') || params.get('patientEmail');
+            if (emailOverride && String(emailOverride).trim()) {
+                answers['DEMO_EMAIL'] = String(emailOverride).trim();
+            } else if (!answers['DEMO_EMAIL']) {
+                // Fallback for convenience in test mode (can still be edited in the form)
+                answers['DEMO_EMAIL'] = 'eran@vizbriz.com';
+            }
+            answers['DEMO_PHONE'] = '+1-555-123-4567';
+            // Clinic: choose first option if present
+            const clinicQuestion = (quizPackage.questions || []).find(q => q.qid === 'DEMO_REFERRING_DENTIST_OR_CLI');
+            if (clinicQuestion && Array.isArray(clinicQuestion.options) && clinicQuestion.options.length > 0) {
+                answers['DEMO_REFERRING_DENTIST_OR_CLI'] = clinicQuestion.options[0].value;
+            }
+            answers['DEMO_SEX'] = 'other';
+            answers['DEMO_HEIGHT_CM'] = '175';
+            answers['DEMO_WEIGHT_KG'] = '78';
+            if (!answers['DEMO_UNITS']) {
+                answers['DEMO_UNITS'] = currentLanguage === 'en' ? 'imperial' : 'metric';
+            }
+            
+            // Scenario presets
+            const scenario = String(testing).toLowerCase();
+            if (scenario === 'high') {
+                // High-risk: OSA yes, surgery yes, multiple comorbidities, poor FOSQ
+                answers['Q1'] = 'yes';
+                answers['Q2'] = 'no';
+                // Q6 flow: choose to provide date, and set Q6a
+                try { const d2 = new Date(); d2.setFullYear(d2.getFullYear() - 2); answers['Q6'] = 'date'; answers['Q6a'] = d2.toISOString().slice(0,10);} catch(e) {}
+                answers['Q7'] = 'no';
+                answers['Q8'] = ['heart_disease','diabetes','high_blood_pressure'];
+                answers['Q9'] = 'no';
+                answers['Q10'] = 'no';
+                answers['Q11'] = 'no';
+                answers['Q12'] = 'daily';
+                answers['Q13'] = 'yes';
+                answers['Q14'] = 'yes';
+                answers['Q15'] = 'yes';
+                // Sleep quality
+                answers['Q16'] = '45';
+                answers['Q17'] = '4';
+                answers['Q18'] = 'fairly_bad';
+                answers['Q19'] = '5';
+                answers['Q20'] = '4';
+                answers['Q21'] = 'yes';
+                answers['Q22'] = 'yes';
+                answers['Q23'] = '5';
+                answers['Q24'] = 'yes';
+                answers['Q25'] = '5';
+                answers['Q26'] = 'yes';
+                answers['Q27'] = 'yes';
+                answers['Q28'] = 'yes';
+                // TMJ
+                answers['Q29'] = 'yes';
+                answers['Q30'] = 'yes';
+                answers['Q31'] = 'yes';
+                answers['Q32'] = ['ear_pain','tinnitus'];
+                // FOSQ-5 worst
+                answers['Q33'] = '1';
+                answers['Q34'] = '1';
+                answers['Q35'] = '1';
+                answers['Q36'] = '1';
+                answers['Q37'] = '1';
+                answers['Q38'] = ['improve_sleep_quality'];
+            } else {
+                // Default moderate/low test
+                answers['Q1'] = 'yes';
+                answers['Q2'] = 'no';
+                // Q6 flow: choose to provide date, and set Q6a
+                try { const d2 = new Date(); d2.setFullYear(d2.getFullYear() - 1); answers['Q6'] = 'date'; answers['Q6a'] = d2.toISOString().slice(0,10);} catch(e) {}
+                answers['Q7'] = 'no';
+                answers['Q8'] = ['high_blood_pressure'];
+                answers['Q9'] = 'no';
+                answers['Q10'] = 'no';
+                answers['Q11'] = 'no';
+                answers['Q12'] = 'none';
+                answers['Q13'] = 'no';
+                answers['Q14'] = 'no';
+                answers['Q15'] = 'no';
+                answers['Q16'] = '15';
+                answers['Q17'] = '7';
+                answers['Q18'] = 'fairly_good';
+                answers['Q19'] = '2';
+                answers['Q20'] = '1';
+                answers['Q21'] = 'no';
+                answers['Q22'] = 'no';
+                answers['Q23'] = '2';
+                answers['Q24'] = 'no';
+                answers['Q25'] = '2';
+                answers['Q26'] = 'no';
+                answers['Q27'] = 'no';
+                answers['Q28'] = 'not_sure';
+                answers['Q29'] = 'no';
+                answers['Q30'] = 'no';
+                answers['Q31'] = 'no';
+                answers['Q32'] = [];
+                answers['Q33'] = '3';
+                answers['Q34'] = '3';
+                answers['Q35'] = '3';
+                answers['Q36'] = '3';
+                answers['Q37'] = '3';
+                answers['Q38'] = ['improve_sleep_quality'];
+            }
+        }
+
+        // Translation dictionary for UI text
+        const uiTranslations = {
+            en: {
+                title: 'Vizbriz Sleep Apnea Risk Assessment',
+                subtitle: 'Complete this brief questionnaire to assess your sleep apnea risk.',
+                whyTitle: 'Why this questionnaire?',
+                whyText1: 'Your clinic partners with VizBriz to provide a quick sleep screening. This helps spot hidden symptoms that may affect your energy, focus, or overall health.',
+                whyText2: 'It\'s quick, private, and easy to complete — and can be the first step toward better sleep and better daily well‑being.',
+                selectClinic: 'Please select your clinic:',
+                previousSection: 'Previous Section',
+                nextSection: 'Next Section',
+                submitQuiz: 'Submit Quiz',
+                thankYou: 'Thank you for completing your assessment',
+                emailResults: 'We\'ll email the results of your sleep assessment to',
+                emailResults2: 'We appreciate your participation.',
+                nextSteps: 'Next Steps',
+                consultButton: '👨‍⚕️ Consult with our dental sleep team',
+                sleepTestButton: '🛏️ Schedule a sleep test',
+                processingTitle: 'Processing Your Assessment',
+                processingText: 'Our AI is analyzing your responses and generating your personalized assessment. This may take a few moments...',
+                assessmentCompleted: 'Assessment completed successfully.',
+                fieldRequired: 'This field is required.',
+                pleaseCompleteFields: 'Please complete required fields:',
+                almostThere: 'Almost there!',
+                completeRequiredFields: 'Please complete the highlighted required fields below to continue:',
+                unitsTitle: 'Height & weight units',
+                unitsMetric: 'kg / cm',
+                unitsImperial: 'lb / ft + in',
+                unitsHint: 'You can switch anytime. Values are saved in metric (kg, cm) for your care team.',
+                heightFt: 'ft',
+                heightIn: 'in',
+                weightLb: 'lb',
+                bmiComputedTitle: 'BMI (CDC / US standard)',
+                bmiFormulaNote: 'Uses metric formula: kg ÷ m² (same as CDC clinical screening).',
+                bmiCatUnderweight: 'Underweight',
+                bmiCatNormal: 'Normal weight',
+                bmiCatOverweight: 'Overweight',
+                bmiCatObese: 'Obesity',
+                section0: 'Section 1 – Patient Profile & Demographics',
+                section1: 'Section 2 – Sleep Apnea History & Treatments',
+                section2: 'Section 3 – Medical History & Comorbid Conditions',
+                section3a: 'Section 4 – Sleep Quality & Symptoms',
+                section3b: 'Section 5 – TMJ & Bruxism',
+                section3c: 'Section 6 – Daytime Function & Fatigue (FOSQ-5)',
+                section4: 'Section 7 – Personal Notes & Sleep Goals'
+            },
+            he: {
+                title: 'הערכת סיכון לדום נשימה בשינה של VizBriz',
+                subtitle: 'השלם שאלון קצר זה כדי להעריך את הסיכון שלך לדום נשימה בשינה.',
+                whyTitle: 'למה השאלון הזה?',
+                whyText1: 'המרפאה שלך משתפת פעולה עם VizBriz כדי לספק בדיקת שינה מהירה. זה עוזר לזהות תסמינים נסתרים שעלולים להשפיע על האנרגיה, הריכוז או הבריאות הכללית שלך.',
+                whyText2: 'זה מהיר, פרטי וקל להשלמה — ויכול להיות הצעד הראשון לקראת שינה טובה יותר ורווחה יומית טובה יותר.',
+                selectClinic: 'אנא בחר את המרפאה שלך:',
+                previousSection: 'סעיף קודם',
+                nextSection: 'סעיף הבא',
+                submitQuiz: 'שלח שאלון',
+                thankYou: 'תודה על השלמת ההערכה שלך',
+                emailResults: 'נשלח לך את תוצאות הערכת השינה שלך ל',
+                emailResults2: 'אנו מעריכים את השתתפותך.',
+                nextSteps: 'השלבים הבאים',
+                consultButton: '👨‍⚕️ התייעץ עם צוות השינה הדנטלי שלנו',
+                sleepTestButton: '🛏️ קבע בדיקת שינה',
+                processingTitle: 'מעבד את ההערכה שלך',
+                processingText: 'ה-AI שלנו מנתח את התשובות שלך ויוצר הערכה מותאמת אישית. זה עשוי לקחת כמה רגעים...',
+                assessmentCompleted: 'ההערכה הושלמה בהצלחה.',
+                fieldRequired: 'שדה זה נדרש.',
+                pleaseCompleteFields: 'אנא השלם את השדות הנדרשים:',
+                almostThere: 'כמעט שם!',
+                completeRequiredFields: 'אנא השלם את השדות הנדרשים המסומנים למטה כדי להמשיך:',
+                unitsTitle: 'יחידות גובה ומשקל',
+                unitsMetric: 'ק״ג / ס״מ',
+                unitsImperial: 'ליברות / רגל + אינץ׳',
+                unitsHint: 'ניתן לעבור בין מערכות בכל עת. הערכים נשמרים במטריקה (ק״ג, ס״מ) לצוות המטפל.',
+                heightFt: 'רגל',
+                heightIn: 'אינץ׳',
+                weightLb: 'ליברות',
+                bmiComputedTitle: 'BMI (תקן CDC / ארה״ב)',
+                bmiFormulaNote: 'נוסחה מטרית: ק״ג ÷ מ״ר (כמו בסקרינג קליני של CDC).',
+                bmiCatUnderweight: 'תת-משקל',
+                bmiCatNormal: 'טווח תקין',
+                bmiCatOverweight: 'עודף משקל',
+                bmiCatObese: 'השמנת יתר',
+                section0: 'סעיף 1 – פרופיל המטופל ודמוגרפיה',
+                section1: 'סעיף 2 – היסטוריה של דום נשימה בשינה וטיפולים',
+                section2: 'סעיף 3 – היסטוריה רפואית ותנאים נלווים',
+                section3a: 'סעיף 4 – איכות שינה ותסמינים',
+                section3b: 'סעיף 5 – TMJ וברוקסיזם',
+                section3c: 'סעיף 6 – תפקוד יומי ועייפות (FOSQ-5)',
+                section4: 'סעיף 7 – הערות אישיות ומטרות שינה'
+            },
+            ru: {
+                title: 'Оценка риска апноэ во сне VizBriz',
+                subtitle: 'Заполните этот краткий опросник, чтобы оценить риск апноэ во сне.',
+                whyTitle: 'Зачем этот опросник?',
+                whyText1: 'Ваша клиника сотрудничает с VizBriz для проведения быстрого скрининга сна. Это помогает выявить скрытые симптомы, которые могут повлиять на вашу энергию, концентрацию или общее здоровье.',
+                whyText2: 'Это быстро, конфиденциально и легко выполнить — и может стать первым шагом к лучшему сну и лучшему ежедневному самочувствию.',
+                selectClinic: 'Пожалуйста, выберите вашу клинику:',
+                previousSection: 'Предыдущий раздел',
+                nextSection: 'Следующий раздел',
+                submitQuiz: 'Отправить опросник',
+                thankYou: 'Спасибо за завершение вашей оценки',
+                emailResults: 'Мы отправим результаты вашей оценки сна на',
+                emailResults2: 'Мы ценим ваше участие.',
+                nextSteps: 'Следующие шаги',
+                consultButton: '👨‍⚕️ Проконсультируйтесь с нашей стоматологической командой по сну',
+                sleepTestButton: '🛏️ Запланировать тест сна',
+                processingTitle: 'Обработка вашей оценки',
+                processingText: 'Наш ИИ анализирует ваши ответы и генерирует вашу персонализированную оценку. Это может занять несколько мгновений...',
+                assessmentCompleted: 'Оценка успешно завершена.',
+                fieldRequired: 'Это поле обязательно для заполнения.',
+                pleaseCompleteFields: 'Пожалуйста, заполните обязательные поля:',
+                almostThere: 'Почти готово!',
+                completeRequiredFields: 'Пожалуйста, заполните выделенные обязательные поля ниже, чтобы продолжить:',
+                unitsTitle: 'Единицы роста и веса',
+                unitsMetric: 'кг / см',
+                unitsImperial: 'фунты / фут + дюйм',
+                unitsHint: 'Можно переключаться в любой момент. Для врачей сохраняются кг и см.',
+                heightFt: 'фт',
+                heightIn: 'дюйм',
+                weightLb: 'фунт',
+                bmiComputedTitle: 'ИМТ (CDC, США)',
+                bmiFormulaNote: 'Метрическая формула: кг ÷ м² (как у CDC).',
+                bmiCatUnderweight: 'Недостаточный вес',
+                bmiCatNormal: 'Нормальный вес',
+                bmiCatOverweight: 'Избыточный вес',
+                bmiCatObese: 'Ожирение',
+                section0: 'Раздел 1 – Профиль пациента и демография',
+                section1: 'Раздел 2 – История апноэ во сне и лечение',
+                section2: 'Раздел 3 – Медицинская история и сопутствующие состояния',
+                section3a: 'Раздел 4 – Качество сна и симптомы',
+                section3b: 'Раздел 5 – ВНЧС и бруксизм',
+                section3c: 'Раздел 6 – Дневная функция и усталость (FOSQ-5)',
+                section4: 'Раздел 7 – Личные заметки и цели сна'
+            }
+        };
+
+        function getUIText(key) {
+            const translations = uiTranslations[currentLanguage] || uiTranslations.en;
+            return translations[key] || uiTranslations.en[key] || key;
+        }
+
+        function getText(key) {
+            // Defensive: handle undefined/non-string keys gracefully
+            if (typeof key !== 'string') {
+                return '';
+            }
+            // Multilingual support function
+            if (key.startsWith('Q.') && key.includes('.title')) {
+                // For question titles like "Q.Q1.title"
+                const qid = key.replace('Q.', '').replace('.title', '');
+                const question = quizPackage.questions.find(q => q.qid === qid);
+                if (question) {
+                    // Try to get the title in the current language, fallback to English
+                    const titleKey = `title_${currentLanguage}`;
+                    if (question[titleKey]) {
+                        return question[titleKey];
+                    } else if (question.title_en) {
+                        return question.title_en;
+                    }
+                }
+                return key;
+            } else if (key.startsWith('Q.') && key.includes('.opt.')) {
+                // For option labels like "Q.Q1.opt.yes"
+                const parts = key.split('.');
+                const qid = parts[1];
+                const optValue = parts[3];
+                const question = quizPackage.questions.find(q => q.qid === qid);
+                if (question && question.options) {
+                    const option = question.options.find(opt => opt.value === optValue);
+                    if (option) {
+                        // Try to get the label in the current language, fallback to English
+                        const labelKey = `label_${currentLanguage}`;
+                        if (option[labelKey] && option[labelKey].trim()) {
+                            return option[labelKey];
+                        } else if (option.label) {
+                            return option.label;
+                        }
+                    }
+                }
+                return key;
+            } else if (key.startsWith('section.')) {
+                // For section titles
+                const sectionName = key.replace('section.', '');
+                if (quizPackage.metadata && quizPackage.metadata.display_groups && quizPackage.metadata.display_groups[sectionName]) {
+                    return quizPackage.metadata.display_groups[sectionName].title || key;
+                }
+                return key;
+            }
+            
+            // Default fallback
+            return key;
+        }
+
+        function shouldDisplayQuestion(question) {
+            // Support display_if_lang: show only when current language matches
+            if (question.display_if_lang) {
+                const lang = String(question.display_if_lang).toLowerCase();
+                if (currentLanguage !== lang) return false;
+            }
+            if (!question.display_if || !question.display_if.expr) {
+                return true;
+            }
+
+            const expr = question.display_if.expr;
+            if (expr === 'true') return true;
+            if (expr === 'false') return false;
+
+            try {
+                let evalExpr = expr;
+                // Inject LANG for language-based visibility (e.g. LANG === 'he')
+                evalExpr = evalExpr.replace(/\bLANG\b/g, `'${currentLanguage}'`);
+                const answerRefs = expr.match(/ANS\.([\w-]+)/g);
+                if (answerRefs) {
+                    answerRefs.forEach(ref => {
+                        const qid = ref.replace('ANS.', '');
+                        const value = answers[qid];
+                        const safeRef = ref.replace(/\./g, '_').replace(/-/g, '_');
+                        evalExpr = evalExpr.replace(ref, value ? `'${value}'` : 'null');
+                    });
+                }
+                // Debug logging for Q6, Q6a, and Q7 specifically
+                if (question.qid === 'Q6' || question.qid === 'Q6a' || question.qid === 'Q7') {
+                    console.log(`${question.qid} Debug - Original expr: ${expr}`);
+                    console.log(`${question.qid} Debug - Before replacement evalExpr: ${evalExpr}`);
+                    console.log(`${question.qid} Debug - Q1 answer: ${answers.Q1}`);
+                }
+                
+                // Convert == to === for proper JavaScript evaluation
+                // Use negative lookbehind to avoid converting !== to !===
+                evalExpr = evalExpr.replace(/(?<!!)==/g, '===');
+                
+                if (question.qid === 'Q6' || question.qid === 'Q6a' || question.qid === 'Q7') {
+                    console.log(`${question.qid} Debug - After replacement evalExpr: ${evalExpr}`);
+                    if (question.qid === 'Q6' || question.qid === 'Q6a') {
+                        console.log(`${question.qid} Debug - Q1 answer: ${answers.Q1}, shouldShow will be: ${eval(evalExpr)}`);
+                    } else {
+                        console.log(`${question.qid} Debug - Q6 answer: ${answers.Q6}, Q6a answer: ${answers.Q6a}`);
+                    }
+                }
+                
+                return eval(evalExpr);
+            } catch (e) {
+                console.warn(`Error evaluating condition for ${question.qid}:`, expr, e);
+                return true;
+            }
+        }
+
+        function renderQuestions() {
+            console.log('Rendering questions by sections...');
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            visibleQuestions = [];
+            sections = [];
+            
+            // Group questions by section
+            const questionsBySection = {};
+            quizPackage.questions.forEach((question, index) => {
+                const shouldShow = shouldDisplayQuestion(question);
+                
+                // Always include the question, but track visibility
+                if (shouldShow) {
+                    visibleQuestions.push(question);
+                }
+                
+                const section = (question.section && question.section.trim() !== '') ? question.section : 'General';
+                
+                // Skip if section name is empty
+                if (section && section.trim() !== '') {
+                    if (!questionsBySection[section]) {
+                        questionsBySection[section] = [];
+                    }
+                    questionsBySection[section].push({...question, originalIndex: index, shouldShow: shouldShow});
+                }
+            });
+            
+            // Create sections array, filtering out empty section names
+            Object.keys(questionsBySection).forEach(sectionName => {
+                // Skip sections with empty or blank names
+                if (sectionName && sectionName.trim() !== '') {
+                    sections.push({
+                        name: sectionName,
+                        questions: questionsBySection[sectionName]
+                    });
+                }
+            });
+            
+            // Render current section
+            renderCurrentSection();
+            updateProgress();
+        }
+
+        function getTranslatedSectionName(sectionName) {
+            if (quizMode === 'followup' && currentLanguage === 'he') {
+                const heMap = (quizPackage.metadata && quizPackage.metadata.section_title_he) || {};
+                if (heMap[sectionName]) return heMap[sectionName];
+            }
+            // Map section names to translation keys
+            const sectionMap = {
+                'Section 0 – Patient Profile & Demographics': 'section0',
+                'Section 1 – Sleep Apnea History & Treatments': 'section1',
+                'Section 2 – Medical History & Comorbid Conditions': 'section2',
+                'Section 3a – Sleep Quality & Symptoms': 'section3a',
+                'Section 3b – TMJ & Bruxism': 'section3b',
+                'Section 3c – Daytime Function & Fatigue (FOSQ-5)': 'section3c',
+                'Section 4 – Personal Notes & Sleep Goals': 'section4'
+            };
+            
+            // Try to find a translation key
+            const translationKey = sectionMap[sectionName];
+            if (translationKey && uiTranslations[currentLanguage] && uiTranslations[currentLanguage][translationKey]) {
+                return uiTranslations[currentLanguage][translationKey];
+            }
+            
+            // Fallback: adjust section numbers for English
+            if (currentLanguage === 'en') {
+                return sectionName.replace(/Section (\d+)/, (match, num) => {
+                    const newNum = parseInt(num) + 1;
+                    return `Section ${newNum}`;
+                });
+            }
+            
+            // For other languages, return original if no translation found
+            return sectionName;
+        }
+        
+        function adjustSectionTitle(sectionName) {
+            return getTranslatedSectionName(sectionName);
+        }
+
+        function renderCurrentSection() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            if (currentSectionIndex >= sections.length) return;
+            
+            const section = sections[currentSectionIndex];
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'question-section';
+            const adjustedSectionName = getTranslatedSectionName(section.name);
+            sectionDiv.innerHTML = `<h3 class="section-title">${adjustedSectionName}</h3>`;
+            
+            console.log(`Rendering section: ${section.name} with ${section.questions.length} questions`);
+            // Toggle intro header block visibility
+            updateIntroHeader();
+            
+            // Add referring dentist field for Hebrew quiz on first section (Section 0)
+            if (currentLanguage === 'he' && currentSectionIndex === 0) {
+                const referringDentistDiv = document.createElement('div');
+                referringDentistDiv.className = 'question-card';
+                referringDentistDiv.id = 'referring-dentist-field';
+                const referringDentistValue = answers['REFERRING_DENTIST_NAME'] || '';
+                referringDentistDiv.innerHTML = `
+                    <div class="question-title">שם רופא/מרפאה מפנה *</div>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="referringDentistName" 
+                        name="referring_dentist_name" 
+                        placeholder="הזן את שם הרופא או המרפאה המפנה"
+                        value="${referringDentistValue}"
+                        style="direction: rtl; text-align: right;"
+                        required
+                        onchange="saveCurrentAnswer()"
+                    >
+                    <small class="form-text text-muted" style="direction: rtl; text-align: right; display: block; margin-top: 5px;">
+                        אנא הזן את שם הרופא או המרפאה שהפנו אותך לשאלון זה
+                    </small>
+                `;
+                sectionDiv.appendChild(referringDentistDiv);
+            }
+            
+            const dsoInfo = {{ dso_info | tojson | safe }};
+            const hasClinicDropdown = dsoInfo && ({{ clinics | tojson | safe }} || []).length > 0;
+            let unitToggleInserted = false;
+            section.questions.forEach(question => {
+                // When clinic dropdown is shown at top, hide duplicate DEMO_REFERRING_DENTIST_OR_CLI in form (English and Hebrew)
+                if (hasClinicDropdown && question.qid === 'DEMO_REFERRING_DENTIST_OR_CLI') {
+                    console.log('Clinic selected via top dropdown, hiding DEMO_REFERRING_DENTIST_OR_CLI in form');
+                    return;
+                }
+                
+                if (currentSectionIndex === 0 && !unitToggleInserted && (question.qid === 'DEMO_HEIGHT_CM' || question.qid === 'DEMO_WEIGHT_KG')) {
+                    appendDemographicsUnitToggle(sectionDiv);
+                    unitToggleInserted = true;
+                }
+                
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-card';
+                questionDiv.id = `question-${question.originalIndex}`;
+                questionDiv.setAttribute('data-qid', question.qid);
+                
+                // Set initial visibility based on conditional logic
+                questionDiv.style.display = question.shouldShow ? 'block' : 'none';
+                
+                let html = `<div class="question-title">${getText(`Q.${question.qid}.title`)}</div>`;
+                
+                
+                if (question.type === 'single_choice') {
+                    // Check if this should be a select box (input type is 'select')
+                    if (question.input === 'select') {
+                        // This is a select box - render as dropdown
+                        let placeholder = currentLanguage === 'he' ? 'בחר...' : currentLanguage === 'ru' ? 'Выберите...' : 'Select...';
+                        if (question.qid === 'DEMO_SEX') {
+                            placeholder = currentLanguage === 'he' ? 'בחר מין...' : currentLanguage === 'ru' ? 'Выберите пол...' : 'Select gender...';
+                        } else if (question.qid === 'DEMO_REFERRING_DENTIST_OR_CLI') {
+                            placeholder = currentLanguage === 'he' ? 'בחר את המרפאה שלך...' : currentLanguage === 'ru' ? 'Выберите вашу клинику...' : 'Select your clinic...';
+                        }
+                        
+                        html += `<select id="${question.qid}" class="form-select" onchange="saveCurrentAnswer()" oninput="saveCurrentAnswer()">
+                            <option value="">${placeholder}</option>`;
+                        question.options.forEach(option => {
+                            // Get label based on current language
+                            let label = option.label || option.value;
+                            if (currentLanguage === 'he' && option.label_he) {
+                                label = option.label_he;
+                            } else if (currentLanguage === 'ru' && option.label_ru) {
+                                label = option.label_ru;
+                            } else if (option.label) {
+                                label = option.label;
+                            }
+                            const selected = answers[question.qid] === option.value ? 'selected' : '';
+                            html += `<option value="${option.value}" ${selected}>${label}</option>`;
+                        });
+                        html += `</select>`;
+                    } else {
+                        // Regular single choice questions
+                        question.options.forEach(option => {
+                            const label = getText(`Q.${question.qid}.opt.${option.value}`);
+                            const checked = answers[question.qid] === option.value ? 'checked' : '';
+                            html += `
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="${question.qid}" id="${question.qid}_${option.value}" value="${option.value}" ${checked} onchange="saveCurrentAnswer()">
+                                    <label class="form-check-label" for="${question.qid}_${option.value}">${label}</label>
+                                </div>
+                            `;
+                            
+                            // Add text input for "other" option
+                            if (option.value === 'other') {
+                                const otherTextId = `${question.qid}_other_text`;
+                                const otherTextValue = answers[otherTextId] || '';
+                                html += `
+                                    <div class="other-text-input" id="${otherTextId}_container" style="display: ${checked ? 'block' : 'none'}; margin-left: 20px; margin-top: 5px;">
+                                        <input type="text" id="${otherTextId}" class="form-control" placeholder="Please specify..." value="${otherTextValue}" onchange="saveCurrentAnswer()">
+                                    </div>
+                                `;
+                            }
+                        });
+                    }
+                } else if (question.type === 'multi_choice') {
+                    // Check if there's a separate conditional question for "other" (e.g., Q32a, Q38a)
+                    // If so, don't show inline "other" input - the separate question will handle it
+                    const hasSeparateOtherQuestion = quizPackage.questions.some(q => 
+                        q.display_if && 
+                        q.display_if.expr && 
+                        q.display_if.expr.includes(`ANS.${question.qid}`) &&
+                        q.display_if.expr.includes("'other'")
+                    );
+                    
+                    question.options.forEach(option => {
+                        const label = getText(`Q.${question.qid}.opt.${option.value}`);
+                        const checked = (answers[question.qid] || []).includes(option.value) ? 'checked' : '';
+                        html += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="${question.qid}[]" id="${question.qid}_${option.value}" value="${option.value}" ${checked} onchange="saveCurrentAnswer()">
+                                <label class="form-check-label" for="${question.qid}_${option.value}">${label}</label>
+                            </div>
+                        `;
+                        
+                        // Add text input for "other" option only if there's no separate conditional question
+                        if (option.value === 'other' && !hasSeparateOtherQuestion) {
+                            const otherTextId = `${question.qid}_other_text`;
+                            const otherTextValue = answers[otherTextId] || '';
+                            html += `
+                                <div class="other-text-input" id="${otherTextId}_container" style="display: ${checked ? 'block' : 'none'}; margin-left: 20px; margin-top: 5px;">
+                                    <input type="text" id="${otherTextId}" class="form-control" placeholder="Please specify..." value="${otherTextValue}" onchange="saveCurrentAnswer()">
+                                </div>
+                            `;
+                        }
+                    });
+                } else if (question.type === 'scale') {
+                    question.options.forEach(option => {
+                        const label = getText(`Q.${question.qid}.opt.${option.value}`);
+                        const checked = answers[question.qid] === option.value ? 'checked' : '';
+                        html += `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="${question.qid}" id="${question.qid}_${option.value}" value="${option.value}" ${checked} onchange="saveCurrentAnswer()">
+                                <label class="form-check-label" for="${question.qid}_${option.value}">${label}</label>
+                            </div>
+                        `;
+                    });
+                } else if (question.input === 'textarea' || (question.type === 'text' && question.input === 'textarea')) {
+                    const val = (answers[question.qid] || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const rows = question.qid === 'TREATMENT_START' ? 3 : 4;
+                    html += `<textarea id="${question.qid}" class="form-control quiz-textarea-input" rows="${rows}" placeholder="" onchange="saveCurrentAnswer()" oninput="saveCurrentAnswer()">${val}</textarea>`;
+                } else if (question.type === 'text' || question.type === 'email' || question.type === 'tel' || question.type === 'number' || question.type === 'date') {
+                    let inputType = question.type;
+                    if (question.qid === 'DEMO_DOB') inputType = 'date';
+                    
+                    // Skip age field - we calculate it from DOB
+                    if (question.qid === 'DEMO_AGE') return;
+                    
+                    if (question.qid === 'DEMO_HEIGHT_CM' || question.qid === 'DEMO_WEIGHT_KG') {
+                        html = buildDemographicsMeasureHtml(question);
+                    } else if (question.type === 'number') {
+                        const readonlyAttr = question.readonly ? 'readonly' : '';
+                        const readonlyClass = question.readonly ? 'bg-light' : '';
+                        const suffixKey = currentLanguage === 'he' ? 'suffix_he' : 'suffix_en';
+                        const suffixText = question[suffixKey] || question.suffix_en;
+                        const suffix = suffixText ? ` <span class="text-muted">${suffixText}</span>` : '';
+                        html += `<div class="d-flex align-items-center gap-2 flex-wrap"><input type="${inputType}" id="${question.qid}" class="form-control ${readonlyClass}" style="max-width: 200px;" value="${answers[question.qid] || ''}" onchange="saveCurrentAnswer()" oninput="saveCurrentAnswer()" ${readonlyAttr}>${suffix}</div>`;
+                    } else {
+                        const readonlyAttr = question.readonly ? 'readonly' : '';
+                        const readonlyClass = question.readonly ? 'bg-light' : '';
+                        html += `<input type="${inputType}" id="${question.qid}" class="form-control ${readonlyClass}" value="${answers[question.qid] || ''}" onchange="saveCurrentAnswer()" oninput="saveCurrentAnswer()" ${readonlyAttr}>`;
+                    }
+                }
+                
+                questionDiv.innerHTML = html;
+                sectionDiv.appendChild(questionDiv);
+
+                if (currentSectionIndex === 0 && question.qid === 'DEMO_WEIGHT_KG') {
+                    const bmiStrip = document.createElement('div');
+                    bmiStrip.id = 'computedBmiDisplay';
+                    bmiStrip.className = 'question-card computed-bmi-strip';
+                    bmiStrip.style.display = 'none';
+                    sectionDiv.appendChild(bmiStrip);
+                }
+
+            });
+            
+            container.appendChild(sectionDiv);
+            
+            if (currentSectionIndex === 0) {
+                syncDemographicsMetricFromUi();
+                updateComputedBmiDisplay();
+            }
+            
+            // Rehydrate "other" text inputs
+            rehydrateOtherTextInputs();
+            
+            // Apply RTL alignment for Hebrew questions
+            if (currentLanguage === 'he') {
+                document.querySelectorAll('.question-title').forEach(title => {
+                    title.style.textAlign = 'right';
+                });
+                document.querySelectorAll('.question-card').forEach(card => {
+                    card.style.textAlign = 'right';
+                });
+                // Apply RTL to form controls
+                document.querySelectorAll('.form-control').forEach(control => {
+                    control.style.textAlign = 'right';
+                    control.style.direction = 'rtl';
+                });
+                // Apply RTL to select boxes with proper padding for dropdown arrow
+                document.querySelectorAll('.form-select').forEach(select => {
+                    select.style.textAlign = 'right';
+                    select.style.direction = 'rtl';
+                    select.style.paddingRight = '15px';
+                    select.style.paddingLeft = '40px'; // Space for dropdown arrow on left
+                });
+                // Apply RTL to form checks
+                document.querySelectorAll('.form-check').forEach(check => {
+                    check.style.textAlign = 'right';
+                    check.style.paddingRight = '1.5em';
+                    check.style.paddingLeft = '0';
+                });
+                document.querySelectorAll('.form-check-input').forEach(input => {
+                    input.style.float = 'right';
+                    input.style.marginRight = '-1.5em';
+                    input.style.marginLeft = '0';
+                });
+                document.querySelectorAll('.form-check-label').forEach(label => {
+                    label.style.marginRight = '0.5em';
+                    label.style.marginLeft = '0';
+                });
+                // Apply RTL to other text inputs
+                document.querySelectorAll('.other-text-input').forEach(other => {
+                    other.style.marginRight = '20px';
+                    other.style.marginLeft = '0';
+                });
+            } else {
+                document.querySelectorAll('.question-title').forEach(title => {
+                    title.style.textAlign = 'left';
+                });
+                document.querySelectorAll('.question-card').forEach(card => {
+                    card.style.textAlign = 'left';
+                });
+                // Reset LTR for form controls
+                document.querySelectorAll('.form-control').forEach(control => {
+                    control.style.textAlign = 'left';
+                    control.style.direction = 'ltr';
+                });
+                document.querySelectorAll('.form-select').forEach(select => {
+                    select.style.textAlign = 'left';
+                    select.style.direction = 'ltr';
+                    select.style.paddingRight = '40px'; // Default Bootstrap padding
+                    select.style.paddingLeft = '15px';
+                });
+                document.querySelectorAll('.form-check').forEach(check => {
+                    check.style.textAlign = 'left';
+                    check.style.paddingRight = '0';
+                    check.style.paddingLeft = '1.5em';
+                });
+                document.querySelectorAll('.form-check-input').forEach(input => {
+                    input.style.float = 'left';
+                    input.style.marginRight = '0';
+                    input.style.marginLeft = '-1.5em';
+                });
+                document.querySelectorAll('.form-check-label').forEach(label => {
+                    label.style.marginRight = '0';
+                    label.style.marginLeft = '0.5em';
+                });
+                document.querySelectorAll('.other-text-input').forEach(other => {
+                    other.style.marginRight = '0';
+                    other.style.marginLeft = '20px';
+                });
+            }
+        }
+
+        // Computed BMI (CDC) is shown when height/weight are present; DEMO_BMI_COMPUTED_CDC is the single BMI field for scoring and reports.
+        function updateIntroHeader() {
+            const extras = document.getElementById('introHeaderExtras');
+            if (!extras) return;
+            // Only show on very first section (index 0)
+            extras.style.display = currentSectionIndex === 0 ? 'block' : 'none';
+        }
+        
+        function rehydrateOtherTextInputs() {
+            // Restore "other" text input values and visibility
+            Object.keys(answers).forEach(key => {
+                if (key.endsWith('_other_text')) {
+                    const textEl = document.getElementById(key);
+                    if (textEl) {
+                        textEl.value = answers[key];
+                    }
+                }
+            });
+            
+            // Show/hide "other" text inputs based on current selections
+            sections[currentSectionIndex].questions.forEach(question => {
+                if (question.type === 'single_choice') {
+                    const selectedValue = answers[question.qid];
+                    const otherTextContainer = document.getElementById(`${question.qid}_other_text_container`);
+                    if (otherTextContainer) {
+                        otherTextContainer.style.display = selectedValue === 'other' ? 'block' : 'none';
+                    }
+                } else if (question.type === 'multi_choice') {
+                    const selectedValues = answers[question.qid] || [];
+                    const otherTextContainer = document.getElementById(`${question.qid}_other_text_container`);
+                    if (otherTextContainer) {
+                        otherTextContainer.style.display = selectedValues.includes('other') ? 'block' : 'none';
+                    }
+                }
+            });
+        }
+
+        function navigateSection(direction) {
+            // Save all current answers before navigating
+            saveAllAnswers();
+            // Validate required fields in current section before moving forward
+            if (direction > 0) {
+                const validation = validateCurrentSection();
+                const errors = validation.errors;
+                const alertBoxId = 'sectionValidationAlert';
+                let alertBox = document.getElementById(alertBoxId);
+                if (errors.length) {
+                    if (!alertBox) {
+                        alertBox = document.createElement('div');
+                        alertBox.id = alertBoxId;
+                        alertBox.className = 'alert alert-warning';
+                        alertBox.style.marginTop = '10px';
+                        document.querySelector('.question-section').prepend(alertBox);
+                    }
+                    alertBox.innerHTML = `<strong>${getUIText('pleaseCompleteFields')}</strong><br>${errors.join('<br>')}`;
+                    // Apply red highlight and inline error messages on invalid fields
+                    applyValidationStyles(validation);
+                    // Scroll to first error and focus its input so the user sees what to fix
+                    let target = null;
+                    let directInput = null;
+                    
+                    // Special handling for referring dentist field (Hebrew quiz)
+                    if (validation.firstQid === 'referring-dentist-field') {
+                        target = document.getElementById('referring-dentist-field');
+                        directInput = document.getElementById('referringDentistName');
+                    } else {
+                        target = document.getElementById(validation.firstQid) || document.getElementById(`question-${validation.firstIndex}`);
+                        if (target) {
+                            let preferInput = document.getElementById(validation.firstQid);
+                            if (validation.firstQid === 'DEMO_HEIGHT_CM' && !useMetricUnits) {
+                                preferInput = document.getElementById('DEMO_HEIGHT_FT') || preferInput;
+                            } else if (validation.firstQid === 'DEMO_WEIGHT_KG' && !useMetricUnits) {
+                                preferInput = document.getElementById('DEMO_WEIGHT_LB') || preferInput;
+                            }
+                            directInput = preferInput
+                                || document.querySelector(`input[name="${validation.firstQid}"]`)
+                                || document.querySelector(`input[name="${validation.firstQid}[]"]`)
+                                || (target.querySelector ? target.querySelector('input,select,textarea') : null);
+                        }
+                    }
+                    
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if (directInput) {
+                            try { directInput.focus({ preventScroll: true }); } catch(e) { /* no-op */ }
+                        }
+                    }
+                    return; // block navigation
+                } else if (alertBox) {
+                    alertBox.remove();
+                }
+            }
+            
+            currentSectionIndex += direction;
+            if (currentSectionIndex < 0) currentSectionIndex = 0;
+            if (currentSectionIndex >= sections.length) currentSectionIndex = sections.length - 1;
+            
+            renderCurrentSection();
+            updateProgress();
+            // On successful navigation, move viewport to the top of the page
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e) { /* no-op */ }
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').style.display = currentSectionIndex > 0 ? 'block' : 'none';
+            document.getElementById('nextBtn').style.display = currentSectionIndex < sections.length - 1 ? 'block' : 'none';
+            document.getElementById('submitBtn').style.display = currentSectionIndex === sections.length - 1 ? 'block' : 'none';
+        }
+
+        function validateCurrentSection() {
+            const result = { errors: [], firstQid: null, firstIndex: null, invalidQids: new Set() };
+            if (currentSectionIndex >= sections.length) return result;
+            if (currentSectionIndex === 0) syncDemographicsMetricFromUi();
+            sections[currentSectionIndex].questions.forEach(question => {
+                // Hard-skip Age; DOB is source of truth
+                if (question.qid === 'DEMO_AGE') return;
+                if (question.required) {
+                    const shouldShow = shouldDisplayQuestion(question);
+                    if (!shouldShow) return;
+                    const el = document.getElementById(question.qid);
+                    const val = answers[question.qid] ?? (el ? el.value : '');
+                    const empty = (question.type === 'multi_choice') ? !(Array.isArray(val) && val.length) : (!val || String(val).trim() === '');
+                    if (empty) {
+                        const title = getText(`Q.${question.qid}.title`) || question.qid;
+                        result.errors.push(`- ${title}`);
+                        result.invalidQids.add(question.qid);
+                        if (!result.firstQid) {
+                            result.firstQid = question.qid;
+                            result.firstIndex = question.originalIndex;
+                        }
+                    }
+                }
+            });
+            
+            // Validate referring dentist field for Hebrew quiz on section 0 (mandatory)
+            if (currentLanguage === 'he' && currentSectionIndex === 0) {
+                const referringDentistInput = document.getElementById('referringDentistName');
+                const referringDentistValue = referringDentistInput ? referringDentistInput.value.trim() : '';
+                if (!referringDentistValue) {
+                    const title = 'שם רופא/מרפאה מפנה';
+                    result.errors.push(`- ${title}`);
+                    result.invalidQids.add('referring-dentist-field');
+                    if (!result.firstQid) {
+                        result.firstQid = 'referring-dentist-field';
+                        result.firstIndex = -1; // Special index for referring dentist field
+                    }
+                }
+            }
+            
+            return result;
+        }
+
+        function applyValidationStyles(validation) {
+            if (currentSectionIndex >= sections.length) return;
+            const invalidSet = validation.invalidQids || new Set();
+            sections[currentSectionIndex].questions.forEach(question => {
+                const card = document.getElementById(`question-${question.originalIndex}`);
+                if (!card) return;
+                const inputEl = document.getElementById(question.qid);
+                let msg = document.getElementById(`${question.qid}_error_msg`);
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.id = `${question.qid}_error_msg`;
+                    msg.className = 'invalid-feedback';
+                    msg.textContent = getUIText('fieldRequired');
+                    card.appendChild(msg);
+                }
+                if (invalidSet.has(question.qid)) {
+                    card.classList.add('invalid');
+                    if (inputEl && inputEl.classList) {
+                        const skipHiddenImperial = !useMetricUnits && (question.qid === 'DEMO_HEIGHT_CM' || question.qid === 'DEMO_WEIGHT_KG') && inputEl.type === 'hidden';
+                        if (!skipHiddenImperial) inputEl.classList.add('is-invalid');
+                    }
+                    msg.style.display = 'block';
+                } else {
+                    card.classList.remove('invalid');
+                    if (inputEl && inputEl.classList) inputEl.classList.remove('is-invalid');
+                    if (!useMetricUnits && question.qid === 'DEMO_HEIGHT_CM') {
+                        ['DEMO_HEIGHT_FT', 'DEMO_HEIGHT_IN'].forEach((id) => {
+                            const inp = document.getElementById(id);
+                            if (inp && inp.classList) inp.classList.remove('is-invalid');
+                        });
+                    }
+                    if (!useMetricUnits && question.qid === 'DEMO_WEIGHT_KG') {
+                        const lb = document.getElementById('DEMO_WEIGHT_LB');
+                        if (lb && lb.classList) lb.classList.remove('is-invalid');
+                    }
+                    msg.style.display = 'none';
+                }
+            });
+            
+            // Imperial height/weight: highlight ft/in/lb when the metric hidden fields are invalid
+            if (currentSectionIndex === 0 && !useMetricUnits) {
+                ['DEMO_HEIGHT_CM', 'DEMO_WEIGHT_KG'].forEach((dqid) => {
+                    if (!invalidSet.has(dqid)) return;
+                    if (dqid === 'DEMO_HEIGHT_CM') {
+                        ['DEMO_HEIGHT_FT', 'DEMO_HEIGHT_IN'].forEach((id) => {
+                            const inp = document.getElementById(id);
+                            if (inp && inp.classList) inp.classList.add('is-invalid');
+                        });
+                    }
+                    if (dqid === 'DEMO_WEIGHT_KG') {
+                        const lb = document.getElementById('DEMO_WEIGHT_LB');
+                        if (lb && lb.classList) lb.classList.add('is-invalid');
+                    }
+                });
+            } else if (currentSectionIndex === 0 && useMetricUnits) {
+                ['DEMO_HEIGHT_FT', 'DEMO_HEIGHT_IN', 'DEMO_WEIGHT_LB'].forEach((id) => {
+                    const inp = document.getElementById(id);
+                    if (inp && inp.classList) inp.classList.remove('is-invalid');
+                });
+            }
+            
+            // Handle referring dentist field validation styling (Hebrew quiz, section 0)
+            if (currentLanguage === 'he' && currentSectionIndex === 0) {
+                const referringDentistDiv = document.getElementById('referring-dentist-field');
+                const referringDentistInput = document.getElementById('referringDentistName');
+                if (referringDentistDiv) {
+                    let msg = document.getElementById('referring-dentist-field_error_msg');
+                    if (!msg) {
+                        msg = document.createElement('div');
+                        msg.id = 'referring-dentist-field_error_msg';
+                        msg.className = 'invalid-feedback';
+                        msg.style.direction = 'rtl';
+                        msg.style.textAlign = 'right';
+                        msg.textContent = getUIText('fieldRequired');
+                        referringDentistDiv.appendChild(msg);
+                    }
+                    if (invalidSet.has('referring-dentist-field')) {
+                        referringDentistDiv.classList.add('invalid');
+                        referringDentistDiv.style.borderLeft = '4px solid #dc3545';
+                        if (referringDentistInput && referringDentistInput.classList) {
+                            referringDentistInput.classList.add('is-invalid');
+                        }
+                        msg.style.display = 'block';
+                    } else {
+                        referringDentistDiv.classList.remove('invalid');
+                        referringDentistDiv.style.borderLeft = '';
+                        if (referringDentistInput && referringDentistInput.classList) {
+                            referringDentistInput.classList.remove('is-invalid');
+                        }
+                        msg.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function saveAllAnswers() {
+            if (currentSectionIndex === 0) {
+                syncDemographicsMetricFromUi();
+                updateComputedBmiDisplay();
+            }
+            // Save all visible questions in current section
+            if (currentSectionIndex < sections.length) {
+                sections[currentSectionIndex].questions.forEach(question => {
+                    const el = document.getElementById(question.qid);
+                    if (el) {
+                        if (question.type === 'multi_choice') {
+                            const checkboxes = document.querySelectorAll(`input[name="${question.qid}[]"]:checked`);
+                            answers[question.qid] = Array.from(checkboxes).map(cb => cb.value);
+                            
+                            // Save "other" text input if "other" is selected
+                            const otherTextEl = document.getElementById(`${question.qid}_other_text`);
+                            if (otherTextEl) {
+                                answers[`${question.qid}_other_text`] = otherTextEl.value;
+                            }
+                        } else {
+                            answers[question.qid] = el.value;
+                            
+                            // Save "other" text input if "other" is selected for single_choice
+                            const otherTextEl = document.getElementById(`${question.qid}_other_text`);
+                            if (otherTextEl && answers[question.qid] === 'other') {
+                                answers[`${question.qid}_other_text`] = otherTextEl.value;
+                            }
+                        }
+                        console.log(`Saved: ${question.qid} = ${answers[question.qid]}`);
+                    }
+                });
+            }
+            
+            // Save referring dentist name field (Hebrew quiz, Section 0 only)
+            if (currentLanguage === 'he' && currentSectionIndex === 0) {
+                const referringDentistEl = document.getElementById('referringDentistName');
+                if (referringDentistEl) {
+                    answers['REFERRING_DENTIST_NAME'] = referringDentistEl.value.trim();
+                    console.log(`Saved: REFERRING_DENTIST_NAME = ${answers['REFERRING_DENTIST_NAME']}`);
+                }
+            }
+
+        }
+
+        function saveCurrentAnswer() {
+            // This is called by individual form elements
+            const event = window.event;
+            const element = event.target;
+            const qid = element.name || element.id;
+            
+            // Handle referring dentist name field (Hebrew quiz only)
+            if (qid === 'referringDentistName' || qid === 'referring_dentist_name') {
+                answers['REFERRING_DENTIST_NAME'] = element.value.trim();
+                console.log(`Saved: REFERRING_DENTIST_NAME = ${answers['REFERRING_DENTIST_NAME']}`);
+                // Clear validation error if field is now filled
+                if (element.value.trim()) {
+                    const referringDentistDiv = document.getElementById('referring-dentist-field');
+                    if (referringDentistDiv) {
+                        referringDentistDiv.classList.remove('invalid');
+                        referringDentistDiv.style.borderLeft = '';
+                        element.classList.remove('is-invalid');
+                        const errorMsg = document.getElementById('referring-dentist-field_error_msg');
+                        if (errorMsg) {
+                            errorMsg.style.display = 'none';
+                        }
+                        // Remove validation alert if all fields are now valid
+                        const alertBox = document.getElementById('sectionValidationAlert');
+                        if (alertBox) {
+                            // Re-validate to see if we can remove the alert
+                            const validation = validateCurrentSection();
+                            if (validation.errors.length === 0) {
+                                alertBox.remove();
+                            }
+                        }
+                    }
+                }
+                return;
+            }
+            
+            if (['DEMO_HEIGHT_FT', 'DEMO_HEIGHT_IN', 'DEMO_WEIGHT_LB'].includes(element.id)) {
+                syncDemographicsMetricFromUi();
+                updateComputedBmiDisplay();
+                updateConditionalQuestions();
+                return;
+            }
+            
+            if (element.type === 'checkbox') {
+                const isNoneToggle = element.value === 'none';
+                // Mutually exclusive behavior for "none"
+                if (isNoneToggle && element.checked) {
+                    document.querySelectorAll(`input[name="${qid}"]`).forEach(cb => {
+                        if (cb.value !== 'none') cb.checked = false;
+                    });
+                } else if (!isNoneToggle && element.checked) {
+                    // Uncheck "none" if any other is selected
+                    const noneCb = document.querySelector(`input[name="${qid}"][value="none"]`);
+                    if (noneCb) noneCb.checked = false;
+                }
+                const checkboxes = document.querySelectorAll(`input[name="${qid}"]:checked`);
+                answers[qid.replace('[]', '')] = Array.from(checkboxes).map(cb => cb.value);
+                
+                // Handle "other" text input visibility for multi_choice
+                const otherCheckbox = document.getElementById(`${qid.replace('[]', '')}_other`);
+                const otherTextContainer = document.getElementById(`${qid.replace('[]', '')}_other_text_container`);
+                if (otherCheckbox && otherTextContainer) {
+                    otherTextContainer.style.display = otherCheckbox.checked ? 'block' : 'none';
+                }
+            } else if (element.type === 'radio') {
+                answers[qid] = element.value;
+                
+                // Handle "other" text input visibility for single_choice
+                const otherTextContainer = document.getElementById(`${qid}_other_text_container`);
+                if (otherTextContainer) {
+                    otherTextContainer.style.display = element.value === 'other' ? 'block' : 'none';
+                }
+            } else {
+                answers[qid] = element.value;
+            }
+            
+            console.log(`Auto-saved: ${qid} = ${answers[qid]}`);
+            
+            if (element && element.id && (element.id === 'DEMO_HEIGHT_CM' || element.id === 'DEMO_WEIGHT_KG')) {
+                syncDemographicsMetricFromUi();
+                updateComputedBmiDisplay();
+            }
+            
+            // Show/hide conditional questions based on current answers
+            updateConditionalQuestions();
+        }
+
+        function updateConditionalQuestions() {
+            // Check all questions in the quiz package and show/hide based on conditional logic
+            quizPackage.questions.forEach((question, index) => {
+                // Try to find the question element by qid first (most reliable)
+                let questionElement = null;
+                if (question.qid) {
+                    questionElement = document.querySelector(`[data-qid="${question.qid}"]`);
+                }
+                // Fallback to finding by originalIndex
+                if (!questionElement) {
+                    questionElement = document.getElementById(`question-${index}`);
+                }
+                if (questionElement) {
+                    const shouldShow = shouldDisplayQuestion(question);
+                    questionElement.style.display = shouldShow ? 'block' : 'none';
+                    // Also clear the answer if the question should be hidden and it was previously answered
+                    if (!shouldShow && question.qid && answers[question.qid] !== undefined) {
+                        // Clear dependent answers when parent question changes
+                        if (question.qid === 'Q1' && answers.Q1 !== 'yes') {
+                            // Clear Q6 and Q6a if Q1 is not 'yes'
+                            if (answers.Q6 !== undefined) delete answers.Q6;
+                            if (answers.Q6a !== undefined) delete answers.Q6a;
+                            // Clear the form fields
+                            const q6Element = document.querySelector('[data-qid="Q6"]');
+                            const q6aElement = document.querySelector('[data-qid="Q6a"]');
+                            if (q6Element) {
+                                const select = q6Element.querySelector('select');
+                                if (select) select.value = '';
+                            }
+                            if (q6aElement) {
+                                const input = q6aElement.querySelector('input[type="date"]');
+                                if (input) input.value = '';
+                            }
+                        }
+                        if (question.qid === 'Q6' && answers.Q6 !== 'date') {
+                            // Clear Q6a if Q6 is not 'date'
+                            if (answers.Q6a !== undefined) delete answers.Q6a;
+                            const q6aElement = document.querySelector('[data-qid="Q6a"]');
+                            if (q6aElement) {
+                                const input = q6aElement.querySelector('input[type="date"]');
+                                if (input) input.value = '';
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = ((currentSectionIndex + 1) / sections.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            const progressText = document.getElementById('progressText');
+            if (progressText) {
+                if (currentLanguage === 'he') {
+                    progressText.textContent = `סעיף ${currentSectionIndex + 1} מתוך ${sections.length}`;
+                } else if (currentLanguage === 'ru') {
+                    progressText.textContent = `Раздел ${currentSectionIndex + 1} из ${sections.length}`;
+                } else {
+                    progressText.textContent = `Section ${currentSectionIndex + 1} of ${sections.length}`;
+                }
+            }
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            updateUITexts();
+            renderQuestions();
+        }
+
+        function updateUITexts() {
+            // Update HTML direction for RTL languages
+            const htmlElement = document.documentElement;
+            if (currentLanguage === 'he') {
+                htmlElement.setAttribute('dir', 'rtl');
+                htmlElement.setAttribute('lang', 'he');
+            } else {
+                htmlElement.setAttribute('dir', 'ltr');
+                htmlElement.setAttribute('lang', currentLanguage);
+            }
+            
+            // Update text alignment for RTL
+            const introTextContainer = document.getElementById('introTextContainer');
+            if (introTextContainer) {
+                introTextContainer.style.textAlign = currentLanguage === 'he' ? 'right' : 'left';
+            }
+            
+            const assessmentMessageText = document.getElementById('assessmentMessageText');
+            if (assessmentMessageText) {
+                assessmentMessageText.style.textAlign = currentLanguage === 'he' ? 'right' : 'left';
+            }
+            
+            // Update question title alignment for RTL
+            document.querySelectorAll('.question-title').forEach(title => {
+                title.style.textAlign = currentLanguage === 'he' ? 'right' : 'left';
+            });
+            
+            // Update question card alignment for RTL
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.style.textAlign = currentLanguage === 'he' ? 'right' : 'left';
+            });
+            
+            // Update form controls for RTL
+            if (currentLanguage === 'he') {
+                document.querySelectorAll('.form-control').forEach(control => {
+                    control.style.textAlign = 'right';
+                    control.style.direction = 'rtl';
+                });
+                document.querySelectorAll('.form-select').forEach(select => {
+                    select.style.textAlign = 'right';
+                    select.style.direction = 'rtl';
+                    select.style.paddingRight = '15px';
+                    select.style.paddingLeft = '40px'; // Space for dropdown arrow on left
+                });
+                document.querySelectorAll('.form-check').forEach(check => {
+                    check.style.textAlign = 'right';
+                    check.style.paddingRight = '1.5em';
+                    check.style.paddingLeft = '0';
+                });
+                document.querySelectorAll('.form-check-input').forEach(input => {
+                    input.style.float = 'right';
+                    input.style.marginRight = '-1.5em';
+                    input.style.marginLeft = '0';
+                });
+                document.querySelectorAll('.form-check-label').forEach(label => {
+                    label.style.marginRight = '0.5em';
+                    label.style.marginLeft = '0';
+                });
+                document.querySelectorAll('.other-text-input').forEach(other => {
+                    other.style.marginRight = '20px';
+                    other.style.marginLeft = '0';
+                });
+            } else {
+                document.querySelectorAll('.form-control').forEach(control => {
+                    control.style.textAlign = 'left';
+                    control.style.direction = 'ltr';
+                });
+                document.querySelectorAll('.form-select').forEach(select => {
+                    select.style.textAlign = 'left';
+                    select.style.direction = 'ltr';
+                    select.style.paddingRight = '40px'; // Default Bootstrap padding
+                    select.style.paddingLeft = '15px';
+                });
+                document.querySelectorAll('.form-check').forEach(check => {
+                    check.style.textAlign = 'left';
+                    check.style.paddingRight = '0';
+                    check.style.paddingLeft = '1.5em';
+                });
+                document.querySelectorAll('.form-check-input').forEach(input => {
+                    input.style.float = 'left';
+                    input.style.marginRight = '0';
+                    input.style.marginLeft = '-1.5em';
+                });
+                document.querySelectorAll('.form-check-label').forEach(label => {
+                    label.style.marginRight = '0';
+                    label.style.marginLeft = '0.5em';
+                });
+                document.querySelectorAll('.other-text-input').forEach(other => {
+                    other.style.marginRight = '0';
+                    other.style.marginLeft = '20px';
+                });
+            }
+            
+            // Update introduction texts (follow-up uses package metadata)
+            if (quizMode === 'followup') {
+                applyFollowupIntroFromMetadata();
+            } else {
+                const introTitle = document.getElementById('introTitle');
+                if (introTitle) introTitle.textContent = getUIText('title');
+                
+                const introSubtitle = document.getElementById('introSubtitle');
+                if (introSubtitle) introSubtitle.textContent = getUIText('subtitle');
+                
+                const whyTitle = document.getElementById('whyTitle');
+                if (whyTitle) whyTitle.textContent = getUIText('whyTitle');
+                
+                const whyText1 = document.getElementById('whyText1');
+                if (whyText1) whyText1.textContent = getUIText('whyText1');
+                
+                const whyText2 = document.getElementById('whyText2');
+                if (whyText2) {
+                    const strong = whyText2.querySelector('strong');
+                    if (strong) {
+                        strong.textContent = getUIText('whyText2');
+                    } else {
+                        whyText2.innerHTML = '<strong>' + getUIText('whyText2') + '</strong>';
+                    }
+                }
+            }
+            
+            // Update clinic selection text
+            const selectClinicText = document.getElementById('selectClinicText');
+            if (selectClinicText) selectClinicText.textContent = getUIText('selectClinic');
+            
+            // Update navigation buttons
+            const prevBtnText = document.getElementById('prevBtnText');
+            if (prevBtnText) prevBtnText.textContent = getUIText('previousSection');
+            
+            const nextBtnText = document.getElementById('nextBtnText');
+            if (nextBtnText) nextBtnText.textContent = getUIText('nextSection');
+            
+            const submitBtnText = document.getElementById('submitBtnText');
+            if (submitBtnText) {
+                if (quizMode === 'followup') {
+                    submitBtnText.textContent = currentLanguage === 'he' ? 'שלח/י שאלון' : 'Submit Questionnaire';
+                } else {
+                    submitBtnText.textContent = getUIText('submitQuiz');
+                }
+            }
+        }
+        
+        function getRiskColor(riskBand, internalRiskBand = null, diagnosed = null, treatment = null) {
+            // For Hebrew version: use specific colors for diagnosed patients
+            if (currentLanguage === 'he' && diagnosed === true) {
+                if (treatment === false) {
+                    // Diagnosed but not treated - use orange/warning color
+                    return '#ff9800';
+                } else if (treatment === true) {
+                    // Diagnosed and in treatment - use blue/info color
+                    return '#2196f3';
+                }
+            }
+            
+            const riskColors = {
+                'low': '#28a745',
+                'mild': '#28a745', 
+                'moderate': '#ffc107',
+                'high': '#dc3545',
+                'Low Risk': '#28a745',
+                'Moderate Risk': '#ffc107',
+                'High Risk': '#dc3545',
+                'diagnosed_not_treated_not_symptomatic': '#ffc107',
+                'diagnosed_not_treated_symptomatic': '#dc3545',
+                'diagnosed_treated_stable': '#ffc107',
+                'diagnosed_treated_symptomatic': '#dc3545'
+            };
+            return riskColors[riskBand] || '#6c757d';
+        }
+        
+        function getRiskLabel(riskBand, internalRiskBand = null, diagnosed = null, treatment = null) {
+            // For Hebrew version: show special labels for diagnosed patients
+            if (currentLanguage === 'he' && diagnosed === true) {
+                if (treatment === false) {
+                    // Diagnosed but not treated
+                    return 'מאובחן - לא מטופל';
+                } else if (treatment === true) {
+                    // Diagnosed and in treatment
+                    return 'מאובחן בטיפול';
+                }
+            }
+            
+            // Localize risk labels for Hebrew (keep English output unchanged)
+            if (currentLanguage === 'he') {
+                const heLabels = {
+                    low: 'סיכון נמוך',
+                    mild: 'סיכון נמוך',
+                    moderate: 'סיכון בינוני',
+                    high: 'סיכון גבוה',
+                    'Low Risk': 'סיכון נמוך',
+                    'Moderate Risk': 'סיכון בינוני',
+                    'High Risk': 'סיכון גבוה',
+                    diagnosed_not_treated_not_symptomatic: 'סיכון בינוני',
+                    diagnosed_not_treated_symptomatic: 'סיכון גבוה',
+                    diagnosed_treated_stable: 'סיכון בינוני',
+                    diagnosed_treated_symptomatic: 'סיכון גבוה',
+                };
+                return heLabels[riskBand] || 'רמת סיכון לא ידועה';
+            }
+
+            const riskLabels = {
+                'low': 'LOW RISK',
+                'mild': 'LOW RISK', 
+                'moderate': 'MODERATE RISK',
+                'high': 'HIGH RISK',
+                'Low Risk': 'LOW RISK',
+                'Moderate Risk': 'MODERATE RISK',
+                'High Risk': 'HIGH RISK',
+                'diagnosed_not_treated_not_symptomatic': 'MODERATE RISK',
+                'diagnosed_not_treated_symptomatic': 'HIGH RISK',
+                'diagnosed_treated_stable': 'MODERATE RISK',
+                'diagnosed_treated_symptomatic': 'HIGH RISK'
+            };
+            return riskLabels[riskBand] || 'UNKNOWN RISK';
+        }
+
+        // Removed: Legal Definition / 3rd-party sharing explanatory box (per request).
+
+        // Action button functions
+        async function scheduleMeeting() {
+            const patientEmail = answers['EMAIL'] || answers['DEMO_EMAIL'] || '';
+            
+            if (!patientEmail) {
+                alert('❌ ERROR: Patient email not found. Please complete the quiz first.');
+                return;
+            }
+            
+            console.log('Consultation button clicked for email:', patientEmail);
+            
+            try {
+                const consultationData = {
+                    email: patientEmail,
+                    name: answers['DEMO_FULL_NAME'] || 'Quiz Participant',
+                    comment: 'Auto-registered via VizBriz quiz consultation button. Patient completed comprehensive sleep assessment and requested consultation with dental sleep team.'
+                };
+                
+                const response = await fetch('/api/consultation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(consultationData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show immediate alert confirmation
+                    alert('✅ Thank You! Your consultation request has been submitted successfully. Our dental sleep team will contact you shortly.');
+                    
+                    // Also log to console for debugging
+                    console.log('✅ Consultation API Success:', result);
+                } else {
+                    // Show error alert
+                    console.error('❌ Consultation API Error:', result);
+                    alert('❌ Sorry, there was an issue submitting your request. Please try again or contact us directly.');
+                    throw new Error(result.error || 'Failed to submit consultation request');
+                }
+            } catch (error) {
+                console.error('❌ Consultation API Network Error:', error);
+                // Show simple error alert
+                alert('❌ Sorry, there was an issue submitting your request. Please try again or contact us directly.');
+            }
+        }
+        
+        function scheduleSleepTest() {
+            const patientEmail = answers['EMAIL'] || answers['DEMO_EMAIL'] || '';
+            console.log('Sleep test button clicked for email:', patientEmail);
+            window.open('https://portal.isleepemr.com/booking/create-appointment/?booking=6809ea85e24b0b0ae4bdce75', '_blank');
+        }
+
+        function showLoadingWidget() {
+            // Create loading overlay
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                font-family: 'Segoe UI', sans-serif;
+            `;
+            
+            loadingOverlay.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 40px;
+                    border-radius: 15px;
+                    text-align: center;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                    max-width: 400px;
+                    width: 90%;
+                ">
+                    <div style="
+                        width: 60px;
+                        height: 60px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #3498db;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 20px;
+                    "></div>
+                    <h3 style="color: #2c3e50; margin-bottom: 10px;">${getUIText('processingTitle')}</h3>
+                    <p style="color: #666; margin-bottom: 0;">${getUIText('processingText')}</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            
+            document.body.appendChild(loadingOverlay);
+        }
+
+        function hideLoadingWidget() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.remove();
+            }
+        }
+
+        function submitQuiz() {
+            saveAllAnswers();
+            // Recalculate BMI from stored height/weight even if user is not on section 0 (DOM may be unmounted)
+            syncDemographicsMetricFromUi();
+            updateComputedBmiDisplay();
+            // Map DEMO_EMAIL to EMAIL for backend compatibility
+            if (!answers['EMAIL'] && answers['DEMO_EMAIL']) {
+                answers['EMAIL'] = answers['DEMO_EMAIL'];
+            }
+            if (quizMode === 'followup' && !(answers['EMAIL'] || answers['DEMO_EMAIL'] || '').trim()) {
+                alert('This questionnaire requires a personalized link from your clinic. Please open the link from your email.');
+                return;
+            }
+            // Map DEMO_PHONE to PHONE for backend compatibility
+            if (!answers['PHONE'] && answers['DEMO_PHONE']) {
+                answers['PHONE'] = answers['DEMO_PHONE'];
+            }
+            // Prune answers for questions that are currently hidden
+            pruneHiddenAnswers();
+            
+            // Validate ALL required questions across all sections before submitting
+            const allErrors = [];
+            const invalidQids = new Set();
+            let firstErrorQid = null;
+            let firstErrorIndex = null;
+            
+            sections.forEach((section, sectionIdx) => {
+                section.questions.forEach(question => {
+                    // Hard-skip Age; DOB is source of truth
+                    if (question.qid === 'DEMO_AGE') return;
+                    if (question.required) {
+                        const shouldShow = shouldDisplayQuestion(question);
+                        if (!shouldShow) return;
+                        const el = document.getElementById(question.qid);
+                        const val = answers[question.qid] ?? (el ? el.value : '');
+                        const empty = (question.type === 'multi_choice') ? !(Array.isArray(val) && val.length) : (!val || String(val).trim() === '');
+                        if (empty) {
+                            const title = getText(`Q.${question.qid}.title`) || question.qid;
+                            const sectionText = currentLanguage === 'he' ? 'סעיף' : currentLanguage === 'ru' ? 'Раздел' : 'Section';
+                            allErrors.push(`- ${title} (${sectionText} ${sectionIdx + 1})`);
+                            invalidQids.add(question.qid);
+                            if (!firstErrorQid) {
+                                firstErrorQid = question.qid;
+                                firstErrorIndex = question.originalIndex;
+                            }
+                        }
+                    }
+                });
+            });
+            
+            if (allErrors.length > 0) {
+                // Show gentle validation message and prevent submission
+                const alertBoxId = 'submitValidationAlert';
+                let alertBox = document.getElementById(alertBoxId);
+                if (!alertBox) {
+                    alertBox = document.createElement('div');
+                    alertBox.id = alertBoxId;
+                    alertBox.className = 'alert alert-warning';
+                    alertBox.style.marginTop = '20px';
+                    alertBox.style.marginBottom = '20px';
+                    alertBox.style.backgroundColor = '#fff3cd';
+                    alertBox.style.borderColor = '#ffc107';
+                    alertBox.style.color = '#856404';
+                    document.getElementById('submitBtn').parentElement.insertBefore(alertBox, document.getElementById('submitBtn'));
+                }
+                alertBox.innerHTML = `<strong>${getUIText('almostThere')}</strong> ${getUIText('completeRequiredFields')}`;
+                
+                // Apply subtle red highlighting to all invalid fields across all sections (just the card border)
+                sections.forEach((section, sectionIdx) => {
+                    section.questions.forEach(question => {
+                        if (invalidQids.has(question.qid)) {
+                            const card = document.getElementById(`question-${question.originalIndex}`);
+                            if (card) {
+                                card.classList.add('invalid');
+                                card.style.borderLeft = '4px solid #dc3545';
+                            }
+                        } else {
+                            // Remove highlighting from valid fields
+                            const card = document.getElementById(`question-${question.originalIndex}`);
+                            if (card) {
+                                card.classList.remove('invalid');
+                                card.style.borderLeft = '';
+                            }
+                        }
+                    });
+                });
+                
+                // Handle referring dentist field highlighting (Hebrew quiz)
+                if (currentLanguage === 'he') {
+                    const referringDentistDiv = document.getElementById('referring-dentist-field');
+                    if (referringDentistDiv) {
+                        if (invalidQids.has('referring-dentist-field')) {
+                            referringDentistDiv.classList.add('invalid');
+                            referringDentistDiv.style.borderLeft = '4px solid #dc3545';
+                        } else {
+                            referringDentistDiv.classList.remove('invalid');
+                            referringDentistDiv.style.borderLeft = '';
+                        }
+                    }
+                }
+                
+                // Scroll to first error
+                if (firstErrorQid) {
+                    // Special handling for referring dentist field (Hebrew quiz)
+                    if (firstErrorQid === 'referring-dentist-field') {
+                        // Navigate to section 0 if not already there
+                        if (currentSectionIndex !== 0) {
+                            currentSectionIndex = 0;
+                            renderCurrentSection();
+                        }
+                        // Scroll to the referring dentist field
+                        setTimeout(() => {
+                            const target = document.getElementById('referring-dentist-field');
+                            if (target) {
+                                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                const directInput = document.getElementById('referringDentistName');
+                                if (directInput) {
+                                    try { directInput.focus({ preventScroll: true }); } catch(e) { /* no-op */ }
+                                }
+                            }
+                        }, 200);
+                    } else {
+                        // Find which section contains this question
+                        let targetSectionIndex = 0;
+                        for (let i = 0; i < sections.length; i++) {
+                            if (sections[i].questions.some(q => q.qid === firstErrorQid)) {
+                                targetSectionIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        // Navigate to the section with the error
+                        if (targetSectionIndex !== currentSectionIndex) {
+                            currentSectionIndex = targetSectionIndex;
+                            renderCurrentSection();
+                            // Re-apply highlighting after rendering
+                            setTimeout(() => {
+                                sections.forEach((section) => {
+                                    section.questions.forEach(question => {
+                                        if (invalidQids.has(question.qid)) {
+                                            const card = document.getElementById(`question-${question.originalIndex}`);
+                                            if (card) {
+                                                card.classList.add('invalid');
+                                                card.style.borderLeft = '4px solid #dc3545';
+                                            }
+                                        }
+                                    });
+                                });
+                                // Re-highlight referring dentist field if needed
+                                if (invalidQids.has('referring-dentist-field')) {
+                                    const referringDentistDiv = document.getElementById('referring-dentist-field');
+                                    if (referringDentistDiv) {
+                                        referringDentistDiv.classList.add('invalid');
+                                        referringDentistDiv.style.borderLeft = '4px solid #dc3545';
+                                    }
+                                }
+                            }, 100);
+                        }
+                        
+                        // Scroll to the question
+                        setTimeout(() => {
+                            const target = document.getElementById(firstErrorQid) || document.getElementById(`question-${firstErrorIndex}`);
+                            if (target) {
+                                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                const directInput = document.getElementById(firstErrorQid)
+                                    || document.querySelector(`input[name="${firstErrorQid}"]`)
+                                    || document.querySelector(`select[name="${firstErrorQid}"]`)
+                                    || document.querySelector(`select#${firstErrorQid}`);
+                                if (directInput) {
+                                    try { directInput.focus({ preventScroll: true }); } catch(e) { /* no-op */ }
+                                }
+                            }
+                        }, 200);
+                    }
+                }
+                
+                return; // Prevent submission
+            }
+            
+            // Remove any existing validation alert
+            const alertBox = document.getElementById('submitValidationAlert');
+            if (alertBox) {
+                alertBox.remove();
+            }
+            
+            console.log("Submitting quiz with answers:", answers);
+            
+            // For Hebrew quiz: capture referring dentist name from text field
+            if (currentLanguage === 'he') {
+                const referringDentistInput = document.getElementById('referringDentistName');
+                if (referringDentistInput && referringDentistInput.value.trim()) {
+                    answers['REFERRING_DENTIST_NAME'] = referringDentistInput.value.trim();
+                    console.log('Referring dentist name captured:', answers['REFERRING_DENTIST_NAME']);
+                }
+            }
+            
+            // Show loading widget
+            showLoadingWidget();
+            
+            // Create enhanced JSON with question text and formatted answers
+            const enhancedAnswers = createEnhancedAnswers();
+            
+            // Call backend for scoring + risk details
+            // Hebrew quiz is independent: post to dedicated Hebrew submit route without language/clinic_id params.
+            const isHebrewQuiz = currentLanguage === 'he';
+            let submitUrl;
+            if (quizMode === 'followup') {
+                submitUrl = isHebrewQuiz ? '/vizbriz/followup_hebrew/submit' : '/vizbriz/followup/submit';
+            } else {
+                submitUrl = isHebrewQuiz ? '/vizbriz/quiz_hebrew/submit' : '/vizbriz/quiz/submit';
+            }
+            // Both English and Hebrew send clinic_id from selected clinic
+            
+            const requestPayload = {
+                answers,
+                language: currentLanguage,
+                clinic_id: (answers['DEMO_REFERRING_DENTIST_OR_CLI'] || null),
+                referral_doctor: (currentLanguage === 'he' ? answers['REFERRING_DENTIST_NAME'] : answers['REFERRAL']) || null,
+                enhanced_answers: enhancedAnswers,
+                dentist_id: urlDentistId,
+                patient_id: answers['_PATIENT_ID'] || null
+            };
+            
+            console.log(`Posting quiz payload to ${submitUrl}`, requestPayload);
+            fetch(submitUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestPayload)
+            })
+            .then(r => {
+                console.log('Received response status:', r.status);
+                return r.json();
+            })
+            .then(payload => {
+                console.log('Quiz submission response payload:', payload);
+                if (payload && payload.evaluation_result) {
+                    console.log(
+                        'RISK_DEBUG (client): Q1=', answers['Q1'],
+                        'Q2=', answers['Q2'],
+                        'risk_band=', payload.evaluation_result.risk_band,
+                        'score=', payload.evaluation_result.total_score,
+                        'red_flags=', payload.evaluation_result.red_flags
+                    );
+                }
+                if (payload && payload.external_report && payload.external_report.frame_url) {
+                    console.log('External report data:', payload.external_report);
+                } else {
+                    console.log('External report not available - this is normal if external reporting is not configured');
+                }
+                // Hide loading widget
+                hideLoadingWidget();
+                
+                if (payload && typeof payload.patient_id !== 'undefined') {
+                    if (!enhancedAnswers.submission_info) {
+                        enhancedAnswers.submission_info = {};
+                    }
+                    enhancedAnswers.submission_info.patient_id = payload.patient_id;
+                }
+
+                // Show results
+                document.getElementById('quizForm').style.display = 'none';
+                // Hide quiz header, clinic selection, and progress on thank-you page
+                const quizHeader = document.querySelector('.quiz-header');
+                if (quizHeader) quizHeader.style.display = 'none';
+                const clinicSection = document.getElementById('clinicSelectionSection');
+                if (clinicSection) clinicSection.style.display = 'none';
+                const progressSection = document.querySelector('.progress-section');
+                if (progressSection) progressSection.style.display = 'none';
+                const result = document.getElementById('resultContainer');
+                result.style.display = 'block';
+                const scoring = payload && payload.evaluation_result ? payload.evaluation_result : {};
+                
+                // Get the unified payload that was sent to the external API
+                const unifiedPayload = {
+                    enhanced_answers: enhancedAnswers,
+                    evaluation_summary: {
+                        total_score: scoring.total_score,
+                        risk_band: scoring.risk_band,
+                        risk_label: scoring.risk_label,
+                        red_flags: scoring.red_flags || [],
+                        outcome_title: scoring.outcome_title,
+                        outcome_body: scoring.outcome_body,
+                        cta_text: scoring.cta_text
+                    }
+                };
+                
+                // Build thank-you section (no logos for cleaner look)
+                const followupThankBody = (scoring.outcome_body || 'Your responses have been received. Thank you.');
+                result.innerHTML = `
+                    <h2 style="margin: 0 0 20px 0; font-size: 1.5rem;">${quizMode === 'followup' ? (scoring.outcome_title || getUIText('thankYou')) : getUIText('thankYou')}</h2>
+                    <p class="lead" style="margin-top: 10px;">${quizMode === 'followup' ? followupThankBody : `${getUIText('emailResults')} <strong>${answers['EMAIL'] || answers['DEMO_EMAIL'] || (currentLanguage === 'he' ? 'האימייל שלך' : currentLanguage === 'ru' ? 'ваш email' : 'your email')}</strong>. ${getUIText('emailResults2')}`}</p>
+                    
+                    ${quizMode !== 'followup' && payload.external_report && payload.external_report.frame_url ? `
+                        <div class="mt-4" style="text-align: center;">
+                            <iframe src="${payload.external_report.frame_url}" 
+                                    style="width: 100%; max-width: 1200px; height: calc(100vh - 350px); min-height: 600px; max-height: 800px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;" 
+                                    frameborder="0"
+                                    scrolling="auto">
+                            </iframe>
+                        </div>
+                    ` : ''}
+                `;
+            })
+            .catch(err => {
+                console.error('Quiz submission failed:', err);
+                // Hide loading widget on error
+                hideLoadingWidget();
+                const result = document.getElementById('resultContainer');
+                result.style.display = 'block';
+                result.innerHTML = `<div class="alert alert-danger">Submission failed: ${err}</div>`;
+            });
+        }
+        
+        function pruneHiddenAnswers() {
+            if (!Array.isArray(sections) || sections.length === 0) return;
+            const visibleQids = new Set();
+            sections.forEach(section => {
+                section.questions.forEach(q => {
+                    const show = shouldDisplayQuestion(q);
+                    if (show) visibleQids.add(q.qid);
+                });
+            });
+            Object.keys(answers).forEach(qid => {
+                // Keep non-question meta keys
+                const isQuestion = (quizPackage.questions || []).some(q => q.qid === qid);
+                if (isQuestion && !visibleQids.has(qid)) {
+                    delete answers[qid];
+                    delete answers[`${qid}_other_text`];
+                }
+            });
+        }
+        
+        // Function to always get English text for data storage (not presentation)
+        function getTextEnglish(key) {
+            // Defensive: handle undefined/non-string keys gracefully
+            if (typeof key !== 'string') {
+                return '';
+            }
+            // Always return English text for data storage
+            if (key.startsWith('Q.') && key.includes('.title')) {
+                // For question titles like "Q.Q1.title"
+                const qid = key.replace('Q.', '').replace('.title', '');
+                const question = quizPackage.questions.find(q => q.qid === qid);
+                if (question) {
+                    // Always use English title for data storage
+                    return question.title_en || question.title || '';
+                }
+            } else if (key.startsWith('Q.') && key.includes('.opt.')) {
+                // For option labels like "Q.Q1.opt.yes"
+                const parts = key.replace('Q.', '').split('.opt.');
+                if (parts.length === 2) {
+                    const qid = parts[0];
+                    const optValue = parts[1];
+                    const question = quizPackage.questions.find(q => q.qid === qid);
+                    if (question && question.options) {
+                        const option = question.options.find(opt => opt.value === optValue);
+                        if (option) {
+                            // Always use English label for data storage
+                            return option.label || option.label_en || '';
+                        }
+                    }
+                }
+            }
+            return '';
+        }
+
+        function createEnhancedAnswers() {
+            const enhanced = {
+                submission_info: {
+                    timestamp: new Date().toISOString(),
+                    language: currentLanguage, // Keep track of presentation language
+                    total_questions_answered: Object.keys(answers).length,
+                    patient_id: 0,
+                    unit_system: answers['DEMO_UNITS'] || (useMetricUnits ? 'metric' : 'imperial'),
+                    bmi_kg_m2_cdc: answers['DEMO_BMI_COMPUTED_CDC'] && !Number.isNaN(parseFloat(answers['DEMO_BMI_COMPUTED_CDC']))
+                        ? parseFloat(answers['DEMO_BMI_COMPUTED_CDC'])
+                        : null
+                },
+                questions_and_answers: []
+            };
+
+            // Follow-up: name/email come from the personalized link (not shown on the form)
+            if (quizMode === 'followup') {
+                const pName = (answers['DEMO_FULL_NAME'] || '').toString().trim();
+                const pEmail = (answers['EMAIL'] || answers['DEMO_EMAIL'] || '').toString().trim();
+                if (pName) {
+                    enhanced.questions_and_answers.push({
+                        question_id: 'PATIENT_NAME',
+                        question_text: 'Patient name',
+                        question_type: 'text',
+                        section: 'Patient Information',
+                        user_answer: pName,
+                        raw_answer: pName
+                    });
+                }
+                if (pEmail) {
+                    enhanced.questions_and_answers.push({
+                        question_id: 'PATIENT_EMAIL',
+                        question_text: 'Email address',
+                        question_type: 'email',
+                        section: 'Patient Information',
+                        user_answer: pEmail,
+                        raw_answer: pEmail
+                    });
+                }
+            }
+
+            // Hebrew-only questionnaire field: include the manually-entered referring dentist/clinic name
+            // Put it at the TOP of the questionnaire table (questions_and_answers).
+            // This field is not part of quizPackage.questions, so we add it explicitly for persistence.
+            if (currentLanguage === 'he') {
+                const refName = (answers['REFERRING_DENTIST_NAME'] || '').toString().trim();
+                if (refName) {
+                    enhanced.questions_and_answers.push({
+                        question_id: 'REFERRING_DENTIST_NAME',
+                        question_text: 'Referring dentist or clinic (free text)',
+                        question_type: 'text',
+                        section: 'Section 0 – Patient Profile & Demographics',
+                        user_answer: refName,
+                        raw_answer: refName
+                    });
+                }
+            }
+            
+            // Process each question that was answered
+            // IMPORTANT: Always use English text for stored data (not presentation)
+            quizPackage.questions.forEach(question => {
+                const qid = question.qid;
+                const userAnswer = answers[qid];
+                
+                if (userAnswer !== undefined && userAnswer !== null && userAnswer !== '') {
+                    // Always get English question text for data storage
+                    const questionText = getTextEnglish(`Q.${question.qid}.title`);
+                    let formattedAnswer = '';
+                    
+                    if (question.type === 'single_choice') {
+                        const selectedOption = question.options.find(opt => opt.value === userAnswer);
+                        if (selectedOption) {
+                            // Always use English label for data storage
+                            formattedAnswer = selectedOption.label || selectedOption.label_en || getTextEnglish(`Q.${question.qid}.opt.${selectedOption.value}`);
+                            // Add "other" text if available
+                            // Note: "other" text is stored as-is in user's original language (cannot auto-translate)
+                            const otherText = answers[`${qid}_other_text`];
+                            if (otherText && userAnswer === 'other') {
+                                formattedAnswer += ` (${otherText})`;
+                            }
+                        }
+                    } else if (question.type === 'multi_choice') {
+                        if (Array.isArray(userAnswer)) {
+                            const selectedOptions = question.options.filter(opt => userAnswer.includes(opt.value));
+                            // Always use English labels for data storage
+                            formattedAnswer = selectedOptions.map(opt => {
+                                return opt.label || opt.label_en || getTextEnglish(`Q.${question.qid}.opt.${opt.value}`);
+                            }).join(', ');
+                            // Add "other" text if available
+                            // Note: "other" text is stored as-is in user's original language (cannot auto-translate)
+                            const otherText = answers[`${qid}_other_text`];
+                            if (otherText && userAnswer.includes('other')) {
+                                formattedAnswer += ` (${otherText})`;
+                            }
+                        }
+                    } else {
+                        // For free text fields (text, email, tel, number, date, etc.)
+                        // We store the user's input as-is since we can't translate automatically
+                        // Question text above is already in English, but user's free text may be in any language
+                        formattedAnswer = userAnswer;
+                    }
+                    
+                    enhanced.questions_and_answers.push({
+                        question_id: qid,
+                        question_text: questionText, // Always English
+                        question_type: question.type,
+                        section: question.section,
+                        user_answer: formattedAnswer, // English for select boxes, original language for free text
+                        raw_answer: userAnswer
+                    });
+                }
+            });
+            
+            // Add raw answers for technical processing
+            enhanced.raw_answers = answers;
+
+            // Calculated BMI (CDC) for PDFs / APIs — insert after weight when available
+            const bmiStr = (answers['DEMO_BMI_COMPUTED_CDC'] || '').toString().trim();
+            if (bmiStr && !Number.isNaN(parseFloat(bmiStr))) {
+                const v = Math.round(parseFloat(bmiStr) * 10) / 10;
+                const bmiRow = {
+                    question_id: 'DEMO_BMI_COMPUTED_CDC',
+                    question_text: 'BMI (calculated from height and weight)',
+                    question_type: 'computed',
+                    section: 'Section 0 – Patient Profile & Demographics',
+                    user_answer: `${v} kg/m²`,
+                    raw_answer: String(v)
+                };
+                const weightIdx = enhanced.questions_and_answers.findIndex(q => q.question_id === 'DEMO_WEIGHT_KG');
+                const already = enhanced.questions_and_answers.some(q => q.question_id === 'DEMO_BMI_COMPUTED_CDC');
+                if (!already) {
+                    if (weightIdx >= 0) {
+                        enhanced.questions_and_answers.splice(weightIdx + 1, 0, bmiRow);
+                    } else {
+                        enhanced.questions_and_answers.push(bmiRow);
+                    }
+                }
+            }
+
+            return enhanced;
+        }
+
+        // Clinic selection from dropdown
+        function selectClinicFromDropdown(selectEl) {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            const clinicId = opt ? opt.value : '';
+            const clinicName = opt ? (opt.dataset.name || opt.text) : '';
+            if (clinicId) {
+                document.getElementById('selectedClinicId').value = clinicId;
+                document.getElementById('selectedClinicName').value = clinicName;
+                answers['DEMO_REFERRING_DENTIST_OR_CLI'] = clinicId;
+                saveCurrentAnswer();
+            }
+        }
+
+        // Clinic selection (kept for compatibility; used by selectClinicFromDropdown flow)
+        function selectClinic(clinicId, clinicName) {
+            document.getElementById('selectedClinicId').value = clinicId;
+            document.getElementById('selectedClinicName').value = clinicName;
+            answers['DEMO_REFERRING_DENTIST_OR_CLI'] = String(clinicId);
+            saveCurrentAnswer();
+        }
+
+        // NOTE: Legal definition content + visibility is now handled by:
+        // - updateLegalDefinitionContent() (language-specific content)
+        // - updateLegalDefinitionVisibility() (shows when current section contains Q39)
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vzibriz DICOM Loader (Orthogonal Views)</title>
+  <!-- Core Dependencies -->
+  <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dicomParser.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cornerstone.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cornerstoneMath.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/hammer.min.js') }}"></script>
+
+  <!-- Tools and Loaders -->
+  <script src="{{ url_for('static', filename='js/cornerstoneTools.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='dist/cornerstoneWADOImageLoader.min.js') }}"></script>
+
+  <!-- VTK.js for MPR -->
+  <script src="https://unpkg.com/vtk.js"></script>
+
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    /* Viewer Wrapper: Three panels (axial, sagittal, coronal) */
+    .viewer-wrapper {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    /* DICOM Containers */
+    .dicom-container {
+      width: 400px;
+      height: 400px;
+      background-color: black;
+      border: 2px solid #ccc;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Slider and Info */
+    #imageInfoContainer {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    #imageSliderContainer {
+      width: 100%;
+      margin-bottom: 5px;
+    }
+    #imageSlider {
+      width: 100%;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Section -->
+  <div class="header">
+    <h3>Sharkbiit DICOM Loader</h3>
+    <p>Selected folder: <strong>{{ folder }}</strong></p>
+    <button onclick="loadDicomFiles()">Load DICOM Files</button>
+  </div>
+
+  <!-- Viewer Wrapper: Axial, Sagittal, and Coronal Views -->
+  <div class="viewer-wrapper">
+    <!-- Axial View -->
+    <div class="left-panel">
+      <div id="imageInfoContainer">
+        <div id="imageInfo">Image: <span id="currentImage">0</span>/<span id="totalImages">0</span></div>
+        <div id="fileName">File: <span id="currentFileName">None</span></div>
+      </div>
+      <div id="imageSliderContainer">
+        <input type="range" id="imageSlider" value="0" min="0" max="0">
+      </div>
+      <div id="axialContainer" class="dicom-container"></div>
+    </div>
+
+    <!-- Sagittal View -->
+    <div class="middle-panel">
+      <div id="sagittalContainer" class="dicom-container"></div>
+    </div>
+
+    <!-- Coronal View -->
+    <div class="right-panel">
+      <div id="coronalContainer" class="dicom-container"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    const folder = "{{ folder }}";
+
+    // Configure Cornerstone WADO Image Loader with the Cornerstone reference
+    cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+    cornerstoneWADOImageLoader.configure({
+      beforeSend: function(xhr) {
+        // Add any custom headers here if necessary.
+      },
+      useWebWorkers: true
+    });
+
+    // Initialize the web worker manager with the local worker and codecs configuration
+    cornerstoneWADOImageLoader.webWorkerManager.initialize({
+      webWorkerPath: "{{ url_for('static', filename='dist/cornerstoneWADOImageLoaderWebWorker.js') }}",
+      taskConfiguration: [{
+        taskName: 'decodeTask',
+        loadCodecsOnStartup: true,
+        codecsPath: "{{ url_for('static', filename='dist/cornerstoneWADOImageLoaderCodecs.js') }}"
+      }]
+    });
+
+    // Function to initialize a basic VTK.js view with a placeholder message
+    function initVTKView(containerId, viewName) {
+      const container = document.getElementById(containerId);
+      // Create a vtkRenderWindow and vtkRenderer
+      const renderWindow = vtk.Rendering.Core.vtkRenderWindow.newInstance();
+      const renderer = vtk.Rendering.Core.vtkRenderer.newInstance();
+      renderWindow.addRenderer(renderer);
+
+      // Create an OpenGL render window and attach it to the container
+      const openglRenderWindow = vtk.Rendering.OpenGL.vtkRenderWindow.newInstance();
+      openglRenderWindow.setContainer(container);
+      renderWindow.addView(openglRenderWindow);
+
+      // Add a simple HTML overlay as a placeholder
+      container.innerHTML = `<div style="color: white; font-size: 20px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                              ${viewName} view placeholder
+                              </div>`;
+
+      renderer.resetCamera();
+      renderWindow.render();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Enable Cornerstone for axial view
+      const axialElement = document.getElementById('axialContainer');
+      cornerstone.enable(axialElement);
+
+      // Initialize default VTK.js views for sagittal and coronal views
+      initVTKView('sagittalContainer', 'Sagittal');
+      initVTKView('coronalContainer', 'Coronal');
+    });
+
+    // Function to load DICOM files and render orthogonal views
+    async function loadDicomFiles() {
+      try {
+        const endpoint = `/load_dicom/${encodeURIComponent(folder)}`;
+        const response = await fetch(endpoint);
+        const data = await response.json();
+
+        if (data.success) {
+          const dicomFiles = data.dicom_files;
+          const imageIds = dicomFiles.map(file => `wadouri:${file.url}`);
+
+          // Set up the axial view stack using Cornerstone Tools
+          const axialElement = document.getElementById('axialContainer');
+          const stack = {
+            currentImageIdIndex: 0,
+            imageIds: imageIds,
+            fileNames: dicomFiles.map(file => file.file_name)
+          };
+          cornerstoneTools.addStackStateManager(axialElement, ['stack']);
+          cornerstoneTools.addToolState(axialElement, 'stack', stack);
+
+          // Load the first image into the axial view
+          const firstImageId = imageIds[0];
+          const image = await cornerstone.loadImage(firstImageId);
+          cornerstone.displayImage(axialElement, image);
+
+          // Update slider max value (if you later implement scrolling)
+          document.getElementById('imageSlider').max = imageIds.length - 1;
+          document.getElementById('currentImage').textContent = 1;
+          document.getElementById('totalImages').textContent = imageIds.length;
+          document.getElementById('currentFileName').textContent = stack.fileNames[0];
+
+          console.log('DICOM stack loaded successfully');
+        } else {
+          throw new Error(data.message || 'Failed to load DICOM files.');
+        }
+      } catch (err) {
+        console.error('Error loading DICOM:', err);
+      }
+    }
+  </script>
+</body>
+</html>

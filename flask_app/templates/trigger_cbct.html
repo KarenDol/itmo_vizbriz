@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CBCT Upload to Orthanc</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    .form-group { margin: 10px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    button:disabled { background-color: #6c757d; cursor: not-allowed; }
+    .progress { margin-top: 15px; padding: 10px; border-radius: 4px; max-height: 400px; overflow-y: auto; }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    .info { background-color: #d1ecf1; color: #0c5460; }
+    .progress-bar { width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+    .progress-fill { height: 100%; background-color: #007bff; transition: width 0.3s ease; }
+    .log-entry { margin: 2px 0; padding: 2px 0; font-family: monospace; font-size: 0.9em; }
+    .log-entry.error { color: #721c24; }
+    .log-entry.success { color: #155724; }
+    .log-entry.info { color: #0c5460; }
+    .summary { margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>CBCT Upload to Orthanc</h1>
+  
+  <div class="section">
+    <h2>📤 Upload CBCT Files to Orthanc</h2>
+    <p>Enter a patient ID to automatically process and upload all CBCT files to Orthanc.</p>
+    <p><strong>Features:</strong></p>
+    <ul>
+      <li>✅ Automatically finds all CBCT files for the patient</li>
+      <li>✅ Splits multi-frame DICOM files into individual slices</li>
+      <li>✅ Uploads everything to Orthanc</li>
+      <li>✅ Orthanc handles duplicates automatically</li>
+      <li>✅ Real-time progress updates</li>
+    </ul>
+    
+    <form id="cbctForm">
+      <div class="form-group">
+        <label for="patient_id">Patient ID:</label>
+        <input type="number" id="patient_id" name="patient_id" required placeholder="Enter patient ID">
+      </div>
+      
+      <button type="submit" id="uploadBtn">🚀 Process and Upload CBCT Files</button>
+    </form>
+    
+    <div id="progress" class="progress" style="display: none;">
+      <div id="progressBar" class="progress-bar" style="display: none;">
+        <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+      </div>
+      <div id="progressText">Initializing...</div>
+      <div id="logContainer"></div>
+      <div id="summaryContainer" class="summary" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let progressInterval = null;
+    
+    // CBCT Upload to Orthanc with real-time progress
+    document.getElementById('cbctForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const patientId = document.getElementById('patient_id').value;
+      const progress = document.getElementById('progress');
+      const progressBar = document.getElementById('progressBar');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const logContainer = document.getElementById('logContainer');
+      const summaryContainer = document.getElementById('summaryContainer');
+      const button = document.getElementById('uploadBtn');
+      
+      if (!patientId) {
+        alert('Please enter a patient ID');
+        return;
+      }
+      
+      // Reset UI
+      logContainer.innerHTML = '';
+      summaryContainer.style.display = 'none';
+      summaryContainer.innerHTML = '';
+      
+      // Show progress and disable button
+      progress.style.display = 'block';
+      progress.className = 'progress info';
+      progressText.textContent = '🚀 Starting CBCT processing and upload...';
+      progressBar.style.display = 'block';
+      progressFill.style.width = '0%';
+      button.disabled = true;
+      
+      // Clear any existing interval
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+      
+      // Start the processing with a POST request
+      fetch('/process_cbct_for_orthanc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient_id: patientId })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          // Start polling for progress updates
+          startProgressPolling(patientId);
+        } else {
+          addLogEntry('❌ Processing failed: ' + data.message, 'error');
+          progressText.textContent = '❌ Processing failed';
+          progress.className = 'progress error';
+          button.disabled = false;
+        }
+      })
+      .catch(err => {
+        addLogEntry('❌ Failed to start processing: ' + err.message, 'error');
+        progressText.textContent = '❌ Failed to start processing';
+        progress.className = 'progress error';
+        button.disabled = false;
+      });
+    });
+    
+    function startProgressPolling(patientId) {
+      const progressText = document.getElementById('progressText');
+      const progressFill = document.getElementById('progressFill');
+      const progress = document.getElementById('progress');
+      const button = document.getElementById('uploadBtn');
+      
+      // Poll for progress updates every 2 seconds
+      progressInterval = setInterval(() => {
+        fetch(`/cbct_progress/${patientId}`)
+          .then(response => response.json())
+          .then(data => {
+            // Update progress bar
+            if (data.total_files > 0) {
+              const percentage = (data.current_file / data.total_files) * 100;
+              progressFill.style.width = percentage + '%';
+            }
+            
+            // Update status text
+            if (data.messages && data.messages.length > 0) {
+              const lastMessage = data.messages[data.messages.length - 1];
+              progressText.textContent = lastMessage;
+              
+              // Add new messages to log
+              updateLogFromMessages(data.messages);
+            }
+            
+            // Check if processing is complete
+            if (data.completed || data.status === 'completed') {
+              clearInterval(progressInterval);
+              progress.className = 'progress success';
+              progressText.textContent = '✅ Processing completed successfully!';
+              progressFill.style.width = '100%';
+              
+              // Show summary
+              showSummary({
+                processed_files: data.processed_files,
+                total_files: data.total_files,
+                failed_files: data.errors ? data.errors.length : 0,
+                multiframe_files: data.multiframe_files
+              });
+              
+              button.disabled = false;
+            } else if (data.status === 'error') {
+              clearInterval(progressInterval);
+              progress.className = 'progress error';
+              progressText.textContent = '❌ Processing failed';
+              button.disabled = false;
+            }
+          })
+          .catch(err => {
+            console.error('Error polling progress:', err);
+          });
+      }, 2000);
+    }
+    
+    function updateLogFromMessages(messages) {
+      const logContainer = document.getElementById('logContainer');
+      const currentLogCount = logContainer.children.length;
+      
+      // Add only new messages
+      for (let i = currentLogCount; i < messages.length; i++) {
+        const message = messages[i];
+        const entry = document.createElement('div');
+        entry.className = 'log-entry info';
+        
+        // Determine message type based on content
+        if (message.includes('❌') || message.includes('Error') || message.includes('failed')) {
+          entry.className = 'log-entry error';
+        } else if (message.includes('✅') || message.includes('Success') || message.includes('completed')) {
+          entry.className = 'log-entry success';
+        }
+        
+        entry.textContent = message;
+        logContainer.appendChild(entry);
+      }
+      
+      // Auto-scroll to bottom
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    function addLogEntry(message, type = 'info') {
+      const logContainer = document.getElementById('logContainer');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = message;
+      logContainer.appendChild(entry);
+      
+      // Auto-scroll to bottom
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    function showSummary(data) {
+      const summaryContainer = document.getElementById('summaryContainer');
+      summaryContainer.style.display = 'block';
+      
+      summaryContainer.innerHTML = `
+        <h3>📊 Processing Summary</h3>
+        <div><strong>Total files processed:</strong> ${data.processed_files || 0}</div>
+        <div><strong>Original files found:</strong> ${data.total_files || 0}</div>
+        <div><strong>Multi-frame files split:</strong> ${data.multiframe_files || 0}</div>
+        <div><strong>Files with errors:</strong> ${data.failed_files || 0}</div>
+        <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+          💡 All files have been uploaded to Orthanc. Duplicates are handled automatically.
+        </div>
+      `;
+      
+      // Re-enable button
+      document.getElementById('uploadBtn').disabled = false;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+.custom-tabs .tab {
+    flex: 1 1 auto; /* Flexible to fit more tabs */
+    padding: 5px;
+}
+
+.custom-tabs .tab a {
+    font-size: 0.7rem !important;
+    color: #bb86fc !important;
+    white-space: normal !important; /* Allow text wrapping */
+    text-align: center;
+}
+
+.custom-tabs .tab a.active {
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+
+.custom-tabs .indicator {
+    background-color: #bb86fc !important;
+    height: 3px;
+}

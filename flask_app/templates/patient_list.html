@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Patient List - Dentist Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Larger header */
+h4 {
+    margin: 0;
+    font-size: 1.8rem; /* Larger font size for page header */
+    line-height: 50px;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+.search-container .input-field {
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    padding: 0 10px;
+}
+
+.search-container input[type="text"] {
+    color: #e0e0e0;
+    border-bottom: 1px solid #bb86fc !important;
+}
+
+.search-container input[type="text"]:focus {
+    border-bottom: 1px solid #bb86fc !important;
+    box-shadow: 0 1px 0 0 #bb86fc !important;
+}
+
+.search-container .material-icons {
+    color: #bb86fc;
+}
+
+/* Table styling */
+table.striped {
+    width: 100%;
+    margin: 0 auto;
+    table-layout: fixed;
+    font-size: 0.9rem;
+}
+
+table.striped > tbody > tr:nth-child(odd) {
+    background-color: #1e1e1e;
+}
+
+table.striped > tbody > tr:nth-child(even) {
+    background-color: #2a2a2a;
+}
+
+table.striped > tbody > tr:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+    cursor: pointer;
+}
+
+table.striped th {
+    font-size: 1.2rem; /* Increased font size for headers */
+    font-weight: bold; /* Bold headers */
+    color: #bb86fc;
+    text-align: center;
+    padding: 10px 8px; /* Add padding for spacing */
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+table.striped th:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+}
+
+table.striped th.sortable::after {
+    content: " ↕";
+    color: #888;
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+
+table.striped th.sort-asc::after {
+    content: " ↑";
+    color: #bb86fc;
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+
+table.striped th.sort-desc::after {
+    content: " ↓";
+    color: #bb86fc;
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+
+table.striped td {
+    font-size: 1rem; /* Larger font size for table content */
+    color: #e0e0e0;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+/* Checkbox styling for dark theme */
+#show-archived {
+    width: 18px;
+    height: 18px;
+    accent-color: #bb86fc;
+}
+
+/* Highlight archived patient rows */
+.patient-row.archived-row {
+    background-color: rgba(255, 152, 0, 0.1) !important;
+}
+
+.patient-row.archived-row td {
+    color: #ff9800;
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h4 style="margin: 0;">Patient List</h4>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            {% if current_user.role == 'admin' %}
+            <label style="display: flex; align-items: center; cursor: pointer; color: #e0e0e0;">
+                <input type="checkbox" id="show-archived" {% if include_archived %}checked{% endif %} style="margin-right: 8px;">
+                <span>Show Archived Patients</span>
+            </label>
+            {% endif %}
+            <div class="input-field" style="width: 300px; margin: 0;">
+                <i class="material-icons prefix">search</i>
+                <input type="text" id="patient-search" placeholder="Search...">
+            </div>
+        </div>
+    </div>
+    <div style="overflow-x:auto;">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th class="sortable" data-column="id" data-type="number">ID</th>
+                    <th class="sortable" data-column="name" data-type="text">Name</th>
+                    <th class="sortable" data-column="doctor" data-type="text">Doctor</th>
+                    <th class="sortable" data-column="email" data-type="text">Email</th>
+                    <th class="sortable" data-column="phone" data-type="text">Phone</th>
+                    <th class="sortable" data-column="insurer" data-type="text">Insurer</th>
+                    <th class="sortable sort-desc" data-column="create_date" data-type="date">Create Date</th>
+                    <th class="sortable" data-column="status" data-type="text">Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr class="patient-row{% if patient.status == 'Archived' %} archived-row{% endif %}" data-patient-id="{{ patient.id }}">
+                    <td>{{ patient.id }}</td>
+                    <td>{{ patient.name }}</td>
+                    <td>{{ patient.dentist.name if patient.dentist else 'N/A' }}</td>
+                    <td>{{ patient.email }}</td>
+                    <td>{{ patient.phone if patient.phone else 'N/A' }}</td>
+                    <td>{{ patient.insurer if patient.insurer else 'N/A' }}</td>
+                    <td>{{ patient.create_date.strftime('%Y-%m-%d') if patient.create_date else 'N/A' }}</td>
+                    <td>{{ patient.status }}</td>
+                    <!-- Archive/Restore button -->                    
+                    <td style="text-align: center;">
+                        {% if patient.status == 'Archived' %}
+                        <form action="{{ url_for('main.restore_patient', patient_id=patient.id) }}" method="POST" class="restore-form">
+                            <!-- Restore icon with tooltip -->
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #4CAF50;" class="restore-icon" title="Restore patient">
+                                <i class="material-icons">unarchive</i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('main.archive_patient', patient_id=patient.id) }}" method="POST" class="archive-form">
+                            <!-- Archive icon with tooltip -->
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: #bb86fc;" class="archive-icon" title="Archive patient">
+                                <i class="material-icons">archive</i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('patient-search');
+        const table = document.querySelector('table.striped');
+        const tbody = table.querySelector('tbody');
+        const showArchivedCheckbox = document.getElementById('show-archived');
+        let currentSort = { column: 'create_date', direction: 'desc' };
+    
+        // Initial sort by creation date (descending)
+        sortTable('create_date', 'desc', false);
+        
+        // Show archived checkbox handler (only exists for admin users)
+        if (showArchivedCheckbox) {
+            showArchivedCheckbox.addEventListener('change', function() {
+                const url = new URL(window.location.href);
+                if (this.checked) {
+                    url.searchParams.set('include_archived', 'true');
+                } else {
+                    url.searchParams.delete('include_archived');
+                }
+                window.location.href = url.toString();
+            });
+        }
+    
+        // Search functionality
+        searchInput.addEventListener('keyup', function () {
+            const searchValue = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.patient-row');
+    
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchValue) ? '' : 'none';
+            });
+        });
+    
+        // Sorting functionality
+        document.querySelectorAll('th.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const column = this.getAttribute('data-column');
+                const type = this.getAttribute('data-type');
+                
+                // Determine sort direction
+                let direction = 'asc';
+                if (currentSort.column === column) {
+                    // Toggle direction if clicking the same column
+                    direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                }
+                
+                sortTable(column, direction, true);
+                currentSort = { column, direction };
+            });
+        });
+    
+        // Sort table function
+        function sortTable(column, direction, updateHeaders = true) {
+            const rows = Array.from(tbody.querySelectorAll('.patient-row'));
+            const columnIndex = getColumnIndex(column);
+            
+            rows.sort((a, b) => {
+                const aValue = getCellValue(a, columnIndex, getColumnType(column));
+                const bValue = getCellValue(b, columnIndex, getColumnType(column));
+                
+                let comparison = 0;
+                if (aValue > bValue) comparison = 1;
+                else if (aValue < bValue) comparison = -1;
+                
+                return direction === 'asc' ? comparison : -comparison;
+            });
+            
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+            
+            // Update header classes
+            if (updateHeaders) {
+                updateSortHeaders(column, direction);
+            }
+        }
+        
+        function getColumnIndex(column) {
+            const columnMap = {
+                'id': 0,
+                'name': 1,
+                'doctor': 2,
+                'email': 3,
+                'phone': 4,
+                'insurer': 5,
+                'create_date': 6,
+                'status': 7
+            };
+            return columnMap[column];
+        }
+        
+        function getColumnType(column) {
+            const typeMap = {
+                'id': 'number',
+                'name': 'text',
+                'doctor': 'text',
+                'email': 'text',
+                'phone': 'text',
+                'insurer': 'text',
+                'create_date': 'date',
+                'status': 'text'
+            };
+            return typeMap[column];
+        }
+        
+        function getCellValue(row, index, type) {
+            const cell = row.cells[index];
+            let value = cell.textContent.trim();
+            
+            // Handle N/A values
+            if (value === 'N/A' || value === '') {
+                return type === 'number' ? -1 : '';
+            }
+            
+            switch (type) {
+                case 'number':
+                    return parseInt(value) || 0;
+                case 'date':
+                    return new Date(value);
+                case 'text':
+                default:
+                    return value.toLowerCase();
+            }
+        }
+        
+        function updateSortHeaders(activeColumn, direction) {
+            // Remove all sort classes
+            document.querySelectorAll('th.sortable').forEach(header => {
+                header.classList.remove('sort-asc', 'sort-desc');
+            });
+            
+            // Add appropriate class to active column
+            const activeHeader = document.querySelector(`th[data-column="${activeColumn}"]`);
+            if (activeHeader) {
+                activeHeader.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            }
+        }
+    
+        // Redirect to patient details on row click, but exclude archive/restore icon clicks
+        document.querySelectorAll('.patient-row').forEach(function (row) {
+            row.addEventListener('click', function (event) {
+                if (!event.target.closest('.archive-icon') && !event.target.closest('.archive-form') && 
+                    !event.target.closest('.restore-icon') && !event.target.closest('.restore-form')) {
+                    const patientId = this.getAttribute('data-patient-id');
+                    window.location.href = "{{ url_for('main.patient_details', patient_id=0) }}".replace('0', patientId);
+                }
+            });
+        });
+    
+        // Add confirmation before submitting the archive form
+        document.querySelectorAll('.archive-form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                const patientRow = form.closest('.patient-row'); // Find the closest patient row
+                const patientName = patientRow.querySelector('td:nth-child(2)').textContent.trim(); // Get the patient name
+                const confirmed = confirm(`Are you sure you want to archive the patient "${patientName}"?`);
+                if (!confirmed) {
+                    event.preventDefault(); // Prevent form submission if the user cancels
+                }
+            });
+        });
+        
+        // Add confirmation before submitting the restore form
+        document.querySelectorAll('.restore-form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                const patientRow = form.closest('.patient-row'); // Find the closest patient row
+                const patientName = patientRow.querySelector('td:nth-child(2)').textContent.trim(); // Get the patient name
+                const confirmed = confirm(`Are you sure you want to restore the patient "${patientName}"? The patient status will be set to "New".`);
+                if (!confirmed) {
+                    event.preventDefault(); // Prevent form submission if the user cancels
+                }
+            });
+        });
+    });
+    </script>
+{% endblock %}

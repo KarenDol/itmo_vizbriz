@@ -1,0 +1,1064 @@
+<div id="patient-info" class="col s12 tab-content" style="padding: 0 !important;">
+    <div class="card dark-card" style="margin: 10px 0 !important; width: 100% !important;">
+        <div class="card-content" style="padding: 25px !important;">
+            <!-- Edit Button -->
+            <a href="#" id="edit-btn" class="btn-floating btn-small waves-effect waves-light green" style="position: absolute; top: 10px; right: 10px;">
+                <i class="material-icons">edit</i>
+            </a>
+            <span class="card-title">Patient Details - {{ patient.name }}</span>
+
+            <!-- View Mode -->
+            <div id="view-mode">
+                <!-- Personal Information Section -->
+                <h5 class="section-title">Personal Information</h5>
+                <div class="section">
+                    <p><strong>ID:</strong> {{ patient.id }}</p>
+                    <p><strong>Name:</strong> {{ patient.name }}</p>
+                    <p><strong>ID Number:</strong> {{ patient.id_number or 'N/A' }}</p>
+                    <p><strong>Gender:</strong> {{ patient.gender or 'N/A' }}</p>
+                    <p><strong>Email:</strong> {{ patient.email or 'N/A' }}</p>
+                    <p><strong>Phone:</strong> {{ patient.phone or 'N/A' }}</p>
+                    <p><strong>Date of Birth:</strong> {{ patient.dob.strftime('%Y-%m-%d') if patient.dob else 'N/A' }}</p>
+                </div>
+
+                <!-- DSO, Clinic, and Dentist Information Section -->
+                <h5 class="section-title">DSO, Clinic, and Dentist Information</h5>
+                <div class="section">
+                    <p><strong>DSO:</strong> {{ patient.clinic.dso_info.name if patient.clinic and patient.clinic.dso_info else 'N/A' }}</p>
+                    <p><strong>Clinic:</strong> {{ patient.clinic.name if patient.clinic else 'N/A' }}</p>
+                    <p><strong>Dentist:</strong> {{ patient.dentist.name if patient.dentist else 'N/A' }}</p>
+                </div>
+                <!-- Insurance Information Section -->
+                <h5 class="section-title">Insurance Information</h5>
+                <div class="section">
+                    <p><strong>Insurer:</strong> {{ patient.insurer or 'N/A' }}</p>
+                    <p><strong>Policy ID:</strong> {{ patient.policy_id or 'N/A' }}</p>
+                    <p><strong>Status:</strong> {{ patient.status or 'New' }}</p>
+                    <p><strong>Payment Method:</strong> {{ patient.payment_method or 'N/A' }}</p>
+                </div>
+
+                
+
+                <!-- Clinical Data Section (from Canonical JSON) -->
+                {% if canonical_data %}
+                <h5 class="section-title">Clinical Data</h5>
+                <div class="section">
+                    {% set demo = canonical_data.get('demographics', {}) %}
+                    {% set sleep = canonical_data.get('sleep_study', {}) %}
+                    {% set obs = canonical_data.get('observations', {}) %}
+                    {% set self_report = canonical_data.get('patient_self_report', {}) %}
+                    {% set treatment = canonical_data.get('treatment_considerations', {}) %}
+                    {% set device = canonical_data.get('device_design', {}) %}
+                    
+                    <!-- Sleep Study Results -->
+                    {% if sleep.get('ahi') %}
+                        <div style="margin-bottom: 15px; padding: 10px; background: rgba(220, 38, 38, 0.1); border-radius: 8px; border-left: 4px solid #dc2626;">
+                            <h6 style="margin: 0 0 8px 0; color: #dc2626; font-weight: 600;">Sleep Study Results</h6>
+                            <p><strong>AHI:</strong> {{ sleep['ahi'] }}/hr
+                                {% if sleep['ahi'] >= 30 %}
+                                    <span style="background: #d32f2f; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 8px;">SEVERE</span>
+                                {% elif sleep['ahi'] >= 15 %}
+                                    <span style="background: #f57c00; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 8px;">MODERATE</span>
+                                {% elif sleep['ahi'] >= 5 %}
+                                    <span style="background: #388e3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 8px;">MILD</span>
+                                {% else %}
+                                    <span style="background: #6b7280; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 8px;">NORMAL</span>
+                                {% endif %}
+                            </p>
+                            {% if sleep.get('odi') %}<p><strong>ODI:</strong> {{ sleep['odi'] }}/hr</p>{% endif %}
+                            {% if sleep.get('o2_nadir_pct') %}<p><strong>SpO₂ Nadir:</strong> {{ sleep['o2_nadir_pct'] }}%</p>{% endif %}
+                            {% if sleep.get('time_below_90_pct') %}<p><strong>Time Below 90%:</strong> {{ sleep['time_below_90_pct'] }}%</p>{% endif %}
+                            {% if sleep.get('sleep_duration_h') %}<p><strong>Sleep Duration:</strong> {{ sleep['sleep_duration_h'] }} hours</p>{% endif %}
+                            {% if sleep.get('sleep_efficiency_pct') %}<p><strong>Sleep Efficiency:</strong> {{ sleep['sleep_efficiency_pct'] }}%</p>{% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Patient Self-Report -->
+                    {% if self_report %}
+                        <div style="margin-bottom: 15px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border-left: 4px solid #8b5cf6;">
+                            <h6 style="margin: 0 0 8px 0; color: #8b5cf6; font-weight: 600;">Patient Self-Report</h6>
+                            {% if self_report.get('primary_complaint') %}
+                                <p><strong>Primary Complaint:</strong> {{ self_report['primary_complaint'] }}</p>
+                            {% endif %}
+                            {% if self_report.get('goals') and self_report['goals']|length > 0 %}
+                                <p><strong>Treatment Goals:</strong> {{ self_report['goals']|join(', ') }}</p>
+                            {% endif %}
+                            {% if self_report.get('symptoms') %}
+                                <p><strong>Key Symptoms:</strong>
+                                    {% set positive_symptoms = [] %}
+                                    {% for symptom, value in self_report['symptoms'].items() %}
+                                        {% if value %}
+                                            {% set positive_symptoms = positive_symptoms + [symptom.replace('_', ' ').title()] %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ positive_symptoms|join(', ') if positive_symptoms else 'None reported' }}
+                                </p>
+                            {% endif %}
+                            {% if self_report.get('scales') %}
+                                <p><strong>Assessment Scales:</strong>
+                                    {% for scale, value in self_report['scales'].items() %}
+                                        {{ scale.replace('_', ' ').title() }}: {{ value }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Anatomical Findings -->
+                    {% if obs.get('anatomy_imaging') %}
+                        {% set anatomy = obs['anatomy_imaging'] %}
+                        {% if anatomy.get('primary_obstruction_site') or anatomy.get('soft_palate_uvula') or anatomy.get('tongue_base') %}
+                            <div style="margin-bottom: 15px; padding: 10px; background: rgba(245, 124, 0, 0.1); border-radius: 8px; border-left: 4px solid #f57c00;">
+                                <h6 style="margin: 0 0 8px 0; color: #f57c00; font-weight: 600;">Anatomical Findings</h6>
+                                {% if anatomy.get('primary_obstruction_site') %}
+                                    <p><strong>Primary Obstruction:</strong> {{ anatomy['primary_obstruction_site'] }}</p>
+                                {% endif %}
+                                {% if anatomy.get('soft_palate_uvula') %}
+                                    <p><strong>Soft Palate/Uvula:</strong> {{ anatomy['soft_palate_uvula'] }}</p>
+                                {% endif %}
+                                {% if anatomy.get('tongue_base') %}
+                                    <p><strong>Tongue Base:</strong> {{ anatomy['tongue_base'] }}</p>
+                                {% endif %}
+                                {% if anatomy.get('bite_jaw') %}
+                                    <p><strong>Bite/Jaw:</strong> {{ anatomy['bite_jaw'] }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- Treatment Pathway -->
+                    {% if treatment.get('primary_pathway') or treatment.get('rationale') %}
+                        <div style="margin-bottom: 15px; padding: 10px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border-left: 4px solid #22c55e;">
+                            <h6 style="margin: 0 0 8px 0; color: #22c55e; font-weight: 600;">Treatment Pathway</h6>
+                            {% if treatment.get('primary_pathway') %}
+                                <p><strong>Primary Pathway:</strong> {{ treatment['primary_pathway']|join(', ') }}</p>
+                            {% endif %}
+                            {% if treatment.get('adjuncts') %}
+                                <p><strong>Adjuncts:</strong> {{ treatment['adjuncts']|join(', ') }}</p>
+                            {% endif %}
+                            {% if treatment.get('rationale') %}
+                                <p><strong>Rationale:</strong> {{ treatment['rationale'] }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Device Design -->
+                    {% if device.get('mandibular_advancement_mm') or device.get('advancement_plan') %}
+                        <div style="margin-bottom: 15px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                            <h6 style="margin: 0 0 8px 0; color: #3b82f6; font-weight: 600;">Device Design</h6>
+                            {% if device.get('mandibular_advancement_mm') %}
+                                <p><strong>Mandibular Advancement:</strong> {{ device['mandibular_advancement_mm'] }}mm</p>
+                            {% endif %}
+                            {% if device.get('advancement_plan') %}
+                                <p><strong>Advancement Plan:</strong> {{ device['advancement_plan'] }}</p>
+                            {% endif %}
+                            {% if device.get('vertical_opening_mm') %}
+                                <p><strong>Vertical Opening:</strong> {{ device['vertical_opening_mm'] }}mm</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Legacy OSA Survey Section (if no canonical data) -->
+                {% if not canonical_data %}
+                <h5 class="section-title">OSA Survey</h5>
+                <div class="section">
+                    <p><strong>Snoring:</strong> {{ patient.snoring or 'N/A' }} - <strong>Other:</strong> {{ patient.snoring_other or 'N/A' }}</p>
+                    <p><strong>Daytime Sleepiness:</strong> {{ patient.daytime_sleepiness or 'N/A' }} - <strong>Other:</strong> {{ patient.daytime_sleepiness_other or 'N/A' }}</p>
+                    <p><strong>Sleep Study:</strong> {{ patient.sleep_study or 'N/A' }} - <strong>Date:</strong> {{ patient.sleep_study_date.strftime('%Y-%m-%d') if patient.sleep_study_date else 'N/A' }}</p>
+                    <p><strong>Referring Doctor:</strong> {{ patient.sleep_study_doctor or 'N/A' }}</p>
+                    <p><strong>CPAP Intolerant:</strong> {{ patient.cpap_intolerant or 'N/A' }} - <strong>Other:</strong> {{ patient.cpap_intolerant_other or 'N/A' }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Record Information -->
+                <h5 class="section-title">Record Information</h5>
+                <div class="section">
+                    <p><strong>Created Date:</strong> {{ patient.create_date.strftime('%Y-%m-%d') if patient.create_date else 'N/A' }}</p>
+                    <p><strong>Last Updated:</strong> {{ patient.last_update.strftime('%Y-%m-%d') if patient.last_update else 'N/A' }}</p>
+                </div>
+
+            </div>
+
+            <!-- Edit Mode -->
+            <div id="edit-mode" style="display: none;">
+                <form id="edit-patient-form" method="POST" novalidate action="{{ url_for('main.update_patient', patient_id=patient.id) }}">
+                    <!-- Personal Information Section -->
+                    <h5 class="section-title">Personal Information</h5>
+                    <div class="row">
+                        <div class="col s4">
+                            <div class="input-field">
+                                <input type="text" id="name" name="name" value="{{ patient.name }}">
+                                <label for="name" class="active">Name</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field">
+                                <input type="text" id="id_number" name="id_number" value="{{ patient.id_number or '' }}" placeholder="ID number">
+                                <label for="id_number" class="active">ID Number</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field">
+                                <select id="gender" name="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male" {% if patient.gender == 'Male' or patient.gender == 'M' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if patient.gender == 'Female' or patient.gender == 'F' %}selected{% endif %}>Female</option>
+                                    <option value="Other" {% if patient.gender == 'Other' or patient.gender == 'O' %}selected{% endif %}>Other</option>
+                                </select>
+                                <label for="gender" class="active">Gender</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s4">
+                            <div class="input-field">
+                                <input type="email" id="email" name="email" value="{{ patient.email or '' }}">
+                                <label for="email" class="active">Email</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field">
+                                <input type="text" id="phone" name="phone" value="{{ patient.phone or '' }}">
+                                <label for="phone" class="active">Phone</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field">
+                                <input type="date" id="dob" name="dob" value="{{ patient.dob.strftime('%Y-%m-%d') if patient.dob else '' }}">
+                                <label for="dob" class="active">Date of Birth</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DSO, Clinic, and Dentist Selection Section -->
+                    <h5 class="section-title">DSO, Clinic, and Dentist Information</h5>
+                    {% if is_admin %}
+                    <div class="row">
+                        <div class="col s4">
+                            <div class="input-field">
+                                <select id="dso_id" name="dso_id">
+                                    <option value="">Select DSO</option>
+                                    {% for dso in dsos %}
+                                    <option value="{{ dso.id }}" {% if patient.clinic and patient.clinic.dso_id == dso.id %}selected{% endif %}>{{ dso.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="dso_id" class="active">DSO</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field">
+                                <select id="clinic_id" name="clinic_id">
+                                    <option value="">Select Clinic</option>
+                                    {% if patient.clinic %}
+                                    <option value="{{ patient.clinic.id }}" selected>{{ patient.clinic.name }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="clinic_id" class="active">Clinic</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field">
+                                <select id="dentist_id" name="dentist_id">
+                                    <option value="">Select Dentist</option>
+                                    {% if patient.dentist %}
+                                    <option value="{{ patient.dentist.id }}" selected>{{ patient.dentist.name }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="dentist_id" class="active">Dentist</label>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Non-admin users can only select clinic from their associated clinics -->
+                    <div class="row">
+                        <div class="col s6">
+                            <div class="input-field">
+                                <select id="clinic_id" name="clinic_id">
+                                    <option value="">Select Clinic</option>
+                                    {% if patient.clinic %}
+                                    <option value="{{ patient.clinic.id }}" selected>{{ patient.clinic.name }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="clinic_id" class="active">Clinic</label>
+                            </div>
+                        </div>
+                        <div class="col s6">
+                            <div class="input-field">
+                                <select id="dentist_id" name="dentist_id">
+                                    <option value="">Select Dentist</option>
+                                    {% if patient.dentist %}
+                                    <option value="{{ patient.dentist.id }}" selected>{{ patient.dentist.name }}</option>
+                                    {% endif %}
+                                </select>
+                                <label for="dentist_id" class="active">Dentist</label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Insurance Information Section -->
+                     <h5 class="section-title">Insurance Information</h5>
+                     <div class="input-field">
+                         <label for="insurer" class="active">Insurer</label>
+                         <input type="text" id="insurer" name="insurer" value="{{ patient.insurer or '' }}">
+                     </div>
+                     <div class="input-field">
+                         <label for="policy_id" class="active">Policy ID</label>
+                         <input type="text" id="policy_id" name="policy_id" value="{{ patient.policy_id or '' }}">
+                     </div>
+                     <div class="input-field">
+                         <label for="payment_method" class="active">Payment Method</label>
+                         <select id="payment_method" name="payment_method">
+                             <option value="N/A" {% if patient.payment_method == 'N/A' %}selected{% endif %}>N/A</option>
+                             <option value="In Network" {% if patient.payment_method == 'In Network' %}selected{% endif %}>In Network</option>
+                             <option value="Out of Network" {% if patient.payment_method == 'Out of Network' %}selected{% endif %}>Out of Network</option>
+                             <option value="Private" {% if patient.payment_method == 'Private' %}selected{% endif %}>Private</option>
+                         </select>
+                     </div>
+                     <div class="input-field">
+                         <label for="status" class="active">Status</label>
+                         <select id="status" name="status">
+                             <option value="New" {% if patient.status == 'New' %}selected{% endif %}>New</option>
+                             <option value="Onboarding" {% if patient.status == 'Onboarding' %}selected{% endif %}>Onboarding</option>
+                             <option value="In Treatment" {% if patient.status == 'In Treatment' %}selected{% endif %}>In Treatment</option>
+                             <option value="Followup" {% if patient.status == 'Followup' %}selected{% endif %}>Followup</option>
+                             <option value="Active" {% if patient.status == 'Active' %}selected{% endif %}>Active</option>
+                             <option value="Archived" {% if patient.status == 'Archived' %}selected{% endif %}>Archived</option>
+                         </select>
+                     </div>
+ 
+
+                    <!-- OSA Survey Section -->
+                    <h5 class="section-title">OSA Survey</h5>
+                    <div class="row" style="margin-top: 25px;">
+                        <!-- Snoring -->
+                        <div class="col s6">
+                            <div class="input-field">
+                                <select id="snoring" name="snoring" required>
+                                    <option value="no" {{ 'selected' if not patient.snoring or patient.snoring == 'no' }}>No</option>
+                                    <option value="yes" {{ 'selected' if patient.snoring == 'yes' }}>Yes</option>
+                                    <option value="other" {{ 'selected' if patient.snoring == 'other' }}>Other</option>
+                                </select>
+                                <label for="snoring" class="active">Snoring</label>
+                            </div>
+                        </div>
+                        <div class="col s6">
+                            <div class="input-field" id="snoring_other_field" style="display: none;">
+                                <input id="snoring_other" name="snoring_other" type="text" value="{{ patient.snoring_other }}">
+                                <label for="snoring_other" class="active">Snoring (Other)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daytime Sleepiness -->
+                    <div class="row">
+                        <div class="col s6">
+                            <div class="input-field">
+                                <select id="daytime_sleepiness" name="daytime_sleepiness" required>
+                                    <option value="no" {{ 'selected' if not patient.daytime_sleepiness or patient.daytime_sleepiness == 'no' }}>No</option>
+                                    <option value="yes" {{ 'selected' if patient.daytime_sleepiness == 'yes' }}>Yes</option>
+                                    <option value="other" {{ 'selected' if patient.daytime_sleepiness == 'other' }}>Other</option>
+                                </select>
+                                <label for="daytime_sleepiness" class="active">Daytime Sleepiness</label>
+                            </div>
+                        </div>
+                        <div class="col s6">
+                            <div class="input-field" id="daytime_sleepiness_other_field" style="display: none;">
+                                <input id="daytime_sleepiness_other" name="daytime_sleepiness_other" type="text" value="{{ patient.daytime_sleepiness_other }}">
+                                <label for="daytime_sleepiness_other" class="active">Daytime Sleepiness (Other)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Study -->
+                    <div class="row">
+                        <div class="col s4">
+                            <div class="input-field">
+                                <select id="sleep_study" name="sleep_study" required>
+                                    <option value="no" {{ 'selected' if not patient.sleep_study or not patient.sleep_study_date }}>No</option>
+                                    <option value="yes" {{ 'selected' if patient.sleep_study == 'yes' and patient.sleep_study_date }}>Yes</option>
+                                </select>
+                                <label for="sleep_study" class="active">Sleep Study</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field" id="sleep_study_date_field" style="display: none;">
+                                <input id="sleep_study_date" name="sleep_study_date" type="date" value="{{ patient.sleep_study_date.strftime('%Y-%m-%d') if patient.sleep_study_date else '' }}">
+                                <label for="sleep_study_date" class="active">Sleep Study Date</label>
+                            </div>
+                        </div>
+                        <div class="col s4">
+                            <div class="input-field" id="sleep_study_doctor_field" style="display: none;">
+                                <input id="sleep_study_doctor" name="sleep_study_doctor" type="text" value="{{ patient.sleep_study_doctor or '' }}">
+                                <label for="sleep_study_doctor" class="active">Referring Doctor's Name</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CPAP Intolerant -->
+                    <div class="row">
+                        <div class="col s6">
+                            <div class="input-field">
+                                <select id="cpap_intolerant" name="cpap_intolerant" required>
+                                    <option value="no" {{ 'selected' if not patient.cpap_intolerant or patient.cpap_intolerant == 'no' }}>No</option>
+                                    <option value="yes" {{ 'selected' if patient.cpap_intolerant == 'yes' }}>Yes</option>
+                                    <option value="other" {{ 'selected' if patient.cpap_intolerant == 'other' }}>Other</option>
+                                </select>
+                                <label for="cpap_intolerant" class="active">CPAP Intolerant</label>
+                            </div>
+                        </div>
+                        <div class="col s6">
+                            <div class="input-field" id="cpap_intolerant_other_field" style="display: none;">
+                                <input id="cpap_intolerant_other" name="cpap_intolerant_other" type="text" value="{{ patient.cpap_intolerant_other }}">
+                                <label for="cpap_intolerant_other" class="active">CPAP Intolerant (Other)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save and Cancel Buttons -->
+                    <div class="center-align" style="margin-top: 20px;">
+                        <button type="submit" class="btn green waves-effect waves-light">Submit Changes
+                            <i class="material-icons right">save</i>
+                        </button>
+                        <button type="button" id="cancel-edit" class="btn grey waves-effect waves-light" style="margin-left: 10px;">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for toggling between view/edit mode and showing "other" fields conditionally -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const editButton = document.getElementById('edit-btn');
+    const cancelEditButton = document.getElementById('cancel-edit');
+    const viewMode = document.getElementById('view-mode');
+    const editMode = document.getElementById('edit-mode');
+    // Removed verbose console logging
+
+    // Initialize Materialize components
+    M.AutoInit();
+    
+    // Initialize gender select specifically
+    const genderSelect = document.getElementById('gender');
+    if (genderSelect) {
+        M.FormSelect.init(genderSelect);
+    }
+
+    // Toggle view/edit mode
+    editButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+
+        // Ensure selects are initialized AFTER becoming visible
+        const selects = editMode.querySelectorAll('select');
+        selects.forEach(sel => {
+            // If a required select has empty value, set a safe default
+            if (sel.required && (!sel.value || sel.value === '')) {
+                // prefer a non-empty option if exists
+                const firstValid = Array.from(sel.options).find(o => o.value && o.value !== '');
+                if (firstValid) {
+                    sel.value = firstValid.value;
+                }
+            }
+        });
+        M.FormSelect.init(selects);
+        
+        // Small delay to ensure selects are fully visible and initialized
+        setTimeout(function() {
+            // Refresh clinic and dentist dropdowns based on current selections
+            // Priority: If dentist is selected, load all their clinics; otherwise use DSO/clinic logic
+            if (isAdmin && dsoSelect && clinicSelect && dentistSelect) {
+                const currentDsoId = dsoSelect ? dsoSelect.value : null;
+                const currentClinicId = clinicSelect.value || ({{ patient.clinic_id|tojson|safe }} || null);
+                const currentDentistId = dentistSelect.value || ({{ patient.dentist_id|tojson|safe }} || null);
+                
+                console.log('Edit mode entered - Current values:', {
+                    dsoId: currentDsoId,
+                    clinicId: currentClinicId,
+                    dentistId: currentDentistId
+                });
+                
+                // If dentist is selected, load all clinics for that dentist (regardless of DSO)
+                if (currentDentistId) {
+                    console.log(`Fetching clinics for dentist ${currentDentistId}...`);
+                    fetch(`/api/dentist/${currentDentistId}/clinics`)
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Clinics data received:', data);
+                            if (data.success && data.clinics && data.clinics.length > 0) {
+                                // Clear and rebuild clinic dropdown
+                                clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+                                data.clinics.forEach(clinic => {
+                                    const option = document.createElement('option');
+                                    option.value = clinic.id;
+                                    option.textContent = clinic.name;
+                                    if (currentClinicId && clinic.id == currentClinicId) {
+                                        option.selected = true;
+                                    }
+                                    clinicSelect.appendChild(option);
+                                });
+                                M.FormSelect.init(clinicSelect);
+                                console.log(`✅ Loaded ${data.clinics.length} clinics for dentist ${currentDentistId}`);
+                            } else {
+                                console.warn('No clinics found for dentist');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading clinics for dentist on edit entry:', error);
+                            // Fallback to DSO-based loading
+                            if (currentDsoId) {
+                                populateClinicsForDSO(currentDsoId, currentClinicId);
+                            }
+                        });
+                    
+                    // Also populate dentists for ALL clinics of this dentist
+                    // First, wait for clinics to load, then populate dentists for the current clinic
+                    setTimeout(function() {
+                        if (currentClinicId) {
+                            console.log(`Populating dentists for clinic ${currentClinicId}...`);
+                            populateDentistsForClinic(parseInt(currentClinicId), currentDentistId);
+                        }
+                    }, 300);
+                } else if (currentDsoId) {
+                    // No dentist selected, fall back to DSO-based clinic loading
+                    console.log('No dentist selected, using DSO-based loading');
+                    populateClinicsForDSO(currentDsoId, currentClinicId);
+                    
+                    // If clinic is also selected, populate dentists for that clinic
+                    if (currentClinicId) {
+                        populateDentistsForClinic(parseInt(currentClinicId), currentDentistId);
+                    }
+                }
+            } else if (!isAdmin && clinicSelect && dentistSelect) {
+            // For non-admin users, load ALL clinics available to the logged-in dentist (not the patient's dentist)
+            const currentClinicId = clinicSelect.value || ({{ patient.clinic_id|tojson|safe }} || null);
+            const currentDentistId = dentistSelect.value || ({{ patient.dentist_id|tojson|safe }} || null);
+            
+            // Load all clinics for the logged-in dentist (current_user)
+            console.log('Non-admin user: Loading all clinics for logged-in dentist...');
+            fetch('/api/dentist/clinics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.clinics && data.clinics.length > 0) {
+                        // Clear and rebuild clinic dropdown with all available clinics
+                        clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+                        data.clinics.forEach(clinic => {
+                            const option = document.createElement('option');
+                            option.value = clinic.id;
+                            option.textContent = clinic.name;
+                            // Preserve current patient's clinic if it matches
+                            if (currentClinicId && clinic.id == currentClinicId) {
+                                option.selected = true;
+                            }
+                            clinicSelect.appendChild(option);
+                        });
+                        M.FormSelect.init(clinicSelect);
+                        console.log(`✅ Loaded ${data.clinics.length} clinics for logged-in dentist on edit mode entry`);
+                        
+                        // After clinics are loaded, populate dentists for the current clinic (if selected)
+                        if (currentClinicId) {
+                            setTimeout(function() {
+                                populateDentistsForClinic(parseInt(currentClinicId), currentDentistId);
+                            }, 200);
+                        }
+                    } else {
+                        console.warn('No clinics found for logged-in dentist');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading clinics for logged-in dentist on edit entry:', error);
+                });
+        }
+        }, 100); // Small delay to ensure DOM is ready
+    });
+
+    if (cancelEditButton) {
+        cancelEditButton.addEventListener('click', function () {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        });
+    }
+
+    // Toggle visibility of "other" fields based on selection
+    const snoringSelect = document.getElementById('snoring');
+    const snoringOtherField = document.getElementById('snoring_other_field');
+    const daytimeSleepinessSelect = document.getElementById('daytime_sleepiness');
+    const daytimeSleepinessOtherField = document.getElementById('daytime_sleepiness_other_field');
+    const sleepStudySelect = document.getElementById('sleep_study');
+    const sleepStudyDateField = document.getElementById('sleep_study_date_field');
+    const sleepStudyDoctorField = document.getElementById('sleep_study_doctor_field');
+    const cpapIntolerantSelect = document.getElementById('cpap_intolerant');
+    const cpapIntolerantOtherField = document.getElementById('cpap_intolerant_other_field');
+
+    function toggleFieldVisibility(select, field) {
+        field.style.display = select.value === 'other' ? 'block' : 'none';
+    }
+
+    function toggleSleepStudyFields() {
+        const isSleepStudyYes = sleepStudySelect.value === 'yes';
+        sleepStudyDateField.style.display = isSleepStudyYes ? 'block' : 'none';
+        sleepStudyDoctorField.style.display = isSleepStudyYes ? 'block' : 'none';
+    }
+
+    if (snoringSelect) {
+        snoringSelect.addEventListener('change', function () {
+            toggleFieldVisibility(snoringSelect, snoringOtherField);
+        });
+    }
+
+    if (daytimeSleepinessSelect) {
+        daytimeSleepinessSelect.addEventListener('change', function () {
+            toggleFieldVisibility(daytimeSleepinessSelect, daytimeSleepinessOtherField);
+        });
+    }
+
+    if (sleepStudySelect) {
+        sleepStudySelect.addEventListener('change', toggleSleepStudyFields);
+    }
+
+    if (cpapIntolerantSelect) {
+        cpapIntolerantSelect.addEventListener('change', function () {
+            toggleFieldVisibility(cpapIntolerantSelect, cpapIntolerantOtherField);
+        });
+    }
+
+    // Initialize visibility on page load
+    toggleFieldVisibility(snoringSelect, snoringOtherField);
+    toggleFieldVisibility(daytimeSleepinessSelect, daytimeSleepinessOtherField);
+    toggleSleepStudyFields();
+    toggleFieldVisibility(cpapIntolerantSelect, cpapIntolerantOtherField);
+
+    // DSO, Clinic, and Dentist selection logic
+    const dsoSelect = document.getElementById('dso_id');
+    const clinicSelect = document.getElementById('clinic_id');
+    const dentistSelect = document.getElementById('dentist_id');
+    
+    // Store clinics data for each DSO (admin only) - defined early for use in functions
+    const clinicsData = {{ clinics_by_dso|tojson|safe }};
+    // Store dentists data for each clinic
+    const dentistsData = {{ dentists_by_clinic|tojson|safe }};
+    // Check if user is admin
+    const isAdmin = {{ is_admin|tojson|safe }};
+    
+    // Function to populate clinic dropdown based on selected DSO
+    function populateClinicsForDSO(dsoId, selectedClinicId) {
+        if (!dsoId || !clinicSelect || !isAdmin) return;
+        
+        const clinics = clinicsData[dsoId] || [];
+        clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+        
+        clinics.forEach(clinic => {
+            const option = document.createElement('option');
+            option.value = clinic.id;
+            option.textContent = clinic.name;
+            if (selectedClinicId && clinic.id == selectedClinicId) {
+                option.selected = true;
+            }
+            clinicSelect.appendChild(option);
+        });
+        
+        M.FormSelect.init(clinicSelect);
+    }
+    
+    // Function to populate dentist dropdown based on selected clinic
+    // Now uses API to ensure all dentists are loaded
+    function populateDentistsForClinic(clinicId, selectedDentistId) {
+        if (!clinicId || !dentistSelect) return;
+        
+        // Fetch dentists for the selected clinic using API to ensure completeness
+        console.log(`populateDentistsForClinic: Fetching dentists for clinic ${clinicId}...`);
+        fetch(`/api/clinic/${clinicId}/dentists`)
+            .then(response => {
+                console.log(`populateDentistsForClinic: Response status for clinic ${clinicId}:`, response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log(`populateDentistsForClinic: Data received for clinic ${clinicId}:`, data);
+                if (data.success && data.dentists && data.dentists.length > 0) {
+                    console.log(`populateDentistsForClinic: Found ${data.dentists.length} dentists for clinic ${clinicId}:`, data.dentists.map(d => `${d.name} (ID: ${d.id})`));
+                    
+                    // Destroy existing Materialize instance first
+                    const existingInstance = M.FormSelect.getInstance(dentistSelect);
+                    if (existingInstance) {
+                        existingInstance.destroy();
+                    }
+                    
+                    // Clear and rebuild dentist dropdown
+                    dentistSelect.innerHTML = '<option value="">Select Dentist</option>';
+                    
+                    data.dentists.forEach(dentist => {
+                        const option = document.createElement('option');
+                        option.value = dentist.id;
+                        option.textContent = dentist.name;
+                        if (selectedDentistId && dentist.id == selectedDentistId) {
+                            option.selected = true;
+                        }
+                        dentistSelect.appendChild(option);
+                    });
+                    
+                    // Reinitialize Materialize select
+                    M.FormSelect.init(dentistSelect);
+                    
+                    // Verify all options are visible
+                    console.log(`✅ populateDentistsForClinic: Loaded ${data.dentists.length} dentists for clinic ${clinicId}`);
+                    console.log(`Dropdown now has ${dentistSelect.options.length} options total (including "Select Dentist")`);
+                    
+                    // Double-check by reading back the options
+                    const actualOptions = Array.from(dentistSelect.options).map(opt => ({value: opt.value, text: opt.text}));
+                    console.log('Actual dropdown options:', actualOptions);
+                } else {
+                    // Fallback to preloaded data if API fails or returns empty
+                    console.log('API returned no dentists, using preloaded data as fallback');
+                    const dentists = dentistsData[clinicId] || [];
+                    dentistSelect.innerHTML = '<option value="">Select Dentist</option>';
+                    dentists.forEach(dentist => {
+                        const option = document.createElement('option');
+                        option.value = dentist.id;
+                        option.textContent = dentist.name;
+                        if (selectedDentistId && dentist.id == selectedDentistId) {
+                            option.selected = true;
+                        }
+                        dentistSelect.appendChild(option);
+                    });
+                    M.FormSelect.init(dentistSelect);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching dentists for clinic:', error);
+                // Fallback to preloaded data
+                const dentists = dentistsData[clinicId] || [];
+                dentistSelect.innerHTML = '<option value="">Select Dentist</option>';
+                dentists.forEach(dentist => {
+                    const option = document.createElement('option');
+                    option.value = dentist.id;
+                    option.textContent = dentist.name;
+                    if (selectedDentistId && dentist.id == selectedDentistId) {
+                        option.selected = true;
+                    }
+                    dentistSelect.appendChild(option);
+                });
+                M.FormSelect.init(dentistSelect);
+            });
+    }
+    
+    // Load dentist's associated clinics for non-admin users
+    function loadDentistClinics() {
+        console.log('loadDentistClinics called');
+        if (!clinicSelect) {
+            console.log('clinicSelect not found');
+            return;
+        }
+        
+        console.log('Fetching dentist clinics...');
+        fetch('/api/dentist/clinics')
+            .then(response => {
+                console.log('Response received:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Clinic data received:', data);
+                if (data.success && data.clinics.length > 0) {
+                    // Clear existing options
+                    clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+                    
+                    // Add clinic options
+                    data.clinics.forEach(clinic => {
+                        const option = document.createElement('option');
+                        option.value = clinic.id;
+                        option.textContent = clinic.name;
+                        // Select current patient's clinic if it matches
+                        if ({{ patient.clinic_id|tojson|safe }} && {{ patient.clinic_id|tojson|safe }} == clinic.id) {
+                            option.selected = true;
+                        }
+                        clinicSelect.appendChild(option);
+                    });
+                    
+                    // Re-initialize Materialize select
+                    M.FormSelect.init(clinicSelect);
+                    
+                    console.log(`Loaded ${data.clinics.length} clinics for dentist`);
+                } else {
+                    console.log('No clinics found for dentist');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading clinics:', error);
+            });
+    }
+    
+    if (dsoSelect && clinicSelect && dentistSelect) {
+        if (isAdmin) {
+            // Admin workflow: DSO -> Clinic -> Dentist
+            dsoSelect.addEventListener('change', function() {
+                const selectedDsoId = this.value;
+                const clinicSelect = document.getElementById('clinic_id');
+                const dentistSelect = document.getElementById('dentist_id');
+                
+                // Clear current clinic options
+                clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+                // Clear current dentist options
+                dentistSelect.innerHTML = '<option value="">Select Dentist</option>';
+                
+                if (selectedDsoId && clinicsData[selectedDsoId]) {
+                    // Add clinics for selected DSO
+                    clinicsData[selectedDsoId].forEach(clinic => {
+                        const option = document.createElement('option');
+                        option.value = clinic.id;
+                        option.textContent = clinic.name;
+                        clinicSelect.appendChild(option);
+                    });
+                }
+                
+                // Reinitialize Materialize selects
+                M.FormSelect.init(clinicSelect);
+                M.FormSelect.init(dentistSelect);
+            });
+            
+            // Initialize clinic and dentist dropdowns on page load
+            // Priority: If dentist is selected, load all their clinics; otherwise use DSO/clinic logic
+            const originalDsoValue = dsoSelect ? dsoSelect.value : null;
+            const currentDentistId = dentistSelect.value || ({{ patient.dentist_id|tojson|safe }} || null);
+            const currentClinicId = clinicSelect.value || ({{ patient.clinic_id|tojson|safe }} || null);
+            
+            console.log('Initial page load - Current values:', {
+                dsoId: originalDsoValue,
+                clinicId: currentClinicId,
+                dentistId: currentDentistId
+            });
+            
+            if (currentDentistId) {
+                // If dentist is already selected, load all their clinics
+                console.log(`Initial load: Fetching clinics for dentist ${currentDentistId}...`);
+                fetch(`/api/dentist/${currentDentistId}/clinics`)
+                    .then(response => {
+                        console.log('Initial load response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Initial load clinics data:', data);
+                        if (data.success && data.clinics && data.clinics.length > 0) {
+                            // Clear existing options and rebuild
+                            clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+                            data.clinics.forEach(clinic => {
+                                const option = document.createElement('option');
+                                option.value = clinic.id;
+                                option.textContent = clinic.name;
+                                if (currentClinicId && clinic.id == currentClinicId) {
+                                    option.selected = true;
+                                }
+                                clinicSelect.appendChild(option);
+                            });
+                            M.FormSelect.init(clinicSelect);
+                            console.log(`✅ Initial load: Loaded ${data.clinics.length} clinics for dentist ${currentDentistId}`);
+                            
+                            // After clinics are loaded, populate dentists for the current clinic
+                            if (currentClinicId) {
+                                setTimeout(function() {
+                                    console.log(`Initial load: Populating dentists for clinic ${currentClinicId}...`);
+                                    populateDentistsForClinic(parseInt(currentClinicId), currentDentistId);
+                                }, 200);
+                            }
+                        } else {
+                            console.warn('Initial load: No clinics found for dentist');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading clinics for dentist on initial load:', error);
+                        // Fallback to DSO-based loading
+                        if (originalDsoValue) {
+                            populateClinicsForDSO(originalDsoValue, currentClinicId);
+                        }
+                    });
+            } else if (originalDsoValue) {
+                // No dentist selected, fall back to DSO-based clinic loading
+                populateClinicsForDSO(originalDsoValue, currentClinicId);
+                
+                // If clinic is also selected, populate dentists
+                if (currentClinicId) {
+                    populateDentistsForClinic(parseInt(currentClinicId), currentDentistId);
+                }
+            } else if (currentClinicId) {
+                // If no DSO but clinic is selected, populate dentists for that clinic
+                populateDentistsForClinic(parseInt(currentClinicId), currentDentistId);
+            }
+        } else {
+            // Non-admin workflow: Load dentist's clinics directly
+            console.log('User is not admin, loading dentist clinics...');
+            loadDentistClinics();
+        }
+    }
+    
+    // Clinic change handler - works for both admin and non-admin users
+    if (clinicSelect && dentistSelect) {
+        clinicSelect.addEventListener('change', function() {
+            const selectedClinicId = this.value;
+            const dentistSelect = document.getElementById('dentist_id');
+            
+            if (!selectedClinicId || !dentistSelect) return;
+            
+            // Clear current dentist options
+            dentistSelect.innerHTML = '<option value="">Select Dentist</option>';
+            
+            // Fetch dentists for the selected clinic using API (same pattern as dentist->clinics)
+            console.log(`Clinic changed: Fetching dentists for clinic ${selectedClinicId}...`);
+            fetch(`/api/clinic/${selectedClinicId}/dentists`)
+                .then(response => {
+                    console.log(`Clinic changed: Response status for clinic ${selectedClinicId}:`, response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(`Clinic changed: Dentist data received for clinic ${selectedClinicId}:`, data);
+                    
+                    if (data.success && data.dentists && data.dentists.length > 0) {
+                        console.log(`Clinic changed: Found ${data.dentists.length} dentists for clinic ${selectedClinicId}:`, data.dentists.map(d => `${d.name} (ID: ${d.id})`));
+                        
+                        // Destroy existing Materialize instance first
+                        const existingInstance = M.FormSelect.getInstance(dentistSelect);
+                        if (existingInstance) {
+                            existingInstance.destroy();
+                        }
+                        
+                        // Clear and rebuild dentist dropdown
+                        dentistSelect.innerHTML = '<option value="">Select Dentist</option>';
+                        
+                        // Add all dentists for the selected clinic
+                        data.dentists.forEach(dentist => {
+                            const option = document.createElement('option');
+                            option.value = dentist.id;
+                            option.textContent = dentist.name;
+                            // Preserve current selection if it matches
+                            const currentDentistId = {{ patient.dentist_id|tojson|safe }} || null;
+                            if (currentDentistId && dentist.id == currentDentistId) {
+                                option.selected = true;
+                            }
+                            dentistSelect.appendChild(option);
+                        });
+                        
+                        // Reinitialize Materialize select
+                        M.FormSelect.init(dentistSelect);
+                        
+                        // Verify all options are visible
+                        console.log(`✅ Loaded ${data.dentists.length} dentists for clinic ${selectedClinicId}`);
+                        console.log(`Dropdown now has ${dentistSelect.options.length} options total (including "Select Dentist")`);
+                        
+                        // Double-check by reading back the options
+                        const actualOptions = Array.from(dentistSelect.options).map(opt => ({value: opt.value, text: opt.text}));
+                        console.log('Actual dropdown options:', actualOptions);
+                    } else {
+                        console.log('No dentists found for selected clinic');
+                        // Keep empty dropdown
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading dentists for clinic:', error);
+                    // Fallback to preloaded data if API fails
+                    if (dentistsData && dentistsData[selectedClinicId]) {
+                        dentistsData[selectedClinicId].forEach(dentist => {
+                            const option = document.createElement('option');
+                            option.value = dentist.id;
+                            option.textContent = dentist.name;
+                            dentistSelect.appendChild(option);
+                        });
+                        M.FormSelect.init(dentistSelect);
+                    }
+                });
+        });
+    }
+    
+    // Dentist change handler - works for both admin and non-admin users
+    if (dentistSelect && clinicSelect) {
+        dentistSelect.addEventListener('change', function() {
+            const selectedDentistId = this.value;
+            const clinicSelect = document.getElementById('clinic_id');
+            
+            if (!selectedDentistId || !clinicSelect) return;
+            
+            // Fetch clinics for the selected dentist using the same API pattern as new patient form
+            fetch(`/api/dentist/${selectedDentistId}/clinics`)
+                .then(response => {
+                    console.log('API response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Clinic data received:', data);
+                    
+                    if (data.success && data.clinics && data.clinics.length > 0) {
+                        // Clear existing clinic options
+                        clinicSelect.innerHTML = '<option value="">Select Clinic</option>';
+                        
+                        // Add all clinics for the selected dentist
+                        data.clinics.forEach(clinic => {
+                            const option = document.createElement('option');
+                            option.value = clinic.id;
+                            option.textContent = clinic.name;
+                            // Preserve current selection if it matches
+                            const currentClinicId = {{ patient.clinic_id|tojson|safe }} || null;
+                            if (currentClinicId && clinic.id == currentClinicId) {
+                                option.selected = true;
+                            }
+                            clinicSelect.appendChild(option);
+                        });
+                        
+                        // Reinitialize Materialize select (same as new patient form)
+                        M.FormSelect.init(clinicSelect);
+                        
+                        console.log(`Loaded ${data.clinics.length} clinics for dentist ${selectedDentistId}`);
+                    } else {
+                        console.log('No clinics found for selected dentist');
+                        // Clear clinic options if no clinics found
+                        clinicSelect.innerHTML = '<option value="">No clinics available</option>';
+                        M.FormSelect.init(clinicSelect);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading clinics for dentist:', error);
+                    clinicSelect.innerHTML = '<option value="">Error loading clinics</option>';
+                    M.FormSelect.init(clinicSelect);
+                });
+        });
+    }
+    
+    // Initialize Materialize selects (dsoSelect, clinicSelect, and dentistSelect are already declared above)
+    if (dsoSelect) M.FormSelect.init(dsoSelect);
+    if (clinicSelect) M.FormSelect.init(clinicSelect);
+    if (dentistSelect) M.FormSelect.init(dentistSelect);
+});
+</script>
+
+<!-- Additional CSS to adjust font size, alignment, and spacing -->
+<style>
+    .input-field label {
+        font-size: 18px !important; /* Increase font size for labels */
+    }
+
+    .section-title {
+        font-size: 20px !important; /* Increase font size for section titles */
+        font-weight: bold;
+    }
+
+    .input-field input, .input-field select {
+        font-size: 16px !important; /* Increase font size for input and select fields */
+    }
+
+    .input-field {
+        margin-bottom: 30px !important; /* Add spacing between input fields */
+    }
+
+    #status {
+        margin-top: 25px !important; /* Ensure status field doesn't overlap */
+    }
+
+    .row {
+        margin-bottom: 20px !important; /* Add consistent spacing between rows */
+    }
+</style>

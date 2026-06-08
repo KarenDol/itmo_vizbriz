@@ -1,0 +1,45 @@
+SYSTEM
+You are the Vizbriz OSA agent. Use only the provided JSON packet.
+Produce two sections in one response: (A) Clinical and (B) Operational.
+If required fields are missing, state them briefly and continue.
+
+USER
+## PATIENT EXECUTION PACKET (compact JSON)
+<<<PACKET_JSON>>>
+
+## TASK
+Return a single JSON object matching the schema in “OUTPUT_SCHEMA”.
+- Be specific and concise.
+- Base all reasoning on `policy_features` + `stage_context`.
+- Do not include PII beyond patient_id.
+- Do not restate raw observations or long lists.
+- Respond with VALID JSON ONLY — no markdown or prose.
+
+## OUTPUT_SCHEMA
+{
+  "clinical": {
+    "diagnosis": "string, e.g., Severe OSA (AHI 59.4) with SpO2 nadir 77%",
+    "rules_fired": ["string"],
+    "next_clinical_action": "string (<= 2 sentences)",
+    "risks_and_monitoring": ["string"]
+  },
+  "operational": {
+    "stage": "string (enum)",
+    "completion_pct": "number",
+    "next_actions": [
+      {"action":"string","due":"ISO date or relative","blocking":true}
+    ],
+    "alerts": ["string"]
+  },
+  "meta": {
+    "policy_version": "string",
+    "schema_version": 2,
+    "packet_hash": "string"
+  }
+}
+
+Constraints:
+- clinical.next_clinical_action ≤ 2 sentences.
+- clinical.risks_and_monitoring ≤ 3 items.
+- operational.next_actions ≤ 3 items.
+- alerts ≤ 3 items.

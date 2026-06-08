@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner File Upload</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #444;
+        }
+    
+        .container {
+            margin-top: 50px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+    
+        .upload-area {
+        border: 2px dashed #ccc;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        background: #fafafa;
+        max-height: 300px; /* Increased height */
+        overflow-y: auto;
+    }
+    
+       
+    .upload-area h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .upload-area p {
+        font-size: 1rem;
+        color: #666;
+    }
+    
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+    
+        ul li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+    
+        ul li button {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    
+      
+    button.upload-button {
+        display: inline-block;
+        margin: 10px;
+        padding: 10px 15px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: #42a5f5;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    button.upload-button:hover {
+        background-color: #1e88e5;
+    }
+      /* Hide default file input */
+      input[type="file"] {
+        display: none;
+    }
+     /* Wrapper for file input and label */
+     .file-input-wrapper {
+        display: inline-block;
+        margin: 10px;
+    }
+
+    .file-input-wrapper label,
+    button.upload-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 150px; /* Ensure consistent width */
+        height: 40px; /* Ensure consistent height */
+        padding: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: #42a5f5;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-align: center;
+    }
+
+    .file-input-wrapper label:hover,
+    button.upload-button:hover {
+        background-color: #1e88e5;
+    }
+
+    .file-input-label {
+        padding: 10px 15px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: #42a5f5;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .file-input-label:hover {
+        background-color: #1e88e5;
+    }
+    
+        header {
+            display: flex;
+            align-items: center;
+            background: #3949ab;
+            color: white;
+            padding: 10px 20px;
+        }
+    
+        header img {
+            height: 40px;
+            margin-right: 15px;
+        }
+    
+        header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+    
+        #custom-loader-wrapper {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        align-items: center;
+        justify-content: center;
+        z-index: 10500;
+        flex-direction: column; /* Stack loader and progress bar vertically */
+    }
+
+    .loader {
+        border: 12px solid #f3f3f3;
+        border-top: 12px solid #6940ff;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: spin 1.5s linear infinite;
+    }
+
+    .progress-container {
+        width: 80%;
+        margin: 20px auto;
+        background-color: #e0e0e0;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        height: 25px;
+        position: relative;
+    }
+
+    .progress-bar {
+        width: 0;
+        height: 100%;
+        background-color: #4caf50;
+        text-align: center;
+        color: black; /* Change to black for better visibility */
+        line-height: 25px;
+        font-weight: bold;
+        transition: width 0.3s ease;
+    }
+
+    #progress-bar > div {
+        width: 0;
+        height: 100%;
+        background-color: #4caf50;
+        text-align: center;
+        line-height: 20px;
+        color: white;
+        transition: width 0.3s ease;
+    }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='white-font-grey.png') }}" alt="Logo">
+        <h1>Partner Patient Management - File Upload</h1>
+    </header>
+
+    <div class="container">
+        <h3>Patient Imaging Files Upload</h3>
+
+        {% if error_message %}
+        <div class="red-text" style="font-size: 1.2em; margin: 20px 0;">
+            {{ error_message }}
+        </div>
+        {% else %}
+        <p>Uploading files for <strong>{{ patient.name }}</strong>.</p>
+
+        <div class="upload-area" id="cbct-dropzone">
+            <h3>CBCT Upload</h3>
+            <p>Drag and drop files or click to select.</p>
+            <!-- Choose Files -->
+            <div class="file-input-wrapper">
+                <label for="cbct-file-input" class="file-input-label">Choose Files</label>
+                <input type="file" id="cbct-file-input" multiple>
+            </div>
+            <!-- Select Folder -->
+            <button id="cbct-folder-button" class="upload-button">Select Folder</button>
+            <ul id="cbct-file-list"></ul>
+        </div>
+        
+        <div class="upload-area" id="intraoral-dropzone">
+            <h3>IntraOral Scan Upload</h3>
+            <p>Drag and drop files or click to select.</p>
+            <!-- Choose Files -->
+            <div class="file-input-wrapper">
+                <label for="intraoral-file-input" class="file-input-label">Choose Files</label>
+                <input type="file" id="intraoral-file-input" multiple>
+            </div>
+            <!-- Select Folder -->
+            <button id="intraoral-folder-button" class="upload-button">Select Folder</button>
+            <ul id="intraoral-file-list"></ul>
+        </div>
+
+        
+        <button id="upload-files-button" class="btn green">Submit All Files</button>
+        {% endif %}
+    </div>
+
+    <div id="custom-loader-wrapper">
+        <div class="loader"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar">0%</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cbctFileInput = document.getElementById('cbct-file-input');
+            const intraoralFileInput = document.getElementById('intraoral-file-input');
+            const cbctFileList = document.getElementById('cbct-file-list');
+            const intraoralFileList = document.getElementById('intraoral-file-list');
+            const uploadButton = document.getElementById('upload-files-button');
+            const loaderWrapper = document.getElementById('custom-loader-wrapper');
+            const cbctFolderButton = document.getElementById('cbct-folder-button');
+            const intraoralFolderButton = document.getElementById('intraoral-folder-button');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+
+            let cbctFilesToUpload = [];
+            let intraoralFilesToUpload = [];
+
+            function preventDefaultEvents(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function updateProgressBar(progress, message) {
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${progress}% ${message}`;
+        }   
+
+            async function handleZipFile(file, filesToUpload) {
+                const zip = new JSZip();
+                const contents = await zip.loadAsync(file);
+                let totalFiles = Object.keys(contents.files).length;
+                let processedFiles = 0;
+
+                for (const [relativePath, zipEntry] of Object.entries(contents.files)) {
+                    if (!zipEntry.dir) {
+                        const extractedFile = await zipEntry.async('blob');
+                        extractedFile.relativePath = relativePath;
+                        filesToUpload.push(extractedFile);
+                        processedFiles++;
+                        updateProgressBar(
+                            Math.round((processedFiles / totalFiles) * 100),
+                            'Unzipping files'
+                        );
+                    }
+                }
+            }
+
+            async function handleFolderSelection(input, filesToUpload, fileList) {
+                const files = Array.from(input.files);
+                for (const file of files) {
+                    if (file.name.endsWith('.zip')) {
+                        await handleZipFile(file, filesToUpload);
+                    } else {
+                        file.relativePath = file.webkitRelativePath || file.name;
+                        filesToUpload.push(file);
+                    }
+                }
+                updateFileList(filesToUpload, fileList);
+            }
+
+            function updateFileList(filesToUpload, fileList) {
+                fileList.innerHTML = '';
+                filesToUpload.forEach(file => {
+                    const li = document.createElement('li');
+                    li.textContent = file.relativePath || file.name;
+
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = '×';
+                    removeButton.className = 'btn-flat red-text';
+                    removeButton.onclick = () => {
+                        const index = filesToUpload.indexOf(file);
+                        if (index !== -1) {
+                            filesToUpload.splice(index, 1);
+                            updateFileList(filesToUpload, fileList);
+                        }
+                    };
+
+                    li.appendChild(removeButton);
+                    fileList.appendChild(li);
+                });
+            }
+
+            async function traverseFileTree(item, path, filesToUpload) {
+                if (item.isFile) {
+                    const file = await new Promise((resolve, reject) =>
+                        item.file(resolve, reject)
+                    );
+                    file.relativePath = path + file.name;
+                    filesToUpload.push(file);
+                } else if (item.isDirectory) {
+                    const dirReader = item.createReader();
+                    const entries = await new Promise((resolve, reject) =>
+                        dirReader.readEntries(resolve, reject)
+                    );
+                    for (const entry of entries) {
+                        await traverseFileTree(entry, path + item.name + '/', filesToUpload);
+                    }
+                }
+            }
+
+            cbctFileInput.addEventListener('change', () => {
+                handleFolderSelection(cbctFileInput, cbctFilesToUpload, cbctFileList);
+            });
+
+            intraoralFileInput.addEventListener('change', () => {
+                handleFolderSelection(intraoralFileInput, intraoralFilesToUpload, intraoralFileList);
+            });
+
+            cbctFolderButton.addEventListener('click', () => {
+                cbctFileInput.webkitdirectory = true;
+                cbctFileInput.click();
+            });
+
+            intraoralFolderButton.addEventListener('click', () => {
+                intraoralFileInput.webkitdirectory = true;
+                intraoralFileInput.click();
+            });
+
+            [document.getElementById('cbct-dropzone'), document.getElementById('intraoral-dropzone')].forEach((dropzone, index) => {
+                const filesToUpload = index === 0 ? cbctFilesToUpload : intraoralFilesToUpload;
+                const fileList = index === 0 ? cbctFileList : intraoralFileList;
+                dropzone.addEventListener('dragover', preventDefaultEvents);
+                dropzone.addEventListener('dragenter', preventDefaultEvents);
+                dropzone.addEventListener('dragleave', preventDefaultEvents);
+                dropzone.addEventListener('drop', async event => {
+                    preventDefaultEvents(event);
+                    const items = event.dataTransfer.items;
+                    for (let i = 0; i < items.length; i++) {
+                        const entry = items[i].webkitGetAsEntry();
+                        if (entry) {
+                            await traverseFileTree(entry, '', filesToUpload);
+                        }
+                    }
+                    updateFileList(filesToUpload, fileList);
+                });
+            });
+
+            uploadButton.addEventListener('click', async () => {
+                if (!cbctFilesToUpload.length && !intraoralFilesToUpload.length) {
+                    alert('No files selected for upload.');
+                    return;
+                }
+
+                loaderWrapper.style.display = 'flex';
+
+                try {
+                    const allFiles = [
+                        ...cbctFilesToUpload.map(file => ({ file, path: file.relativePath || file.name, section: 'cbct' })),
+                        ...intraoralFilesToUpload.map(file => ({ file, path: file.relativePath || file.name, section: 'intraoral-scan' }))
+                    ];
+
+                    const totalFiles = allFiles.length;
+                    let uploadedFiles = 0;
+
+                    for (const { file, path, section } of allFiles) {
+                        const response = await fetch('{{ url_for("filemgmt.partner_upload_presigned_url") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                filename: path,
+                                section: section,
+                                patient_id: '{{ patient.id }}',
+                                category: 'imaging'
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok || !data.success) {
+                            throw new Error(data.message || 'Failed to get presigned URL');
+                        }
+
+                        const formData = new FormData();
+                        Object.entries(data.fields).forEach(([key, value]) => formData.append(key, value));
+                        formData.append('file', file);
+
+                        await fetch(data.url, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        await fetch('{{ url_for("filemgmt.partner_upload_confirm") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                patient_id: '{{ patient.id }}',
+                                s3_key: data.s3_key,
+                                filename: path,
+                                file_size: file.size,
+                                file_type: file.type,
+                                section: section
+                            })
+                        });
+
+                        uploadedFiles++;
+                        updateProgressBar(
+                            Math.round((uploadedFiles / totalFiles) * 100),
+                            'Uploading files'
+                        );
+                    }
+
+                    alert(`Thank you for uploading data for {{ patient.name }}.`);
+                    location.reload(); // Refresh the page after user clicks OK
+                } catch (error) {
+                    console.error(error);
+                    alert('Error during file upload.');
+                } finally {
+                    loaderWrapper.style.display = 'none';
+                    progressContainer.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1693 @@
+{% extends "base.html" %}
+
+{% block title %}Direct File Upload - Vizbriz{% endblock %}
+
+{% block extra_css %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+<style>
+/* Mobile-first design for Direct File Upload */
+
+/* Base styles - Mobile first */
+body {
+    background-color: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Patient search input (autocomplete) */
+#patient_search {
+    display: block !important;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+#patient_search:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Patient autocomplete dropdown (mirrors scan_upload UX) */
+.search-results {
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    background: #ffffff;
+    max-height: 260px;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 10px 24px rgba(15, 37, 64, 0.12);
+    z-index: 2000;
+}
+
+.result-item {
+    padding: 12px 14px;
+    border-bottom: 1px solid #edf2fb;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    color: #1d273b;
+}
+
+.result-item:hover {
+    background: #f3f8ff;
+    transform: translateX(2px);
+    color: #102038;
+}
+
+.patient-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #e6f7ed;
+    color: #1b5634;
+    font-weight: 600;
+    border: 1px solid #c4ebd3;
+    margin-top: 10px;
+}
+
+.upload-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 12px;
+    box-sizing: border-box;
+    min-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Add scroll indicator */
+.upload-container::after {
+    content: '';
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background: rgba(102, 126, 234, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    z-index: 1000;
+    opacity: 0.7;
+    pointer-events: none;
+    animation: pulse 2s infinite;
+}
+
+.upload-container::after {
+    content: '↓';
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 20px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+}
+
+.upload-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+}
+
+.upload-header h1 .header-icon {
+    display: inline-block;
+    /* Make the icon render slightly darker/less bright than the text */
+    opacity: 0.85;
+    filter: brightness(0.85) saturate(1.1);
+    margin-right: 6px;
+}
+
+.upload-header p {
+    font-size: 1rem;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Tighten mobile layout so important controls stay above the keyboard */
+@media (max-width: 480px) {
+    .upload-container {
+        padding: 8px;
+        padding-bottom: 140px; /* gives room to scroll above on-screen keyboard */
+    }
+
+    .upload-header {
+        margin-bottom: 12px;
+        padding: 14px 12px;
+        border-radius: 14px;
+    }
+
+    .upload-header h1 {
+        font-size: 1.35rem;
+        margin-bottom: 4px;
+    }
+
+    .upload-header p {
+        font-size: 0.95rem;
+    }
+
+    .upload-card {
+        padding: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+}
+
+.protocol-banner {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 0 0 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.protocol-banner strong {
+    font-size: 1rem;
+}
+
+.protocol-banner a {
+    color: #0c5460;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.protocol-banner a:hover {
+    text-decoration: underline;
+}
+
+.upload-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+    margin-bottom: 12px;
+}
+
+.option-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 4px solid #667eea;
+}
+
+.option-card:hover, .option-card.selected {
+    border-color: #667eea;
+    background: #f0f2ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+
+.option-card h3 {
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.option-card p {
+    color: #6c757d;
+    margin: 0 0 16px 0;
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.form-group label {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    background: white;
+    color: #495057;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    color: white;
+    /* Override framework .btn defaults (fixed height/uppercase/nowrap) so long labels
+       like "Upload Clinical Pictures" fit on mobile without clipping. */
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    height: auto;
+    min-height: 48px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: center;
+    word-break: break-word;
+    text-transform: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    border: none;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268, #343a40);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+    margin-bottom: 16px;
+}
+
+.file-upload-area:hover {
+    border-color: #667eea;
+    background: #f0f2ff;
+}
+
+.file-upload-area.dragover {
+    border-color: #667eea;
+    background: #e3f2fd;
+}
+
+.upload-status {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 500;
+    position: relative;
+    font-size: 0.95rem;
+}
+
+.upload-status .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.upload-status .close-btn:hover {
+    opacity: 1;
+}
+
+.upload-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.upload-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.upload-status.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Mobile upload controls - use side space */
+.mobile-upload-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap; /* prevent overflow on small screens */
+}
+
+.mobile-upload-controls .btn {
+    flex: 1 1 0;
+    min-width: 0; /* allow flex items to shrink instead of overflowing */
+    padding: 12px 8px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 44px;
+    white-space: normal; /* allow wrapping for "Upload from Device" */
+    line-height: 1.15;
+    text-wrap: balance;
+}
+
+/* Extra-tight phones: stack the two buttons to avoid any clipping */
+@media (max-width: 380px) {
+    .mobile-upload-controls {
+        flex-direction: column;
+    }
+}
+
+
+
+/* Mobile two-step process */
+.mobile-step {
+    display: none;
+}
+
+.mobile-step.active {
+    display: block;
+}
+
+.mobile-step-indicator {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.mobile-step-indicator .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mobile-step-indicator .step.active {
+    background: #667eea;
+    color: white;
+}
+
+.mobile-step-indicator .step.completed {
+    background: #28a745;
+    color: white;
+}
+
+.mobile-step-indicator .step.pending {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.mobile-next-btn {
+    display: none;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobile-next-btn:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.mobile-back-btn {
+    display: none;
+    width: 100%;
+    padding: 16px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobile-back-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+
+
+
+
+.btn-camera {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.btn-camera:hover {
+    background: linear-gradient(135deg, #218838, #1ea085);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-upload {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.btn-upload:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.file-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.file-preview-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e9ecef;
+    background: #f8f9fa;
+    flex-shrink: 0;
+}
+
+.file-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-preview-item .remove-file {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.file-preview-item .file-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    font-size: 10px;
+    padding: 4px 6px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+
+.form-group {
+    position: relative;
+}
+
+/* Patient info display */
+.patient-info {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.patient-info h3 {
+    color: #2c3e50;
+    margin: 0 0 12px 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.patient-info .info-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.patient-info .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.patient-info .info-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 80px;
+}
+
+.patient-info .info-value {
+    color: #2c3e50;
+}
+
+/* Step indicators */
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+    gap: 8px;
+}
+
+.step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.step.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.step.completed {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.step.pending {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+/* Camera modal */
+.camera-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
+    flex-direction: column;
+}
+
+.camera-modal.active {
+    display: flex;
+}
+
+.camera-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.camera-video {
+    width: 100%;
+    max-width: 100%;
+    height: calc(100vh - 120px);
+    border-radius: 16px;
+    object-fit: cover;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.camera-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    flex-wrap: nowrap; /* keep controls on one line */
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000001;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 12px 16px;
+    width: calc(100vw - 24px);
+    max-width: 520px;
+}
+
+.camera-btn {
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.camera-btn.capture {
+    background: #dc3545;
+    color: white;
+    padding: 18px;
+    border-radius: 50%;
+    width: 72px;
+    height: 72px;
+    font-size: 24px;
+    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+}
+
+.camera-btn.capture:hover {
+    background: #c82333;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.camera-btn.cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.camera-btn.cancel:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.camera-btn.switch {
+    background: #495057;
+    color: white;
+}
+
+.camera-btn.switch:hover {
+    background: #343a40;
+    transform: translateY(-2px);
+}
+
+.camera-btn.flash {
+    background: #f59e0b;
+    color: #111827;
+}
+
+.camera-btn.flash:hover {
+    background: #d97706;
+    transform: translateY(-2px);
+}
+
+.camera-btn.flash.active {
+    background: #fbbf24;
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.25);
+}
+
+@media (max-width: 420px) {
+    .camera-btn .btn-label {
+        display: none; /* keep everything on one line on narrow phones */
+    }
+    .camera-btn {
+        padding: 10px;
+        min-width: 44px;
+    }
+    .camera-controls {
+        gap: 10px;
+    }
+}
+
+/* Hide/show steps */
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+}
+
+/* Tablet styles */
+@media (min-width: 768px) {
+    .upload-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    .upload-header {
+        padding: 24px 20px;
+        margin-bottom: 32px;
+    }
+    
+    .upload-header h1 {
+        font-size: 2rem;
+    }
+    
+    .upload-card {
+        padding: 32px;
+        margin-bottom: 24px;
+    }
+    
+    .option-card {
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.35rem;
+    }
+    
+    .mobile-upload-controls {
+        flex-direction: row;
+        gap: 16px;
+    }
+    
+    .mobile-upload-controls .btn {
+        min-width: 140px;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: auto;
+        min-width: 200px;
+    }
+    
+    .file-preview {
+        gap: 16px;
+    }
+    
+    .file-preview-item {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .camera-video {
+        max-width: 500px;
+    }
+    
+    .camera-controls {
+        gap: 20px;
+    }
+    
+    .camera-btn.capture {
+        width: 80px;
+        height: 80px;
+        font-size: 28px;
+    }
+}
+
+/* Desktop styles */
+@media (min-width: 1024px) {
+    .upload-container {
+        max-width: 800px;
+        padding: 32px;
+    }
+    
+    .upload-header {
+        padding: 32px 24px;
+        margin-bottom: 40px;
+    }
+    
+    .upload-header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .upload-card {
+        padding: 40px;
+        margin-bottom: 32px;
+    }
+    
+    .option-card {
+        padding: 32px;
+        margin-bottom: 24px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    .mobile-upload-controls .btn {
+        min-width: 160px;
+    }
+    
+    .btn-primary, .btn-secondary {
+        min-width: 240px;
+    }
+    
+    .file-preview-item {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .camera-video {
+        max-width: 600px;
+    }
+    
+    .camera-btn.capture {
+        width: 90px;
+        height: 90px;
+        font-size: 32px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step active" id="step1-indicator">1</div>
+        <div class="step pending" id="step2-indicator">2</div>
+    </div>
+
+    <!-- Step 1: Patient Selection -->
+    <div class="step-content active" id="step1">
+        <div class="upload-header">
+            <h1><span class="header-icon" aria-hidden="true">👤</span>Select Patient</h1>
+            <p>Search and select a patient to upload files for</p>
+        </div>
+
+        <div class="upload-card">
+            <form id="patientForm">
+                <div class="form-group">
+                    <label for="patient_search">Search Existing Patient</label>
+                    <input type="text" id="patient_search" name="patient_search" class="form-control" placeholder="Type patient name, email, or ID…" autocomplete="off">
+                    <div id="patient_results" class="search-results"></div>
+                    <div id="selected_patient" class="patient-pill" style="display:none;"></div>
+                    <input type="hidden" id="patient_id" name="patient_id">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Patient Name *</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Enter patient full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter patient email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone" class="form-control" placeholder="Enter patient phone number">
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="proceedToUpload()">
+                    ➡️ Continue to Upload Files
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Step 2: File Upload -->
+    <div class="step-content" id="step2">
+        <div class="upload-header">
+            <h1>📁 Upload Files</h1>
+            <p>Upload clinical pictures</p>
+        </div>
+
+        <div class="protocol-banner">
+            <strong>Need the photo checklist?</strong>
+            <span>
+                <a href="{{ url_for('main.download_imaging_protocol', protocol_key='clinical') }}" target="_blank" rel="noopener">
+                    <i class="material-icons" style="font-size: 18px;">description</i>
+                    View Clinical Pictures Protocol
+                </a>
+            </span>
+            <small>Tip: open it in a new tab so you can reference the poses while shooting.</small>
+        </div>
+
+        <!-- Patient Info Display -->
+        <div class="patient-info" id="patientInfoDisplay" style="display: none;">
+            <h3>👤 Selected Patient</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Name:</span>
+                    <span class="info-value" id="displayName"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value" id="displayEmail"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value" id="displayPhone"></span>
+                </div>
+            </div>
+        </div>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="hidden" id="upload_patient_id" name="patient_id">
+            <input type="hidden" id="upload_name" name="name">
+            <input type="hidden" id="upload_email" name="email">
+            <input type="hidden" id="upload_phone" name="phone">
+
+            <!-- File Upload Sections -->
+            <div class="option-card">
+                <h3>📷 Clinical Pictures</h3>
+                <p>Upload clinical photographs and imaging files</p>
+                <div class="file-upload-area" id="clinicalUpload">
+                    <div class="mobile-upload-controls">
+                        <button type="button" class="btn btn-camera" onclick="openCamera('clinical_pictures')">
+                            📷 Camera
+                        </button>
+                        <button type="button" class="btn btn-upload" onclick="openFileUpload('clinical_pictures')">
+                            📁 Upload from Device
+                        </button>
+                    </div>
+                    <input type="file" name="clinical_pictures[]" multiple class="form-control" accept=".jpg,.jpeg,.png,.pdf" style="display: none;" id="clinical_pictures_input">
+                    <div class="file-preview" id="clinical_pictures_preview"></div>
+                    <p>📸 Use camera or upload from device</p>
+                </div>
+                <div id="clinical_pictures_status" class="upload-status" style="display: none; margin-top: 10px;"></div>
+                <button type="button" class="btn btn-primary" onclick="submitSection('clinical_pictures', event)" style="margin-top: 15px;">
+                    📤 Upload Clinical Pictures
+                </button>
+            </div>
+        </form>
+
+        <button type="button" class="btn btn-secondary" onclick="backToPatientSelection()">
+            ⬅️ Back to Patient Selection
+        </button>
+
+        <div id="uploadStatus" class="upload-status" style="display: none;"></div>
+    </div>
+</div>
+
+
+
+<!-- Camera Modal -->
+<div id="cameraModal" class="camera-modal">
+    <div class="camera-container">
+        <video id="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+        <canvas id="cameraCanvas" style="display: none;"></canvas>
+        <div class="camera-controls">
+            <button type="button" class="camera-btn switch" onclick="switchCamera()" title="Switch Camera">
+                <span aria-hidden="true">🔄</span>
+                <span class="btn-label">Switch</span>
+            </button>
+            <button type="button" class="camera-btn flash" id="flashBtn" onclick="toggleFlash()" title="Flash" style="display:none;">
+                <span aria-hidden="true">⚡</span>
+                <span class="btn-label">Flash</span>
+            </button>
+            <button type="button" class="camera-btn capture" onclick="capturePhoto()" title="Take Photo">
+                📷
+            </button>
+            <button type="button" class="camera-btn cancel" onclick="closeCamera()" title="Close Camera">
+                <span aria-hidden="true">✕</span>
+                <span class="btn-label">Close</span>
+            </button>
+        </div>
+        <!-- Camera instructions overlay -->
+        <div class="camera-instructions" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 1000001;">
+            📱 Tap the red button to take a photo
+        </div>
+    </div>
+</div>
+
+<script>
+let currentCamera = null;
+let currentCategory = null;
+let facingMode = 'environment'; // Start with back camera
+let isUploading = false; // Flag to prevent multiple simultaneous uploads
+let searchTimeout = null;
+let cameraFiles = {}; // Store camera files by category
+let torchSupported = false;
+let torchEnabled = false;
+
+// Step navigation
+function proceedToUpload() {
+    const name = document.getElementById('name').value.trim();
+    const patientId = document.getElementById('patient_id').value;
+    
+    if (!name) {
+        alert('Please enter a patient name');
+        return;
+    }
+    
+    // Transfer data to upload form
+    document.getElementById('upload_patient_id').value = patientId;
+    document.getElementById('upload_name').value = name;
+    document.getElementById('upload_email').value = document.getElementById('email').value;
+    document.getElementById('upload_phone').value = document.getElementById('phone').value;
+    
+    // Update patient info display
+    document.getElementById('displayName').textContent = patientId ? `${name} (ID: ${patientId})` : name;
+    document.getElementById('displayEmail').textContent = document.getElementById('email').value || 'Not provided';
+    document.getElementById('displayPhone').textContent = document.getElementById('phone').value || 'Not provided';
+    document.getElementById('patientInfoDisplay').style.display = 'block';
+    
+    // Switch to step 2
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+    document.getElementById('step1-indicator').classList.remove('active');
+    document.getElementById('step1-indicator').classList.add('completed');
+    document.getElementById('step2-indicator').classList.remove('pending');
+    document.getElementById('step2-indicator').classList.add('active');
+}
+
+function backToPatientSelection() {
+    // Switch back to step 1
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+    document.getElementById('step2-indicator').classList.remove('active');
+    document.getElementById('step2-indicator').classList.add('pending');
+    document.getElementById('step1-indicator').classList.remove('completed');
+    document.getElementById('step1-indicator').classList.add('active');
+}
+
+// Patient search functionality
+$(document).ready(function() {
+    const patientSearch = document.getElementById('patient_search');
+    const patientResults = document.getElementById('patient_results');
+    const selectedPatient = document.getElementById('selected_patient');
+    const patientIdInput = document.getElementById('patient_id');
+    let localSearchTimeout = null;
+
+    if (!patientSearch || !patientResults || !selectedPatient || !patientIdInput) {
+        console.error('Patient search elements missing; autocomplete disabled.');
+        return;
+    }
+
+    function hideResults() {
+        patientResults.style.display = 'none';
+        patientResults.innerHTML = '';
+        patientResults.style.position = '';
+        patientResults.style.left = '';
+        patientResults.style.top = '';
+        patientResults.style.width = '';
+        patientResults.style.maxHeight = '';
+        patientResults.style.bottom = '';
+    }
+
+    function positionResultsDropdown() {
+        // Position results in the *visible* viewport so it doesn't hide behind the on-screen keyboard.
+        const rect = patientSearch.getBoundingClientRect();
+        const vv = window.visualViewport;
+        const viewportHeight = vv ? vv.height : window.innerHeight;
+
+        const padding = 12;
+        const desiredTop = rect.bottom + 6;
+        let maxHeightBelow = viewportHeight - desiredTop - padding;
+
+        patientResults.style.position = 'fixed';
+        patientResults.style.left = `${Math.max(padding, rect.left)}px`;
+        patientResults.style.width = `${Math.min(rect.width, window.innerWidth - (2 * padding))}px`;
+        patientResults.style.right = 'auto';
+
+        // If there isn't enough room below (keyboard), show dropdown above the input instead.
+        if (maxHeightBelow < 140) {
+            const bottomSpace = viewportHeight - rect.top + 6;
+            const maxHeightAbove = rect.top - padding;
+            patientResults.style.top = '';
+            patientResults.style.bottom = `${bottomSpace}px`;
+            patientResults.style.maxHeight = `${Math.max(120, maxHeightAbove)}px`;
+        } else {
+            patientResults.style.bottom = '';
+            patientResults.style.top = `${desiredTop}px`;
+            patientResults.style.maxHeight = `${Math.min(320, maxHeightBelow)}px`;
+        }
+    }
+
+    function clearSelectedPatient() {
+        patientIdInput.value = '';
+        selectedPatient.style.display = 'none';
+        selectedPatient.textContent = '';
+    }
+
+    async function searchPatients(query) {
+        if (!query || query.length < 2) {
+            hideResults();
+            return;
+        }
+        try {
+            const response = await fetch(`/admin/api/patient-search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            const patients = data.patients || [];
+
+            if (!patients.length) {
+                patientResults.innerHTML = '<div class="result-item">No matching patients</div>';
+                patientResults.style.display = 'block';
+                return;
+            }
+
+            patientResults.innerHTML = patients.map(patient => {
+                const meta = [];
+                if (patient.email) meta.push(patient.email);
+                if (patient.phone) meta.push(patient.phone);
+                return `
+                    <div class="result-item" data-patient='${JSON.stringify(patient)}'>
+                        <div style="font-weight:600;">${patient.name} (ID: ${patient.id})</div>
+                        <div style="font-size:0.85rem; opacity:0.7;">${meta.join(' • ')}</div>
+                    </div>
+                `;
+            }).join('');
+            positionResultsDropdown();
+            patientResults.style.display = 'block';
+        } catch (error) {
+            console.error('Error searching patients:', error);
+            hideResults();
+        }
+    }
+
+    function setSelectedPatient(patient) {
+        if (!patient) return;
+        selectPatient(patient);
+        selectedPatient.textContent = `Selected: ${patient.name} (ID: ${patient.id})`;
+        selectedPatient.style.display = 'inline-flex';
+        patientSearch.value = '';
+        hideResults();
+    }
+
+    patientSearch.addEventListener('input', event => {
+        const query = event.target.value.trim();
+        clearSelectedPatient();
+        if (query.length < 2) {
+            hideResults();
+            return;
+        }
+        // Make sure the input stays visible when the keyboard opens.
+        patientSearch.scrollIntoView({ block: 'center', inline: 'nearest' });
+        clearTimeout(localSearchTimeout);
+        localSearchTimeout = setTimeout(() => searchPatients(query), 200);
+    });
+
+    patientSearch.addEventListener('focus', () => {
+        // When keyboard opens, re-position results if already visible.
+        setTimeout(() => {
+            if (patientResults.style.display === 'block') positionResultsDropdown();
+        }, 50);
+    });
+
+    // Keep dropdown anchored correctly when the visual viewport changes (keyboard open/close)
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            if (patientResults.style.display === 'block') positionResultsDropdown();
+        });
+        window.visualViewport.addEventListener('scroll', () => {
+            if (patientResults.style.display === 'block') positionResultsDropdown();
+        });
+    }
+
+    patientResults.addEventListener('click', event => {
+        const target = event.target.closest('.result-item');
+        if (!target) return;
+        try {
+            const payload = target.dataset.patient;
+            if (!payload) return;
+            const patient = JSON.parse(payload);
+            setSelectedPatient(patient);
+        } catch (err) {
+            console.error('Unable to parse patient payload', err);
+        }
+    });
+
+    document.addEventListener('click', event => {
+        if (!patientResults.contains(event.target) && event.target !== patientSearch) {
+            hideResults();
+        }
+    });
+});
+
+// Select patient function
+function selectPatient(patient) {
+    // Set values for the patient form
+    document.getElementById('patient_id').value = patient.id;
+    document.getElementById('name').value = patient.name;
+    document.getElementById('email').value = patient.email || '';
+    document.getElementById('phone').value = patient.phone || '';
+    
+    // Also set values for the upload form
+    document.getElementById('upload_patient_id').value = patient.id;
+    document.getElementById('upload_name').value = patient.name;
+    document.getElementById('upload_email').value = patient.email || '';
+    document.getElementById('upload_phone').value = patient.phone || '';
+    
+    // Show success message
+    console.log(`✅ Selected patient: ${patient.name} (ID: ${patient.id})`);
+}
+
+// Camera functionality
+function openCamera(category) {
+    currentCategory = category;
+    const modal = document.getElementById('cameraModal');
+    const video = document.getElementById('cameraVideo');
+    
+    modal.classList.add('active');
+    
+    // Request camera access
+    navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        }
+    })
+    .then(stream => {
+        currentCamera = stream;
+        video.srcObject = stream;
+
+        // Flash (torch) support detection (not available on all devices/browsers)
+        torchEnabled = false;
+        torchSupported = false;
+        const flashBtn = document.getElementById('flashBtn');
+        try {
+            const track = stream.getVideoTracks && stream.getVideoTracks()[0];
+            const caps = track && track.getCapabilities ? track.getCapabilities() : null;
+            torchSupported = !!(caps && caps.torch);
+        } catch (e) {
+            torchSupported = false;
+        }
+        if (flashBtn) {
+            flashBtn.style.display = torchSupported ? 'flex' : 'none';
+            flashBtn.classList.toggle('active', torchEnabled);
+        }
+    })
+    .catch(error => {
+        console.error('Error accessing camera:', error);
+        alert('Unable to access camera. Please check permissions.');
+        closeCamera();
+    });
+}
+
+function closeCamera() {
+    const modal = document.getElementById('cameraModal');
+    modal.classList.remove('active');
+
+    // Reset flash state UI when closing
+    torchEnabled = false;
+    const flashBtn = document.getElementById('flashBtn');
+    if (flashBtn) flashBtn.classList.remove('active');
+    
+    if (currentCamera) {
+        currentCamera.getTracks().forEach(track => track.stop());
+        currentCamera = null;
+    }
+}
+
+function switchCamera() {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    closeCamera();
+    setTimeout(() => openCamera(currentCategory), 100);
+}
+
+async function toggleFlash() {
+    if (!currentCamera || !torchSupported) return;
+    const track = currentCamera.getVideoTracks && currentCamera.getVideoTracks()[0];
+    if (!track || !track.applyConstraints) return;
+
+    torchEnabled = !torchEnabled;
+    try {
+        await track.applyConstraints({ advanced: [{ torch: torchEnabled }] });
+    } catch (err) {
+        console.warn('Torch not supported / failed to enable torch:', err);
+        torchEnabled = false;
+    }
+    const flashBtn = document.getElementById('flashBtn');
+    if (flashBtn) flashBtn.classList.toggle('active', torchEnabled);
+}
+
+function capturePhoto() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const context = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+    
+    canvas.toBlob(blob => {
+        const file = new File([blob], `camera_${currentCategory}_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        addFileToPreview(file, currentCategory, true); // Mark as camera file
+        // Keep the camera open so the user can capture multiple photos in one session.
+        // They can tap "Cancel" when done.
+    }, 'image/jpeg', 0.8);
+}
+
+// File upload functionality
+function openFileUpload(category) {
+    const input = document.getElementById(`${category}_input`);
+    input.click();
+}
+
+function addFileToPreview(file, category, isCameraFile = false) {
+    const preview = document.getElementById(`${category}_preview`);
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-preview-item';
+    
+    // Only store camera files for upload (not device files)
+    if (isCameraFile) {
+        if (!cameraFiles[category]) {
+            cameraFiles[category] = [];
+        }
+        cameraFiles[category].push(file);
+    }
+    
+    if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        fileItem.appendChild(img);
+    } else {
+        fileItem.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 24px;">📄</div>`;
+    }
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-file';
+    removeBtn.innerHTML = '×';
+    removeBtn.onclick = () => {
+        // Remove file from storage when removed from preview (only for camera files)
+        if (isCameraFile) {
+            const index = cameraFiles[category].indexOf(file);
+            if (index > -1) {
+                cameraFiles[category].splice(index, 1);
+            }
+        }
+        fileItem.remove();
+    };
+    
+    const fileName = document.createElement('div');
+    fileName.className = 'file-name';
+    fileName.textContent = file.name;
+    
+    fileItem.appendChild(removeBtn);
+    fileItem.appendChild(fileName);
+    preview.appendChild(fileItem);
+}
+
+// Handle file input changes
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = ['clinical_pictures_input', 'billing_input'];
+    
+    fileInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', function(e) {
+                const category = inputId.replace('_input', '');
+                Array.from(e.target.files).forEach(file => {
+                    addFileToPreview(file, category, false); // Mark as device file
+                });
+            });
+        }
+    });
+});
+
+// Submit individual section
+function submitSection(category, event) {
+    // Prevent default form submission
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    // Prevent multiple simultaneous uploads
+    if (isUploading) {
+        console.log('Upload already in progress, ignoring duplicate request');
+        return;
+    }
+    
+    // Prevent multiple submissions
+    const button = event ? event.target : document.querySelector(`button[onclick*="${category}"]`);
+    if (button && button.disabled) {
+        return;
+    }
+    
+    // Set uploading flag
+    isUploading = true;
+    
+    // Disable the button to prevent multiple clicks
+    if (button) {
+        button.disabled = true;
+        button.textContent = '⏳ Uploading...';
+    }
+    
+    const patientId = document.getElementById('upload_patient_id').value;
+    const name = document.getElementById('upload_name').value;
+    const email = document.getElementById('upload_email').value;
+    const phone = document.getElementById('upload_phone').value;
+    
+    if (!patientId && !name) {
+        alert('Please select or enter patient information first');
+        if (button) {
+            button.disabled = false;
+            if (category === 'clinical_pictures') {
+                button.textContent = '📤 Upload Clinical Pictures';
+            } else if (category === 'billing') {
+                button.textContent = '📤 Upload Billing Documents';
+            }
+        }
+        isUploading = false;
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('category', category);
+    
+    if (patientId) {
+        formData.append('patient_id', patientId);
+    } else {
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('phone', phone);
+    }
+    
+    // Collect files from file input
+    const fileInput = document.getElementById(`${category}_input`);
+    if (fileInput && fileInput.files.length > 0) {
+        Array.from(fileInput.files).forEach(file => {
+            formData.append(`${category}[]`, file);
+        });
+    }
+    
+    // Also collect camera files
+    if (cameraFiles[category] && cameraFiles[category].length > 0) {
+        cameraFiles[category].forEach(file => {
+            formData.append(`${category}[]`, file);
+        });
+    }
+    
+    // Show upload status
+    const statusDiv = document.getElementById(`${category}_status`);
+    if (statusDiv) {
+        statusDiv.className = 'upload-status info';
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = `⏳ Uploading ${category.replace('_', ' ')}...`;
+    }
+    
+    // Submit the form
+    fetch('/direct_file_upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            if (statusDiv) {
+                statusDiv.className = 'upload-status error';
+                statusDiv.innerHTML = `
+                    ❌ ${data.error}
+                    <button class="close-btn" onclick="closeStatusMessage('${category}')">×</button>
+                `;
+            }
+        } else {
+            if (statusDiv) {
+                statusDiv.className = 'upload-status success';
+                statusDiv.innerHTML = `
+                    ✅ ${category.replace('_', ' ')} uploaded successfully!
+                    <button class="close-btn" onclick="closeStatusMessage('${category}')">×</button>
+                `;
+            }
+            
+            // Clear the file input and preview after successful upload
+            const input = document.getElementById(`${category}_input`);
+            input.value = '';
+            const preview = document.getElementById(`${category}_preview`);
+            preview.innerHTML = '';
+            
+            // Clear camera files for this category
+            if (cameraFiles[category]) {
+                cameraFiles[category] = [];
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        if (statusDiv) {
+            statusDiv.className = 'upload-status error';
+            statusDiv.innerHTML = `
+                ❌ Upload failed: ${error.message}
+                <button class="close-btn" onclick="closeStatusMessage('${category}')">×</button>
+            `;
+        }
+    })
+    .finally(() => {
+        // Reset uploading flag
+        isUploading = false;
+        
+        // Re-enable the button
+        if (button) {
+            button.disabled = false;
+            if (category === 'clinical_pictures') {
+                button.textContent = '📤 Upload Clinical Pictures';
+            } else if (category === 'billing') {
+                button.textContent = '📤 Upload Billing Documents';
+            }
+        }
+    });
+}
+
+// Close status message function
+function closeStatusMessage(category) {
+    const statusDiv = document.getElementById(`${category}_status`);
+    if (statusDiv) {
+        statusDiv.style.display = 'none';
+        statusDiv.innerHTML = '';
+    }
+    
+    // Refresh the page after closing the message
+    window.location.reload();
+}
+
+$(document).ready(function() {
+    // Close camera modal when clicking outside
+    $(document).on('click', '#cameraModal', function(e) {
+        if (e.target === this) {
+            closeCamera();
+        }
+    });
+
+    // Handle escape key to close camera
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape' && $('#cameraModal').hasClass('active')) {
+            closeCamera();
+        }
+    });
+});
+</script>
+{% endblock %}

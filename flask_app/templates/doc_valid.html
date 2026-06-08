@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Upload</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+    <div class="container">
+        <h3 class="center-align">Upload and Analyze Document</h3>
+        <!-- File Upload Form -->
+        <form id="uploadForm" action="/upload_document_for_validation" method="post" enctype="multipart/form-data">
+            <div class="file-field input-field">
+                <div class="btn">
+                    <span>Select File</span>
+                    <input type="file" name="file" id="file" required>
+                </div>
+                <div class="file-path-wrapper">
+                    <input class="file-path validate" type="text" placeholder="Select a file (PDF/Word/Image)">
+                </div>
+            </div>
+
+            <div class="center-align">
+                <button class="btn waves-effect waves-light" type="submit">Analyze</button>
+            </div>
+        </form>
+
+        <!-- Response Section -->
+        <div id="response" style="margin-top: 20px; display: none;">
+            <h5 class="blue-text">Analysis Result:</h5>
+            <pre id="responseText"></pre>
+        </div>
+    </div>
+
+   <script>
+    document.getElementById("uploadForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    console.log("FormData entries:", Array.from(formData.entries()));
+
+    fetch("/upload_document_for_validation", {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("Response received:", data);
+        const responseDiv = document.getElementById("response");
+        const responseText = document.getElementById("responseText");
+        responseText.textContent = JSON.stringify(data, null, 2);
+        responseDiv.style.display = "block";
+    })
+    .catch(error => {
+        console.error("Error during file upload:", error);
+        alert("An error occurred. Please try again.");
+    });
+});
+   </script>
+</body>
+</html>

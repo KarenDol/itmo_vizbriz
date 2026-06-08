@@ -1,0 +1,1455 @@
+{% extends "base.html" %}
+
+{% block title %}Level 4 Reports: Observations & Device Recommendations - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Force readable text colors - override any conflicting styles */
+    table tbody td {
+        color: #000000 !important;
+    }
+    
+    table tbody td[style*="background"] {
+        color: #000000 !important;
+    }
+    
+    .admin-container {
+        padding: 20px;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .report-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .report-info h3 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+    }
+    
+    .report-info p {
+        margin: 5px 0;
+        opacity: 0.9;
+    }
+    
+    .section {
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .section:last-child {
+        border-bottom: none;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: #667eea;
+        margin-right: 10px;
+        border-radius: 2px;
+    }
+    
+    .clinical-context {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #2196f3;
+        color: #000000 !important;
+    }
+    
+    .clinical-context strong {
+        color: #000000 !important;
+    }
+    
+    .device-design-card {
+        background: #e8f5e9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #4caf50;
+    }
+    
+    .device-design-header {
+        font-weight: 600;
+        color: #2e7d32;
+        margin-bottom: 10px;
+    }
+    
+    .design-param {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #c8e6c9;
+    }
+    
+    .design-param:last-child {
+        border-bottom: none;
+    }
+    
+    .param-label {
+        font-weight: 500;
+        color: #555;
+    }
+    
+    .param-value {
+        color: #000000 !important;
+        font-weight: 400;
+    }
+    
+    .param-label {
+        color: #333333 !important;
+        font-weight: 600;
+    }
+    
+    .device-option {
+        background: #fff3e0;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #ff9800;
+    }
+    
+    .device-option-name {
+        font-weight: 600;
+        color: #e65100;
+        margin-bottom: 5px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+    
+    .search-filter {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .search-filter input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+    
+    .info-box {
+        background: #f5f5f5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        border-left: 3px solid #667eea;
+        color: #000000 !important;
+    }
+    
+    .info-box strong {
+        color: #333333 !important;
+    }
+    
+    .info-box {
+        color: #000000 !important;
+    }
+    
+    .info-column {
+        /* Default: visible */
+    }
+    
+    /* Custom scrollbar styling for better visibility */
+    #tableWrapper::-webkit-scrollbar {
+        height: 16px;
+        background: #f0f0f0;
+    }
+    
+    #tableWrapper::-webkit-scrollbar-track {
+        background: #f0f0f0;
+        border-radius: 8px;
+    }
+    
+    #tableWrapper::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 8px;
+        border: 2px solid #f0f0f0;
+    }
+    
+    #tableWrapper::-webkit-scrollbar-thumb:hover {
+        background: #5568d3;
+    }
+    
+    /* For Firefox */
+    #tableWrapper {
+        scrollbar-width: thick;
+        scrollbar-color: #667eea #f0f0f0;
+    }
+    
+    /* Scroll indicator animation */
+    #scrollIndicator {
+        opacity: 0.9;
+        transition: opacity 0.3s ease;
+    }
+    
+    #tableWrapper:hover #scrollIndicator {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+        <div>
+            <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 32px;">📊</span>
+                <span>Level 4 Reports: Observations & Device Recommendations</span>
+            </h1>
+            <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 400;">Clinical data analysis and device design patterns</p>
+        </div>
+        <button onclick="toggleInfoSection()" id="toggleInfoBtn" style="padding: 10px 18px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; backdrop-filter: blur(10px); transition: all 0.2s ease;">
+            <span id="toggleInfoText">Show Info</span> <span id="toggleInfoIcon">▶</span>
+        </button>
+    </div>
+    
+    <div id="infoSection" style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #1976d2; display: none;">
+        <h3 style="margin-top: 0; color: #1976d2;">What is this page showing?</h3>
+        <p style="color: #333; margin-bottom: 15px; line-height: 1.6;">
+            <strong>This table shows all processed Level 4 sleep study reports</strong> and the device recommendations that were made for each patient.
+        </p>
+        <ul style="color: #333; margin: 10px 0; padding-left: 25px; line-height: 1.8;">
+            <li><strong>Each row</strong> = One report (or one device context from a report)</li>
+            <li><strong>Report column:</strong> The filename of the Level 4 report that was uploaded</li>
+            <li><strong>Patient Name & ID:</strong> Patient information (if the report was matched to a patient in the system)</li>
+            <li><strong>Dentist:</strong> The dentist who treated this patient (if patient was matched)</li>
+            <li><strong>Context:</strong> The type of device context (e.g., "Nighttime MAD" or "Daytime TMJ")</li>
+            <li><strong>Blue columns (Observations):</strong> What was found in the sleep study (AHI, O2 levels, obstruction sites, etc.)</li>
+            <li><strong>Green columns (Device Design):</strong> What device parameters were recommended based on the observations</li>
+            <li><strong>Orange column (Device Options):</strong> Which specific devices were recommended</li>
+        </ul>
+        <p style="color: #666; margin-top: 15px; font-size: 14px;">
+            <strong>Purpose:</strong> This helps you see patterns - how different clinical observations lead to different device recommendations. 
+            You can use this to build decision trees for future cases.
+        </p>
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 3px solid #4caf50;">
+            <strong style="color: #2e7d32;">📋 How Context is Determined:</strong>
+            <p style="color: #333; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                The <strong>Context</strong> column shows the device type context extracted from the report:
+            </p>
+            <ul style="color: #333; margin: 10px 0; padding-left: 25px; line-height: 1.8; font-size: 14px;">
+                <li><strong>"Nighttime MAD"</strong> - Found when report mentions "Nighttime", "MAD", or "Mandibular Advancement Device"</li>
+                <li><strong>"Daytime TMJ"</strong> - Found when report mentions "Daytime", "TMJ", or "Lower TMJ Appliance"</li>
+                <li><strong>"Unknown"</strong> - Used when the context is unclear or not explicitly stated</li>
+            </ul>
+            <p style="color: #666; margin-top: 10px; font-size: 13px;">
+                The LLM extraction service analyzes report sections and looks for these keywords to determine the context. 
+                One report can have multiple contexts (e.g., both nighttime and daytime devices), which creates multiple rows.
+            </p>
+        </div>
+        <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 3px solid #ff9800;">
+            <strong style="color: #e65100;">ℹ️ About Empty Fields:</strong>
+            <p style="color: #333; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                Empty fields (shown as "Not found") can mean:
+            </p>
+            <ul style="color: #333; margin: 10px 0; padding-left: 25px; line-height: 1.8; font-size: 14px;">
+                <li><strong>The information wasn't in the original report</strong> - Some reports may not include all sections (e.g., patient complaints, clinical background)</li>
+                <li><strong>The extraction parser couldn't find it</strong> - The LLM may have missed the information if it was formatted differently than expected</li>
+                <li><strong>Check the "Extraction Status" column</strong> - Shows HIGH/MED/LOW confidence based on how many fields were successfully extracted</li>
+            </ul>
+            <p style="color: #666; margin-top: 10px; font-size: 13px;">
+                <strong>Tip:</strong> Hover over empty cells to see if extraction was attempted. If you see many empty fields with LOW confidence, the report may need reprocessing.
+            </p>
+        </div>
+        <div id="kbStatsBox" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 20px; border-radius: 12px; margin-top: 15px; border-left: 4px solid #2196f3; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);">
+            <div style="font-size: 16px; font-weight: 600; color: #1565c0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">📚</span>
+                <span>Knowledge Base Status</span>
+            </div>
+            <div id="kbStatsContent" style="color: #424242; margin-top: 4px; font-size: 14px; font-weight: 500;">Loading…</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 3px solid #4caf50;">
+            <strong style="color: #2e7d32;">📥 How to Add More Reports:</strong>
+            <ul style="margin: 10px 0; padding-left: 25px; line-height: 1.8; color: #333;">
+                <li><strong>Option 1 (Recommended - Web UI):</strong> Click "Process Reports from Admin Files" button above. This will automatically find all Level 4 reports in the admin_files table, download them from S3, and process them.</li>
+                <li><strong>Option 2 (Command Line - Directory):</strong> Run: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">python scripts/process_l4_reports.py --input "/path/to/reports/"</code></li>
+                <li><strong>Note:</strong> Reports can be in PDF or DOCX format. The system will extract text, parse observations (AHI, O2 levels, obstruction sites, etc.), device design parameters, and device options. All observations are stored in the l4_device_design table. Already processed reports will be skipped.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div id="uploadKbStatus" style="margin-top: 15px; padding: 12px; background: white; border-radius: 8px; display: none; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"></div>
+    
+    <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button onclick="showTableView()" id="tableBtn" class="view-btn active">Table View (Causality)</button>
+        <button onclick="showCardView()" id="cardBtn" class="view-btn">Card View (Details)</button>
+        
+        <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+            <button onclick="processReportsFromAdminFiles()" class="view-btn" style="background: #4caf50; color: white; border-color: #4caf50;">
+                🔄 Process Reports from Admin Files
+            </button>
+            <button type="button" id="uploadAllToKbBtn" class="view-btn" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; border: none; font-size: 14px; padding: 10px 20px; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3); cursor: pointer; transition: all 0.2s ease;">
+                <span style="margin-right: 6px;">📤</span>
+                Sync All Reports to KB
+            </button>
+        </div>
+    </div>
+    
+    <div id="processStatus" style="display: none; margin-bottom: 20px; padding: 15px; border-radius: 8px; background: #e3f2fd;"></div>
+    
+    <!-- Ask LLM about patterns & design -->
+    <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; border-left: 4px solid #667eea;">
+        <h3 style="margin-top: 0; color: #333;">Ask about patterns & design</h3>
+        <p style="color: #666; margin-bottom: 12px; font-size: 14px;">
+            Query the LLM using the data in the table below. Ask for patterns (e.g. high AHI vs device settings), common design choices, or device recommendations. Answers are based only on the loaded report data.
+        </p>
+        <div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;">
+            <textarea id="patternQueryInput" placeholder="e.g. What mandibular advancement values are used when AHI is high? Which devices appear most often?" rows="3" style="flex: 1; min-width: 280px; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;"></textarea>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button type="button" id="patternQueryBtn" class="view-btn" style="background: #667eea; color: white; border-color: #667eea;">Ask LLM</button>
+                <button type="button" id="generateTreeBtn" class="view-btn" style="background: #4caf50; color: white; border-color: #4caf50; font-size: 13px; padding: 8px 12px;">🌳 Generate Decision Tree</button>
+            </div>
+        </div>
+        <div id="patternQueryResult" style="margin-top: 15px; padding: 15px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: none; white-space: pre-wrap; font-size: 14px; color: #1e293b;"></div>
+        <div id="patternQuerySources" style="margin-top: 10px; padding: 10px 15px; border-radius: 8px; background: #e8f4fd; border: 1px solid #90caf9; display: none; font-size: 13px; color: #1565c0;">
+            <strong>Sources (Knowledge Base):</strong> <span id="patternQuerySourcesList"></span>
+        </div>
+        <div id="decisionTreeResult" style="margin-top: 15px; padding: 15px; border-radius: 8px; background: #f0fdf4; border: 1px solid #86efac; display: none; font-size: 14px; color: #166534;">
+            <div style="font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <span>🌳 Decision Tree Generated</span>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="toggleTreeView()" id="toggleTreeViewBtn" style="padding: 6px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        <span id="treeViewToggleText">Show JSON</span>
+                    </button>
+                </div>
+            </div>
+            <div id="decisionTreeVisual" style="background: white; padding: 20px; border-radius: 6px; min-height: 200px; overflow: auto; max-height: 800px; display: block;"></div>
+            <pre id="decisionTreeContent" style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; display: none;"></pre>
+            <div id="decisionTreeSources" style="margin-top: 10px; padding: 8px 12px; background: #e8f4fd; border-radius: 6px; font-size: 12px; color: #1565c0; display: none;">
+                <strong>Sources:</strong> <span id="decisionTreeSourcesList"></span>
+            </div>
+        </div>
+        <div id="patternQueryError" style="margin-top: 15px; padding: 15px; border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca; display: none; font-size: 14px; color: #991b1b;"></div>
+    </div>
+    
+    <div class="search-filter">
+        <input type="text" id="reportSearch" placeholder="Search by report name, patient name, dentist name, or observation..." onkeyup="filterData()">
+    </div>
+    
+    <!-- Causality Table View -->
+    <div id="tableView" style="display: block;">
+        <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <h2 style="margin-top: 0; color: #333;">Causality Table: Observations → Device Design Parameters</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                See how clinical observations from Level 4 reports relate to device design recommendations.
+                This helps identify patterns and understand causality.
+            </p>
+            
+            {% if not causality_data or causality_data|length == 0 %}
+            <div class="empty-state" style="text-align: center; padding: 60px 20px; background: #f5f5f5; border-radius: 8px;">
+                <div style="font-size: 64px; margin-bottom: 20px;">📋</div>
+                <h3 style="color: #666; margin-bottom: 10px;">No Reports Found</h3>
+                <p style="color: #999; margin-bottom: 20px;">
+                    There are no Level 4 reports processed yet in the database.
+                </p>
+                <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block; text-align: left; max-width: 600px;">
+                    <p style="color: #333; margin-bottom: 10px;"><strong>To see data here, you need to:</strong></p>
+                    <ol style="color: #666; margin: 0; padding-left: 25px; line-height: 1.8;">
+                        <li>Upload Level 4 sleep study reports (PDF files)</li>
+                        <li>Process them using the Level 4 report processing script</li>
+                        <li>The script extracts observations and device recommendations from the reports</li>
+                        <li>Once processed, they will appear in this table</li>
+                    </ol>
+                </div>
+            </div>
+            {% else %}
+            <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
+                <strong style="color: #2e7d32;">✓ Found {{ causality_data|length }} report{{ 's' if causality_data|length != 1 else '' }} in the database</strong>
+                <p style="color: #666; margin: 5px 0 0 0; font-size: 14px;">
+                    Scroll horizontally to see all columns. The first 4 columns (Report, Patient Name, Patient ID, Dentist) stay visible when scrolling.
+                </p>
+            </div>
+            
+            <!-- Summary Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 28px; font-weight: bold; color: #667eea;">{{ causality_data|length }}</div>
+                    <div style="color: #666; font-size: 14px; margin-top: 5px;">Total Rows</div>
+                    <div style="color: #999; font-size: 12px; margin-top: 3px;">(One row per report/context)</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 28px; font-weight: bold; color: #4caf50;">
+                        {% set unique_reports = [] %}
+                        {% for row in causality_data %}
+                            {% if row.report_id not in unique_reports %}
+                                {% set _ = unique_reports.append(row.report_id) %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ unique_reports|length }}
+                    </div>
+                    <div style="color: #666; font-size: 14px; margin-top: 5px;">Unique Reports</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 28px; font-weight: bold; color: #ff9800;">
+                        {% set patients_with_names = [] %}
+                        {% for row in causality_data %}
+                            {% if row.patient_name and row.patient_name not in patients_with_names %}
+                                {% set _ = patients_with_names.append(row.patient_name) %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ patients_with_names|length }}
+                    </div>
+                    <div style="color: #666; font-size: 14px; margin-top: 5px;">Patients with Names</div>
+                    <div style="color: #999; font-size: 12px; margin-top: 3px;">(Matched to database)</div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="font-size: 28px; font-weight: bold; color: #9c27b0;">
+                        {% set dentists_with_names = [] %}
+                        {% for row in causality_data %}
+                            {% if row.dentist_name and row.dentist_name not in dentists_with_names %}
+                                {% set _ = dentists_with_names.append(row.dentist_name) %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ dentists_with_names|length }}
+                    </div>
+                    <div style="color: #666; font-size: 14px; margin-top: 5px;">Dentists with Names</div>
+                    <div style="color: #999; font-size: 12px; margin-top: 3px;">(Matched to database)</div>
+                </div>
+            </div>
+            
+            <div id="tableWrapper" style="overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; max-height: 70vh;">
+                <div style="position: sticky; top: 0; background: #f5f5f5; padding: 10px; border-bottom: 2px solid #ddd; z-index: 100; font-weight: 600; color: #333; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📊 Scroll horizontally to see all columns.</span>
+                    <button onclick="toggleInfoColumns()" id="toggleColumnsBtn" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
+                        <span id="toggleColumnsText">Hide Info Columns</span>
+                    </button>
+                </div>
+                
+                <!-- Custom Scrollbar Indicator in Middle -->
+                <div id="scrollIndicator" style="position: sticky; top: 50px; height: 40px; background: linear-gradient(to bottom, rgba(102, 126, 234, 0.1), rgba(102, 126, 234, 0.05)); border-top: 2px solid #667eea; border-bottom: 2px solid #667eea; z-index: 50; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                    <div style="background: #667eea; color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                        ← Scroll → 
+                    </div>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto;">
+                    <thead>
+                        <tr style="background: #1a237e; color: #ffffff !important;">
+                            <th class="info-column" style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 0; background: #1a237e !important; color: #ffffff !important; z-index: 10; font-weight: 600; font-size: 12px; white-space: nowrap;">Report</th>
+                            <th class="info-column" style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 150px; background: #1a237e !important; color: #ffffff !important; z-index: 10; font-weight: 600; font-size: 12px; white-space: nowrap;">Patient Name</th>
+                            <th class="info-column" style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 280px; background: #1a237e !important; color: #ffffff !important; z-index: 10; font-weight: 600; font-size: 12px; white-space: nowrap;">Patient ID</th>
+                            <th class="info-column" style="padding: 8px; text-align: left; border: 1px solid #ddd; position: sticky; left: 400px; background: #1a237e !important; color: #ffffff !important; z-index: 10; font-weight: 600; font-size: 12px; white-space: nowrap;">Dentist</th>
+                            <th style="padding: 8px; text-align: left; border: 1px solid #ddd; background: #1a237e !important; color: #ffffff !important; font-weight: 600; font-size: 12px; white-space: nowrap; min-width: 100px;">Context</th>
+                            
+                            <!-- OBSERVATIONS SECTION (Blue background) -->
+                            <th colspan="9" style="padding: 8px; text-align: center; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 700; font-size: 13px;">OBSERVATIONS (from Level 4 Report)</th>
+                            
+                            <!-- DEVICE DESIGN SECTION (Green background) -->
+                            <th colspan="8" style="padding: 8px; text-align: center; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 700; font-size: 13px;">DEVICE DESIGN (Recommended)</th>
+                            
+                            <!-- DEVICE OPTIONS SECTION (Orange background) -->
+                            <th style="padding: 8px; text-align: center; border: 1px solid #ddd; background: #bf360c !important; color: #ffffff !important; font-weight: 700; font-size: 13px; white-space: nowrap;">DEVICE OPTIONS</th>
+                            
+                            <!-- EXTRACTION STATUS -->
+                            <th style="padding: 8px; text-align: center; border: 1px solid #ddd; background: #1a237e !important; color: #ffffff !important; font-weight: 700; font-size: 13px; white-space: nowrap;">EXTRACTION STATUS</th>
+                        </tr>
+                        <tr>
+                            <th class="info-column" style="padding: 6px; text-align: left; border: 1px solid #ddd; position: sticky; left: 0; background: #1a237e !important; color: #ffffff !important; z-index: 10;"></th>
+                            <th class="info-column" style="padding: 6px; text-align: left; border: 1px solid #ddd; position: sticky; left: 150px; background: #1a237e !important; color: #ffffff !important; z-index: 10;"></th>
+                            <th class="info-column" style="padding: 6px; text-align: left; border: 1px solid #ddd; position: sticky; left: 280px; background: #1a237e !important; color: #ffffff !important; z-index: 10;"></th>
+                            <th class="info-column" style="padding: 6px; text-align: left; border: 1px solid #ddd; position: sticky; left: 400px; background: #1a237e !important; color: #ffffff !important; z-index: 10;"></th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1a237e !important; color: #ffffff !important;"></th>
+                            <!-- Observation columns -->
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 70px;">AHI</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 70px;">O2 Nadir</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 70px;">Snoring</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 120px;">Obstruction Sites</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 100px;">Tongue Position</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 100px;">Bite Structure</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 110px;">Soft Palate/Uvula</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 120px;">Clinical Background</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1565c0 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 100px;">Complaints</th>
+                            <!-- Device Design columns -->
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 100px;">Mandibular Adv.</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 70px;">Preset (mm)</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 90px;">Vertical Opening</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 100px;">Anterior Window</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 80px;">Material</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 90px;">Retention</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 80px;">Coverage</th>
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #1b5e20 !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 100px;">Clinical Notes</th>
+                            <!-- Device Options -->
+                            <th style="padding: 6px; text-align: left; border: 1px solid #ddd; background: #bf360c !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 120px;">Devices</th>
+                            
+                            <!-- Extraction Status -->
+                            <th style="padding: 6px; text-align: center; border: 1px solid #ddd; background: #1a237e !important; color: #ffffff !important; font-weight: 600; font-size: 11px; white-space: nowrap; min-width: 80px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in causality_data %}
+                        <tr style="border-bottom: 1px solid #e0e0e0;" 
+                            data-report="{{ row.report_id|lower }}"
+                            data-patient="{{ row.patient_name|lower if row.patient_name else '' }} {{ row.patient_id|lower if row.patient_id else '' }}"
+                            data-dentist="{{ row.dentist_name|lower if row.dentist_name else '' }}"
+                            data-observation="{{ (row.obstruction_sites or '')|lower }} {{ (row.tongue_position or '')|lower }}">
+                            <!-- Report Info (sticky) -->
+                            <td class="info-column" style="padding: 6px; border: 1px solid #ddd; position: sticky; left: 0; background: #ffffff !important; font-weight: 500; z-index: 3; color: #000000 !important; width: 150px; max-width: 150px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.report_id or 'N/A' }}">{% if row.report_id %}{{ row.report_id|truncate(30, True, '...') }}{% else %}N/A{% endif %}</td>
+                            <td class="info-column" style="padding: 6px; border: 1px solid #ddd; position: sticky; left: 150px; background: #ffffff !important; font-weight: 500; z-index: 3; color: #000000 !important; width: 130px; max-width: 130px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{% if row.patient_name %}{{ row.patient_name }}{% elif row.patient_id %}{{ row.patient_id }}{% else %}Not matched{% endif %}">{% if row.patient_name %}{{ row.patient_name|truncate(20, True, '...') }}{% elif row.patient_id %}{{ row.patient_id|truncate(20, True, '...') }}{% else %}Not matched{% endif %}</td>
+                            <td class="info-column" style="padding: 6px; border: 1px solid #ddd; position: sticky; left: 280px; background: #ffffff !important; z-index: 3; color: #000000 !important; width: 120px; max-width: 120px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.patient_id or 'N/A' }}">{% if row.patient_id %}{{ row.patient_id|truncate(15, True, '...') }}{% else %}N/A{% endif %}</td>
+                            <td class="info-column" style="padding: 6px; border: 1px solid #ddd; position: sticky; left: 400px; background: #ffffff !important; z-index: 3; color: #000000 !important; width: 120px; max-width: 120px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.dentist_name or 'N/A' }}">{% if row.dentist_name %}{{ row.dentist_name|truncate(20, True, '...') }}{% else %}N/A{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #ffffff !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.design_context|replace('_', ' ')|title if row.design_context else 'N/A' }}">{% if row.design_context %}{{ row.design_context|replace('_', ' ')|title|truncate(15, True, '...') }}{% else %}N/A{% endif %}</td>
+                            
+                            <!-- OBSERVATIONS (Light blue background - ensure black text) -->
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 70px; max-width: 70px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.ahi or '-' }}">{{ row.ahi or '-' }}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 70px; max-width: 70px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.o2_nadir or '-' }}">{{ row.o2_nadir or '-' }}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 70px; max-width: 70px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.snoring_level or '-' }}">{{ row.snoring_level or '-' }}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 120px; max-width: 120px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.obstruction_sites or '-' }}">{% if row.obstruction_sites %}{{ row.obstruction_sites|truncate(60, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.tongue_position or '-' }}">{% if row.tongue_position %}{{ row.tongue_position|truncate(60, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.bite_structure or '-' }}">{% if row.bite_structure %}{{ row.bite_structure|truncate(60, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 110px; max-width: 110px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.soft_palate_uvula or '-' }}">{% if row.soft_palate_uvula %}{{ row.soft_palate_uvula|truncate(60, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 120px; max-width: 120px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{% if row.clinical_background %}{{ row.clinical_background }}{% else %}Field not found in report or extraction failed{% endif %}">{% if row.clinical_background %}{{ row.clinical_background|truncate(60, True, '...') }}{% else %}<span style="color: #999; font-style: italic; font-size: 10px;">Not found</span>{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e3f2fd !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{% if row.patient_complaints %}{{ row.patient_complaints }}{% else %}Field not found in report or extraction failed{% endif %}">{% if row.patient_complaints %}{{ row.patient_complaints|truncate(60, True, '...') }}{% else %}<span style="color: #999; font-style: italic; font-size: 10px;">Not found</span>{% endif %}</td>
+                            
+                            <!-- DEVICE DESIGN (Light green background - ensure black text) -->
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.mandibular_advancement or '-' }}">{% if row.mandibular_advancement %}{{ row.mandibular_advancement|truncate(50, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 70px; max-width: 70px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ row.preset_mm or '-' }}">{{ row.preset_mm or '-' }}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 90px; max-width: 90px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.vertical_opening or '-' }}">{% if row.vertical_opening %}{{ row.vertical_opening|truncate(50, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.anterior_window or '-' }}">{% if row.anterior_window %}{{ row.anterior_window|truncate(50, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 80px; max-width: 80px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.material or '-' }}">{% if row.material %}{{ row.material|truncate(50, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 90px; max-width: 90px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.retention_features or '-' }}">{% if row.retention_features %}{{ row.retention_features|truncate(50, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 80px; max-width: 80px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.coverage_notes or '-' }}">{% if row.coverage_notes %}{{ row.coverage_notes|truncate(50, True, '...') }}{% else %}-{% endif %}</td>
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #e8f5e9 !important; color: #000000 !important; width: 100px; max-width: 100px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.clinical_notes or '-' }}">{% if row.clinical_notes %}{{ row.clinical_notes|truncate(60, True, '...') }}{% else %}-{% endif %}</td>
+                            
+                            <!-- DEVICE OPTIONS (Light orange background - ensure black text) -->
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #fff3e0 !important; color: #000000 !important; width: 120px; max-width: 120px; font-size: 11px; word-wrap: break-word; line-height: 1.3;" title="{{ row.device_options or '-' }}">{% if row.device_options %}{{ row.device_options|truncate(60, True, '...') }}{% else %}-{% endif %}</td>
+                            
+                            <!-- EXTRACTION STATUS -->
+                            <td style="padding: 6px; border: 1px solid #ddd; background: #ffffff !important; color: #000000 !important; width: 80px; max-width: 80px; font-size: 11px; text-align: center;" title="Extraction confidence: {{ row.extraction_confidence|upper if row.extraction_confidence else 'MED' }} - Based on how many fields were successfully extracted">
+                                {% if row.extraction_confidence %}
+                                    {% if row.extraction_confidence|lower == 'high' %}
+                                        <span style="background: #4caf50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">HIGH</span>
+                                    {% elif row.extraction_confidence|lower == 'med' or row.extraction_confidence|lower == 'medium' %}
+                                        <span style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">MED</span>
+                                    {% else %}
+                                        <span style="background: #f44336; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">LOW</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% set has_obs = row.ahi or row.o2_nadir or row.obstruction_sites or row.tongue_position %}
+                                    {% set has_clinical = row.clinical_background or row.patient_complaints %}
+                                    {% set has_design = row.mandibular_advancement or row.vertical_opening or row.material %}
+                                    {% if has_obs and has_clinical and has_design %}
+                                        <span style="background: #4caf50; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">HIGH</span>
+                                    {% elif has_obs or has_clinical or has_design %}
+                                        <span style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">MED</span>
+                                    {% else %}
+                                        <span style="background: #f44336; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">LOW</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Card View (Detailed) -->
+    <div id="cardView" style="display: none;">
+    {% if not report_data_list or report_data_list|length == 0 %}
+    <div class="empty-state">
+        <div style="font-size: 48px; margin-bottom: 10px;">📋</div>
+        <h3>No Level 4 Reports Processed</h3>
+        <p>Process Level 4 reports to see observations and device recommendations.</p>
+        <p style="font-size: 14px; color: #999; margin-top: 10px;">
+            Run: python scripts/process_l4_reports.py --input "/path/to/reports/"
+        </p>
+    </div>
+    {% else %}
+    
+    {% for report_data in report_data_list %}
+    <div class="report-card" data-report-id="{{ report_data.source_report_id|lower }}" 
+         data-patient-id="{{ report_data.patient_id|lower if report_data.patient_id else '' }}">
+        
+        <!-- Report Header -->
+        <div class="report-header">
+            <div class="report-info">
+                <h3>{{ report_data.source_report_id }}</h3>
+                {% if report_data.patient_id %}
+                <p>Patient ID: {{ report_data.patient_id }}</p>
+                {% endif %}
+                <p>Processed: {{ report_data.created_at.strftime('%Y-%m-%d %H:%M') if report_data.created_at else 'N/A' }}</p>
+            </div>
+            <div style="text-align: right;">
+                <div style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; margin-bottom: 5px;">
+                    {{ report_data.device_designs|length }} Device Design(s)
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px;">
+                    {{ report_data.device_options|length }} Device Option(s)
+                </div>
+            </div>
+        </div>
+        
+        {% for design in report_data.device_designs %}
+        <!-- Device Design Section -->
+        <div class="section">
+            <div class="section-title">
+                {{ design.design_context|replace('_', ' ')|title }} Device Design
+            </div>
+            
+            <!-- Clinical Diagnosis (from Level 4 report) -->
+            {% if design.ahi or design.rdi or design.odi or design.o2_nadir or design.snoring_level %}
+            <div class="clinical-context">
+                <strong style="color: #1976d2; margin-bottom: 10px; display: block;">Clinical Diagnosis (from Level 4 Report):</strong>
+                {% if design.ahi %}
+                <div class="design-param">
+                    <span class="param-label">AHI:</span>
+                    <span class="param-value">{{ design.ahi }}</span>
+                </div>
+                {% endif %}
+                {% if design.rdi %}
+                <div class="design-param">
+                    <span class="param-label">RDI:</span>
+                    <span class="param-value">{{ design.rdi }}</span>
+                </div>
+                {% endif %}
+                {% if design.odi %}
+                <div class="design-param">
+                    <span class="param-label">ODI:</span>
+                    <span class="param-value">{{ design.odi }}</span>
+                </div>
+                {% endif %}
+                {% if design.o2_nadir %}
+                <div class="design-param">
+                    <span class="param-label">O2 Nadir:</span>
+                    <span class="param-value">{{ design.o2_nadir }}</span>
+                </div>
+                {% endif %}
+                {% if design.snoring_level %}
+                <div class="design-param">
+                    <span class="param-label">Snoring:</span>
+                    <span class="param-value">{{ design.snoring_level }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Clinical Background (from Level 4 report) -->
+            {% if design.clinical_background or design.patient_complaints or design.treatment_considerations %}
+            <div class="clinical-context" style="background: #fff3e0; border-left-color: #ff9800; color: #000000 !important;">
+                <strong style="color: #e65100 !important; margin-bottom: 10px; display: block; font-size: 16px;">Clinical Background (from Level 4 Report):</strong>
+                {% if design.clinical_background %}
+                <div class="info-box" style="color: #000000 !important; background: #ffffff;">
+                    <strong style="color: #333333 !important;">Background:</strong> <span style="color: #000000 !important;">{{ design.clinical_background }}</span>
+                </div>
+                {% endif %}
+                {% if design.patient_complaints %}
+                <div class="info-box" style="color: #000000 !important; background: #ffffff;">
+                    <strong style="color: #333333 !important;">Complaints:</strong> <span style="color: #000000 !important;">{{ design.patient_complaints }}</span>
+                </div>
+                {% endif %}
+                {% if design.treatment_considerations %}
+                <div class="info-box" style="color: #000000 !important; background: #ffffff;">
+                    <strong style="color: #333333 !important;">Treatment Considerations:</strong> <span style="color: #000000 !important;">{{ design.treatment_considerations }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Structural Findings (from Level 4 report) -->
+            {% if design.obstruction_sites or design.bite_structure or design.soft_palate_uvula or design.tongue_position %}
+            <div class="clinical-context" style="background: #f3e5f5; border-left-color: #9c27b0;">
+                <strong style="color: #7b1fa2; margin-bottom: 10px; display: block;">Structural Findings (from Level 4 Report):</strong>
+                {% if design.obstruction_sites %}
+                <div class="design-param">
+                    <span class="param-label">Obstruction Sites:</span>
+                    <span class="param-value">{{ design.obstruction_sites }}</span>
+                </div>
+                {% endif %}
+                {% if design.tongue_position %}
+                <div class="design-param">
+                    <span class="param-label">Tongue Position:</span>
+                    <span class="param-value">{{ design.tongue_position }}</span>
+                </div>
+                {% endif %}
+                {% if design.bite_structure %}
+                <div class="design-param">
+                    <span class="param-label">Bite Structure:</span>
+                    <span class="param-value">{{ design.bite_structure }}</span>
+                </div>
+                {% endif %}
+                {% if design.soft_palate_uvula %}
+                <div class="design-param">
+                    <span class="param-label">Soft Palate/Uvula:</span>
+                    <span class="param-value">{{ design.soft_palate_uvula }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Device Design Parameters -->
+            <div class="device-design-card">
+                <div class="device-design-header">Device Design Parameters</div>
+                
+                {% if design.mandibular_advancement %}
+                <div class="design-param">
+                    <span class="param-label">Mandibular Advancement:</span>
+                    <span class="param-value">{{ design.mandibular_advancement }}</span>
+                </div>
+                {% endif %}
+                {% if design.preset_mm %}
+                <div class="design-param">
+                    <span class="param-label">Preset (mm):</span>
+                    <span class="param-value">{{ design.preset_mm }}</span>
+                </div>
+                {% endif %}
+                {% if design.vertical_opening %}
+                <div class="design-param">
+                    <span class="param-label">Vertical Opening:</span>
+                    <span class="param-value">{{ design.vertical_opening }}</span>
+                </div>
+                {% endif %}
+                {% if design.anterior_window %}
+                <div class="design-param">
+                    <span class="param-label">Anterior Window:</span>
+                    <span class="param-value">{{ design.anterior_window }}</span>
+                </div>
+                {% endif %}
+                {% if design.material %}
+                <div class="design-param">
+                    <span class="param-label">Material:</span>
+                    <span class="param-value">{{ design.material }}</span>
+                </div>
+                {% endif %}
+                {% if design.retention_features %}
+                <div class="design-param">
+                    <span class="param-label">Retention Features:</span>
+                    <span class="param-value">{{ design.retention_features }}</span>
+                </div>
+                {% endif %}
+                {% if design.coverage_notes %}
+                <div class="design-param">
+                    <span class="param-label">Coverage:</span>
+                    <span class="param-value">{{ design.coverage_notes }}</span>
+                </div>
+                {% endif %}
+                {% if design.clinical_notes %}
+                <div class="design-param">
+                    <span class="param-label">Clinical Notes:</span>
+                    <span class="param-value">{{ design.clinical_notes }}</span>
+                </div>
+                {% endif %}
+                <div class="design-param">
+                    <span class="param-label">Confidence:</span>
+                    <span class="param-value">{{ design.extraction_confidence|upper }}</span>
+                </div>
+            </div>
+            
+            <!-- Device Options for this design context -->
+            {% set context_options = report_data.device_options|selectattr('design_context', 'equalto', design.design_context)|list %}
+            {% if context_options %}
+            <div style="margin-top: 15px;">
+                <strong style="color: #e65100; display: block; margin-bottom: 10px;">Recommended Device Options:</strong>
+                {% for option in context_options %}
+                <div class="device-option">
+                    <div class="device-option-name">{{ option.device_name }}</div>
+                    {% if option.device_family %}
+                    <div style="color: #333333 !important; font-size: 14px; margin-bottom: 5px;">
+                        Family: {{ option.device_family }}
+                    </div>
+                    {% endif %}
+                    {% if option.key_features %}
+                    <div style="color: #000000 !important;">
+                        <strong style="color: #333333 !important;">Key Features:</strong> <span style="color: #000000 !important;">{{ option.key_features }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+    </div>
+    {% endfor %}
+    
+    {% endif %}
+    </div>
+</div>
+
+<style>
+.view-btn {
+    padding: 10px 20px;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.view-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+table tbody tr:hover {
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+/* Highlight causality relationships on hover */
+table tbody tr:hover td[style*="background: #f5f5f5"] {
+    background: #e3f2fd !important;
+    font-weight: 500;
+}
+
+table tbody tr:hover td[style*="background: #f1f8e9"] {
+    background: #c8e6c9 !important;
+    font-weight: 500;
+}
+
+/* Causality indicators */
+.causality-link {
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: help;
+}
+
+    /* Decision Tree Visualization Styles */
+    .tree-container {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .tree-node {
+        margin: 10px 0;
+        position: relative;
+    }
+    .tree-node-content {
+        display: inline-block;
+        padding: 12px 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        min-width: 200px;
+        max-width: 400px;
+        position: relative;
+        z-index: 2;
+    }
+    .tree-node.decision .tree-node-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-left: 4px solid #4a5568;
+    }
+    .tree-node.outcome .tree-node-content {
+        background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        color: white;
+        border-left: 4px solid #2e7d32;
+    }
+    .tree-node-condition {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .tree-node-outcome {
+        font-size: 13px;
+        line-height: 1.6;
+    }
+    .tree-node-outcome-item {
+        margin: 4px 0;
+        padding: 4px 8px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 4px;
+    }
+    .tree-node-outcome-item strong {
+        display: inline-block;
+        min-width: 140px;
+    }
+    .tree-children {
+        margin-left: 40px;
+        padding-left: 20px;
+        border-left: 2px solid #ddd;
+        position: relative;
+    }
+    .tree-children::before {
+        content: '';
+        position: absolute;
+        left: -2px;
+        top: 0;
+        bottom: 50%;
+        width: 2px;
+        background: #ddd;
+    }
+    .tree-node-label {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<script>
+function toggleInfoSection() {
+    const infoSection = document.getElementById('infoSection');
+    const toggleBtn = document.getElementById('toggleInfoBtn');
+    const toggleText = document.getElementById('toggleInfoText');
+    const toggleIcon = document.getElementById('toggleInfoIcon');
+    
+    if (infoSection.style.display === 'none' || !infoSection.style.display) {
+        infoSection.style.display = 'block';
+        toggleText.textContent = 'Hide Info';
+        toggleIcon.textContent = '▼';
+    } else {
+        infoSection.style.display = 'none';
+        toggleText.textContent = 'Show Info';
+        toggleIcon.textContent = '▶';
+    }
+}
+
+function toggleInfoColumns() {
+    const infoColumns = document.querySelectorAll('.info-column');
+    const toggleBtn = document.getElementById('toggleColumnsBtn');
+    const toggleText = document.getElementById('toggleColumnsText');
+    
+    if (infoColumns.length > 0 && infoColumns[0].style.display === 'none') {
+        // Show columns
+        infoColumns.forEach(col => {
+            col.style.display = '';
+        });
+        toggleText.textContent = 'Hide Info Columns';
+    } else {
+        // Hide columns
+        infoColumns.forEach(col => {
+            col.style.display = 'none';
+        });
+        toggleText.textContent = 'Show Info Columns';
+    }
+}
+
+// Make scrollbar more visible and add scroll indicator
+document.addEventListener('DOMContentLoaded', function() {
+    const tableWrapper = document.getElementById('tableWrapper');
+    const scrollIndicator = document.getElementById('scrollIndicator');
+    
+    if (tableWrapper && scrollIndicator) {
+        // Hide scroll indicator when at the edges
+        function updateScrollIndicator() {
+            const scrollLeft = tableWrapper.scrollLeft;
+            const scrollWidth = tableWrapper.scrollWidth;
+            const clientWidth = tableWrapper.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+            
+            if (scrollLeft < 10 || scrollLeft > maxScroll - 10) {
+                scrollIndicator.style.opacity = '0.3';
+            } else {
+                scrollIndicator.style.opacity = '0.9';
+            }
+        }
+        
+        tableWrapper.addEventListener('scroll', updateScrollIndicator);
+        updateScrollIndicator();
+        
+        // Show scrollbar on hover
+        tableWrapper.addEventListener('mouseenter', function() {
+            this.style.scrollbarWidth = 'thick';
+        });
+    }
+});
+
+function showTableView() {
+    document.getElementById('tableView').style.display = 'block';
+    document.getElementById('cardView').style.display = 'none';
+    document.getElementById('tableBtn').classList.add('active');
+    document.getElementById('cardBtn').classList.remove('active');
+}
+
+function showCardView() {
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('cardView').style.display = 'block';
+    document.getElementById('tableBtn').classList.remove('active');
+    document.getElementById('cardBtn').classList.add('active');
+}
+
+function filterData() {
+    const input = document.getElementById('reportSearch');
+    const filter = input.value.toLowerCase();
+    
+    // Filter table rows
+    const tableRows = document.querySelectorAll('#tableView tbody tr');
+    tableRows.forEach(row => {
+        const report = row.getAttribute('data-report') || '';
+        const patient = row.getAttribute('data-patient') || '';
+        const dentist = row.getAttribute('data-dentist') || '';
+        const observation = row.getAttribute('data-observation') || '';
+        
+        if (report.includes(filter) || patient.includes(filter) || dentist.includes(filter) || observation.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Filter cards
+    const cards = document.querySelectorAll('.report-card');
+    cards.forEach(card => {
+        const reportId = card.getAttribute('data-report-id') || '';
+        const patientId = card.getAttribute('data-patient-id') || '';
+        
+        if (reportId.includes(filter) || patientId.includes(filter)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function processReportsFromAdminFiles() {
+    const statusDiv = document.getElementById('processStatus');
+    
+    if (!confirm('This will process all Level 4 reports found in the admin_files table. Continue?')) {
+        return;
+    }
+    
+    statusDiv.style.display = 'block';
+    statusDiv.style.background = '#fff3cd';
+    statusDiv.style.color = '#856404';
+    statusDiv.innerHTML = '<strong>Processing...</strong> Finding and processing Level 4 reports from admin_files table...';
+    
+    fetch('/admin/process-level4-reports', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: ''
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            statusDiv.style.background = '#d4edda';
+            statusDiv.style.color = '#155724';
+            let message = `<strong>✓ Processing Complete!</strong><br>`;
+            if (data.message) {
+                message += data.message + '<br>';
+            }
+            message += `
+                Total files found: ${data.results.total}<br>
+                Successful: ${data.results.successful}<br>
+                Failed: ${data.results.failed}<br>
+            `;
+            if (data.results.processed && data.results.processed.length > 0) {
+                message += '<details style="margin-top: 10px;"><summary>Details</summary><ul style="margin: 5px 0; padding-left: 20px;">';
+                data.results.processed.forEach(item => {
+                    const status = item.success ? '✓' : '✗';
+                    message += `<li>${status} ${item.file}${item.error ? ': ' + item.error : ''}</li>`;
+                });
+                message += '</ul></details>';
+            }
+            message += `
+                <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Refresh Table
+                </button>
+            `;
+            statusDiv.innerHTML = message;
+        } else {
+            statusDiv.style.background = '#ffebee';
+            statusDiv.style.color = '#c62828';
+            statusDiv.innerHTML = '<strong>Error:</strong> ' + (data.error || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        statusDiv.style.background = '#ffebee';
+        statusDiv.style.color = '#c62828';
+        statusDiv.innerHTML = '<strong>Error:</strong> ' + error.message;
+    });
+}
+
+// Load KB file counts on page load
+(function() {
+    const el = document.getElementById('kbStatsContent');
+    if (!el) return;
+    fetch('/admin/kb-stats')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success && data.knowledge_bases && data.knowledge_bases.length) {
+                const parts = data.knowledge_bases.map(function(kb) {
+                    const n = kb.document_count;
+                    const str = n !== null && n !== undefined ? n + ' file' + (n !== 1 ? 's' : '') : '?';
+                    return kb.label + ': ' + str;
+                });
+                el.textContent = parts.join('  |  ');
+            } else {
+                el.textContent = data.error || 'Could not load KB counts.';
+            }
+        })
+        .catch(function() {
+            el.textContent = 'Could not load KB counts.';
+        });
+})();
+
+// Upload all Level 4 reports to KB
+(function() {
+    const btn = document.getElementById('uploadAllToKbBtn');
+    const statusDiv = document.getElementById('uploadKbStatus');
+    if (!btn || !statusDiv) return;
+    
+    // Add hover effects
+    btn.addEventListener('mouseenter', function() {
+        if (!this.disabled) {
+            this.style.transform = 'translateY(-1px)';
+            this.style.boxShadow = '0 4px 10px rgba(76, 175, 80, 0.4)';
+            this.style.background = 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)';
+        }
+    });
+    btn.addEventListener('mouseleave', function() {
+        if (!this.disabled) {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 6px rgba(76, 175, 80, 0.3)';
+            this.style.background = 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)';
+        }
+    });
+    
+    btn.addEventListener('click', function() {
+        if (!confirm('This will sync all Level 4 reports from the database to the Knowledge Base. The KB will automatically update from S3. Continue?')) {
+            return;
+        }
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = '#fff3cd';
+        statusDiv.style.color = '#856404';
+        statusDiv.innerHTML = '<strong>Uploading...</strong> Generating case cards and uploading to S3...';
+        btn.disabled = true;
+        fetch('/admin/upload-all-to-kb', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            if (data.success) {
+                statusDiv.style.background = '#d4edda';
+                statusDiv.style.color = '#155724';
+                let html = '<strong>✓ Upload Complete!</strong><br>';
+                html += 'Total: ' + data.results.total + '<br>';
+                html += 'Successful: ' + data.results.successful + '<br>';
+                if (data.results.failed > 0) {
+                    html += 'Failed: ' + data.results.failed + '<br>';
+                }
+                html += '<br><small>The Knowledge Base will automatically sync from S3. This may take a few minutes.</small>';
+                statusDiv.innerHTML = html;
+                // Refresh KB stats after a delay
+                setTimeout(function() {
+                    const el = document.getElementById('kbStatsContent');
+                    if (el) {
+                        fetch('/admin/kb-stats')
+                            .then(function(r) { return r.json(); })
+                            .then(function(stats) {
+                                if (stats.success && stats.knowledge_bases && stats.knowledge_bases.length) {
+                                    const parts = stats.knowledge_bases.map(function(kb) {
+                                        const n = kb.document_count;
+                                        const str = n !== null && n !== undefined ? n + ' file' + (n !== 1 ? 's' : '') : '?';
+                                        return kb.label + ': ' + str;
+                                    });
+                                    el.textContent = parts.join('  |  ');
+                                }
+                            });
+                    }
+                }, 2000);
+            } else {
+                statusDiv.style.background = '#ffebee';
+                statusDiv.style.color = '#c62828';
+                statusDiv.innerHTML = '<strong>Error:</strong> ' + (data.error || 'Unknown error');
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            statusDiv.style.background = '#ffebee';
+            statusDiv.style.color = '#c62828';
+            statusDiv.innerHTML = '<strong>Error:</strong> ' + (err.message || err);
+        });
+    });
+})();
+
+// Highlight causality patterns
+function highlightPattern(observation, designParam) {
+    const rows = document.querySelectorAll('#tableView tbody tr');
+    rows.forEach(row => {
+        const obsText = (row.cells[5]?.textContent || '').toLowerCase(); // Obstruction column
+        const tongueText = (row.cells[6]?.textContent || '').toLowerCase(); // Tongue column
+        const windowText = (row.cells[10]?.textContent || '').toLowerCase(); // Anterior window column
+        
+        if (obsText.includes(observation.toLowerCase()) || tongueText.includes(observation.toLowerCase())) {
+            if (windowText.includes(designParam.toLowerCase())) {
+                row.style.background = '#fff9c4';
+                row.style.border = '2px solid #fbc02d';
+            }
+        }
+    });
+}
+
+// Ask LLM about patterns & design
+(function() {
+    const btn = document.getElementById('patternQueryBtn');
+    const input = document.getElementById('patternQueryInput');
+    const resultDiv = document.getElementById('patternQueryResult');
+    const sourcesDiv = document.getElementById('patternQuerySources');
+    const sourcesListEl = document.getElementById('patternQuerySourcesList');
+    const errorDiv = document.getElementById('patternQueryError');
+    if (!btn || !input || !resultDiv || !errorDiv) return;
+    btn.addEventListener('click', function() {
+        const query = (input.value || '').trim();
+        if (!query) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Please enter a question.';
+            resultDiv.style.display = 'none';
+            if (sourcesDiv) sourcesDiv.style.display = 'none';
+            return;
+        }
+        errorDiv.style.display = 'none';
+        if (sourcesDiv) sourcesDiv.style.display = 'none';
+        resultDiv.style.display = 'block';
+        resultDiv.textContent = 'Asking LLM...';
+        resultDiv.style.background = '#f8fafc';
+        fetch('/admin/query-level4-patterns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success && data.response) {
+                errorDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = data.response;
+                resultDiv.style.background = '#f8fafc';
+                if (sourcesDiv && sourcesListEl && data.sources && data.sources.length) {
+                    sourcesListEl.textContent = data.sources.join(', ');
+                    sourcesDiv.style.display = 'block';
+                } else if (sourcesDiv) {
+                    sourcesDiv.style.display = 'none';
+                }
+            } else {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = data.error || data.message || 'No response from LLM.';
+                resultDiv.style.display = 'none';
+                if (sourcesDiv) sourcesDiv.style.display = 'none';
+            }
+        })
+        .catch(function(err) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Request failed: ' + (err.message || err);
+            resultDiv.style.display = 'none';
+            if (sourcesDiv) sourcesDiv.style.display = 'none';
+        });
+    });
+})();
+
+// Visual Decision Tree Renderer
+function renderDecisionTree(treeData, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container || !treeData || !treeData.nodes) {
+        container.innerHTML = '<div style="color: #999; padding: 20px; text-align: center;">No tree data available. The LLM response may not have included a structured tree.</div>';
+        return;
+    }
+    
+    const nodes = treeData.nodes;
+    const rootId = treeData.root_node || nodes[0]?.id;
+    const nodeMap = {};
+    nodes.forEach(node => { nodeMap[node.id] = node; });
+    
+    function renderNode(nodeId, level = 0) {
+        const node = nodeMap[nodeId];
+        if (!node) return '';
+        
+        const isDecision = node.type === 'decision';
+        const isOutcome = node.type === 'outcome';
+        
+        let html = '<div class="tree-node ' + (isDecision ? 'decision' : 'outcome') + '">';
+        html += '<div class="tree-node-content">';
+        html += '<div class="tree-node-label">' + (isDecision ? 'Decision Point' : 'Outcome') + '</div>';
+        
+        if (isDecision && node.condition) {
+            html += '<div class="tree-node-condition">' + escapeHtml(node.condition) + '</div>';
+        }
+        
+        if (isOutcome && node.outcome) {
+            html += '<div class="tree-node-outcome">';
+            const outcome = node.outcome;
+            if (outcome.mandibular_advancement) {
+                html += '<div class="tree-node-outcome-item"><strong>Mandibular Advancement:</strong> ' + escapeHtml(outcome.mandibular_advancement) + '</div>';
+            }
+            if (outcome.vertical_opening) {
+                html += '<div class="tree-node-outcome-item"><strong>Vertical Opening:</strong> ' + escapeHtml(outcome.vertical_opening) + '</div>';
+            }
+            if (outcome.anterior_window) {
+                html += '<div class="tree-node-outcome-item"><strong>Anterior Window:</strong> ' + escapeHtml(outcome.anterior_window) + '</div>';
+            }
+            if (outcome.material) {
+                html += '<div class="tree-node-outcome-item"><strong>Material:</strong> ' + escapeHtml(outcome.material) + '</div>';
+            }
+            if (outcome.device_options && outcome.device_options.length > 0) {
+                html += '<div class="tree-node-outcome-item"><strong>Devices:</strong> ' + escapeHtml(Array.isArray(outcome.device_options) ? outcome.device_options.join(', ') : outcome.device_options) + '</div>';
+            }
+            if (outcome.confidence) {
+                html += '<div class="tree-node-outcome-item" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.3);"><strong>Confidence:</strong> ' + escapeHtml(outcome.confidence) + '</div>';
+            }
+            if (outcome.data_support) {
+                html += '<div class="tree-node-outcome-item"><strong>Data Support:</strong> ' + escapeHtml(outcome.data_support) + '</div>';
+            }
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        
+        if (isDecision && node.children && node.children.length > 0) {
+            html += '<div class="tree-children">';
+            node.children.forEach(childId => {
+                html += renderNode(childId, level + 1);
+            });
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        return html;
+    }
+    
+    let treeHtml = '<div class="tree-container">';
+    if (treeData.tree_name) {
+        treeHtml += '<h3 style="margin-top: 0; color: #166534; margin-bottom: 15px;">' + escapeHtml(treeData.tree_name) + '</h3>';
+    }
+    if (treeData.description) {
+        treeHtml += '<p style="color: #666; margin-bottom: 20px;">' + escapeHtml(treeData.description) + '</p>';
+    }
+    treeHtml += renderNode(rootId);
+    treeHtml += '</div>';
+    
+    container.innerHTML = treeHtml;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function toggleTreeView() {
+    const visualEl = document.getElementById('decisionTreeVisual');
+    const jsonEl = document.getElementById('decisionTreeContent');
+    const toggleBtn = document.getElementById('toggleTreeViewBtn');
+    const toggleText = document.getElementById('treeViewToggleText');
+    
+    if (visualEl.style.display === 'none') {
+        visualEl.style.display = 'block';
+        jsonEl.style.display = 'none';
+        toggleText.textContent = 'Show JSON';
+    } else {
+        visualEl.style.display = 'none';
+        jsonEl.style.display = 'block';
+        toggleText.textContent = 'Show Visual';
+    }
+}
+
+// Generate Decision Tree
+(function() {
+    const btn = document.getElementById('generateTreeBtn');
+    const resultDiv = document.getElementById('decisionTreeResult');
+    const visualEl = document.getElementById('decisionTreeVisual');
+    const contentEl = document.getElementById('decisionTreeContent');
+    const sourcesDiv = document.getElementById('decisionTreeSources');
+    const sourcesListEl = document.getElementById('decisionTreeSourcesList');
+    const errorDiv = document.getElementById('patternQueryError');
+    if (!btn || !resultDiv || !visualEl || !contentEl) return;
+    btn.addEventListener('click', function() {
+        errorDiv.style.display = 'none';
+        resultDiv.style.display = 'block';
+        visualEl.innerHTML = '<div style="color: #666; padding: 40px; text-align: center;">Generating decision tree from data patterns...<br><small style="color: #999;">This may take a moment</small></div>';
+        contentEl.textContent = 'Generating...';
+        visualEl.style.display = 'block';
+        contentEl.style.display = 'none';
+        sourcesDiv.style.display = 'none';
+        fetch('/admin/generate-decision-tree', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success && data.response) {
+                errorDiv.style.display = 'none';
+                resultDiv.style.display = 'block';
+                if (data.decision_tree) {
+                    // Render visual tree
+                    renderDecisionTree(data.decision_tree, 'decisionTreeVisual');
+                    // Also store JSON for toggle
+                    contentEl.textContent = JSON.stringify(data.decision_tree, null, 2);
+                    visualEl.style.display = 'block';
+                    contentEl.style.display = 'none';
+                } else {
+                    // No structured tree, show raw response
+                    visualEl.innerHTML = '<div style="padding: 20px; color: #666;"><pre style="white-space: pre-wrap; font-family: inherit;">' + escapeHtml(data.response) + '</pre></div>';
+                    contentEl.textContent = data.response;
+                    visualEl.style.display = 'block';
+                    contentEl.style.display = 'none';
+                }
+                if (sourcesDiv && sourcesListEl && data.sources && data.sources.length) {
+                    sourcesListEl.textContent = data.sources.join(', ');
+                    sourcesDiv.style.display = 'block';
+                } else if (sourcesDiv) {
+                    sourcesDiv.style.display = 'none';
+                }
+            } else {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = data.error || data.message || 'Failed to generate decision tree.';
+                resultDiv.style.display = 'none';
+            }
+        })
+        .catch(function(err) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Request failed: ' + (err.message || err);
+            resultDiv.style.display = 'none';
+        });
+    });
+})();
+
+</script>
+{% endblock %}

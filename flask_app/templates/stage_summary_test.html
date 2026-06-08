@@ -1,0 +1,3506 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Workflow Summary{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+        background: #fafafa;
+        min-height: 100vh;
+    }
+    
+    /* Patient Header (Sticky) - Blue Gradient Design */
+    .patient-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+        position: sticky;
+        top: 64px;
+        z-index: 100;
+    }
+    
+    .patient-header-title {
+        text-align: left;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 20px;
+    }
+    
+    .patient-header-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .patient-header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        font-size: 14px;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+    
+    .patient-header-badge-label {
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .patient-header-badge-value {
+        font-weight: 600;
+        color: white;
+    }
+    
+    .patient-header-badge.highlight-blue {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+        color: white;
+    }
+    
+    .patient-header-badge.highlight-green {
+        background: rgba(34, 197, 94, 0.3);
+        border-color: rgba(34, 197, 94, 0.5);
+        color: white;
+    }
+    
+    .patient-header-badge-icon {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+    
+    .progress-bar-container {
+        width: 200px;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #22c55e);
+        transition: width 0.3s ease;
+    }
+    
+    /* Controls Card */
+    .controls-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .controls-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    
+    .input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .input-group label {
+        font-weight: 500;
+        color: #475569;
+        font-size: 14px;
+    }
+    
+    .input-group input {
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        width: 120px;
+        transition: border-color 0.2s;
+    }
+    
+    .input-group input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #64748b;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #475569;
+    }
+    
+    .toggle-group {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+        background-color: #3b82f6;
+    }
+    
+    input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+    
+    /* Overall AI Summary Panel */
+    .overall-summary-card {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 16px rgba(30, 64, 175, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .overall-summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(30%, -30%);
+    }
+    
+    .summary-footer-external {
+        margin-top: 16px;
+        text-align: right;
+        font-size: 11px;
+        color: #64748b;
+    }
+    
+    .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .summary-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .summary-updated {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    .status-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+    
+    .summary-stat-card {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .summary-stat-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .summary-stat-row:last-child {
+        margin-bottom: 0;
+    }
+    
+    .summary-stat-row .summary-stat-label {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+    
+    .summary-stat-row .summary-stat-value {
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .summary-section-card {
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .summary-section-card.overall-section {
+        border-left: 4px solid rgba(147, 197, 253, 0.6); /* Blue accent */
+    }
+    
+    .summary-section-card.critical-section {
+        border-left: 4px solid rgba(251, 146, 60, 0.6); /* Orange accent */
+    }
+    
+    .summary-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .section-icon {
+        font-size: 20px;
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+    }
+    
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .summary-section-content {
+        font-size: 14px;
+        line-height: 1.7;
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .summary-section-content strong {
+        color: rgba(255,255,255,1);
+        font-weight: 600;
+    }
+    
+    .summary-section-content p {
+        margin: 0 0 8px 0;
+    }
+    
+    .summary-section-content p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .summary-list {
+        margin: 0;
+        padding-left: 20px;
+        list-style: none;
+    }
+    
+    .summary-list li {
+        margin-bottom: 6px;
+        position: relative;
+        padding-left: 8px;
+    }
+    
+    .summary-list li::before {
+        content: '•';
+        position: absolute;
+        left: -12px;
+        color: rgba(255,255,255,0.7);
+        font-weight: bold;
+    }
+    
+    .summary-list li:last-child {
+        margin-bottom: 0;
+    }
+    
+    .summary-numbered-list {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+        counter-reset: recommendation-counter;
+    }
+    
+    .summary-numbered-list li {
+        margin-bottom: 10px;
+        color: rgba(255,255,255,0.95);
+        line-height: 1.7;
+        padding-left: 28px;
+        position: relative;
+        counter-increment: recommendation-counter;
+    }
+    
+    .summary-numbered-list li::before {
+        content: counter(recommendation-counter);
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: rgba(34, 197, 94, 0.4);
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        border: 2px solid rgba(34, 197, 94, 0.6);
+    }
+    
+    .summary-numbered-list li:last-child {
+        margin-bottom: 0;
+    }
+    
+    .blocked-stages-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .blocked-badge {
+        background: rgba(239, 68, 68, 0.3);
+        border: 1px solid rgba(239, 68, 68, 0.5);
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .summary-recommendation-card {
+        background: linear-gradient(to right, rgba(34, 197, 94, 0.25) 0%, rgba(34, 197, 94, 0.15) 100%);
+        backdrop-filter: blur(10px);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        border-left: 4px solid rgba(34, 197, 94, 0.7);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    
+    .summary-recommendation-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(to bottom, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.4));
+        border-radius: 2px 0 0 2px;
+    }
+    
+    .recommendation-text {
+        font-size: 14px;
+        line-height: 1.7;
+        color: rgba(255,255,255,0.95);
+        margin: 0;
+        font-weight: 500;
+    }
+    
+    .phase-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.2);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-left: 8px;
+    }
+    
+    .phase-arrow {
+        font-size: 10px;
+        opacity: 0.8;
+    }
+    
+    .summary-metadata {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+        font-size: 11px;
+        color: rgba(255,255,255,0.7);
+        text-align: right;
+    }
+    
+    /* Mobile responsive - collapsible sections */
+    @media (max-width: 768px) {
+        .summary-section-card {
+            margin-bottom: 12px;
+        }
+        
+        .summary-section-header {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .summary-section-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .summary-section-card.collapsed .summary-section-content {
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .summary-section-header::after {
+            content: '▼';
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+        
+        .summary-section-card.collapsed .summary-section-header::after {
+            transform: rotate(-90deg);
+        }
+    }
+    
+    .btn-icon {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        position: relative;
+    }
+    
+    .btn-icon:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+    
+    .btn-icon[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.9);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        white-space: nowrap;
+        margin-bottom: 4px;
+        z-index: 1000;
+    }
+    
+    .btn-icon[title]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: rgba(0,0,0,0.9);
+        margin-bottom: -4px;
+        z-index: 1000;
+    }
+    
+    .summary-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .summary-stat {
+        background: rgba(255,255,255,0.15);
+        padding: 12px;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .summary-stat-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        opacity: 0.8;
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+    
+    .summary-stat-value {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .summary-sections {
+        display: grid;
+        gap: 12px;
+    }
+    
+    .summary-section {
+        background: rgba(255,255,255,0.1);
+        padding: 16px;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        border-left: 3px solid rgba(255,255,255,0.5);
+    }
+    
+    .summary-section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .summary-section-content {
+        font-size: 14px;
+        line-height: 1.6;
+        opacity: 0.95;
+    }
+    
+    .summary-section-content ul {
+        margin: 8px 0 0 0;
+        padding-left: 20px;
+    }
+    
+    .summary-section-content li {
+        margin-bottom: 4px;
+    }
+    
+    /* Combined Top Sections - Side by Side */
+    .top-sections-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    @media (max-width: 1024px) {
+        .top-sections-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .workflow-overview-section,
+    .action-plan-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .workflow-overview-title,
+    .action-plan-title {
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #0f172a;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .workflow-overview-item {
+        margin-bottom: 16px;
+        color: #1e293b;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    .workflow-overview-item strong {
+        color: #0f172a;
+        font-weight: 600;
+        display: inline-block;
+        min-width: 80px;
+    }
+    
+    .workflow-overview-footer {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    .action-plan-item {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        align-items: flex-start;
+    }
+    
+    .action-plan-number {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #3b82f6;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        color: white;
+    }
+    
+    .action-plan-item:nth-child(2) .action-plan-number {
+        background: #22c55e;
+    }
+    
+    .action-plan-item:nth-child(3) .action-plan-number {
+        background: #a855f7;
+    }
+    
+    .action-plan-text {
+        flex: 1;
+    }
+    
+    .action-plan-main {
+        font-weight: 500;
+        color: #0f172a;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+    
+    .action-plan-context {
+        font-size: 12px;
+        font-style: italic;
+        color: #64748b;
+        margin-top: 4px;
+    }
+    
+    /* Communication & Activity Section */
+    .communication-section {
+        margin-bottom: 32px;
+    }
+    
+    .communication-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 16px;
+    }
+    
+    .communication-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid #3b82f6;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .communication-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    
+    .communication-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .communication-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+    }
+    
+    .communication-icon {
+        font-size: 24px;
+    }
+    
+    .communication-header h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    
+    .communication-action-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.2s;
+        text-decoration: none;
+        font-family: inherit;
+    }
+    
+    .communication-action-btn:hover {
+        background: #2563eb;
+    }
+    
+    .communication-action-btn:active {
+        background: #1d4ed8;
+    }
+    
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .modal-overlay .modal-content {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* Darker text for modal inputs and placeholders */
+    .modal-overlay input[type="text"],
+    .modal-overlay input[type="email"],
+    .modal-overlay input[type="number"],
+    .modal-overlay input[type="date"],
+    .modal-overlay textarea {
+        color: #111827 !important;
+    }
+    
+    .modal-overlay input::placeholder,
+    .modal-overlay textarea::placeholder {
+        color: #6b7280 !important;
+        opacity: 1;
+    }
+    
+    .modal-overlay .cs-trigger {
+        color: #111827 !important;
+    }
+    
+    .modal-overlay label {
+        color: #111827 !important;
+        font-weight: 600;
+    }
+    
+    .communication-content {
+        min-height: 100px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .communication-content .loading-indicator {
+        text-align: center;
+        padding: 20px;
+        color: #64748b;
+        font-size: 14px;
+    }
+    
+    .communication-item {
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 3px solid #cbd5e1;
+        transition: background-color 0.2s;
+    }
+    
+    .communication-item:hover {
+        background: #f1f5f9;
+    }
+    
+    .communication-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+    
+    .communication-item-title {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 14px;
+        flex: 1;
+    }
+    
+    .communication-item-date {
+        font-size: 12px;
+        color: #6b7280;
+        white-space: nowrap;
+        margin-left: 12px;
+    }
+    
+    .communication-item-detail {
+        font-size: 13px;
+        color: #374151;
+        margin-bottom: 4px;
+    }
+    
+    .communication-item-detail strong {
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .communication-item-preview {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #e5e7eb;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+    
+    .status-badge-email {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        margin-top: 4px;
+    }
+    
+    .status-badge-email.sent {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-badge-email.failed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .status-badge-email.unknown {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    
+    .comment-type-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        margin-left: 8px;
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+    
+    .comment-urgent {
+        border-left-color: #ef4444 !important;
+        background: #fef2f2 !important;
+    }
+    
+    .schedule-status-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        margin-top: 4px;
+    }
+    
+    .schedule-status-badge.scheduled {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .schedule-status-badge.completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .schedule-status-badge.cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #9ca3af;
+    }
+    
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+    
+    .empty-state-text {
+        font-size: 14px;
+    }
+    
+    .summary-card-icon {
+        font-size: 32px;
+        flex-shrink: 0;
+    }
+    
+    .summary-card-content {
+        flex: 1;
+    }
+    
+    .summary-card-title {
+        margin: 0 0 12px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    
+    .summary-card-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .summary-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .detail-label {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .detail-value {
+        font-size: 14px;
+        color: #0f172a;
+        font-weight: 600;
+    }
+    
+    .status-badge-inline {
+        background: #3b82f6;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .phase-badge-inline {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .summary-card-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #475569;
+    }
+    
+    /* Recommended Actions Section */
+    .recommended-actions-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .section-heading {
+        margin: 0 0 20px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+    
+    .recommendations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .recommendation-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .recommendation-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    
+    .recommendation-content {
+        flex: 1;
+    }
+    
+    .recommendation-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #475569;
+        padding-top: 6px;
+        font-weight: 500;
+    }
+    
+    .recommendation-context {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 4px;
+        line-height: 1.5;
+        font-style: italic;
+    }
+    
+    /* Workflow Progress Section */
+    .workflow-progress-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .workflow-items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .workflow-item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 4px solid #cbd5e1;
+        transition: all 0.2s;
+        cursor: pointer;
+        position: relative;
+    }
+    
+    .workflow-item:hover {
+        background: #f1f5f9;
+    }
+    
+    .workflow-item.expanded {
+        flex-direction: column;
+        align-items: stretch;
+        padding-bottom: 20px;
+    }
+    
+    .workflow-item.expanded .workflow-item-content {
+        width: 100%;
+    }
+    
+    .workflow-item.expanded .workflow-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .expand-icon {
+        font-size: 12px;
+        color: #64748b;
+        transition: transform 0.2s;
+        margin-left: 8px;
+    }
+    
+    .workflow-item.expanded .expand-icon {
+        transform: rotate(180deg);
+    }
+    
+    .stage-details {
+        width: 100%;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .detail-item {
+        margin-bottom: 12px;
+    }
+    
+    .detail-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    
+    .detail-value {
+        font-size: 14px;
+        color: #0f172a;
+        line-height: 1.6;
+    }
+    
+    .guidance-text {
+        color: #475569;
+        font-style: italic;
+    }
+    
+    .ai-comment-text {
+        color: #1e40af;
+        background: #eff6ff;
+        padding: 12px;
+        border-radius: 6px;
+        border-left: 3px solid #3b82f6;
+    }
+    
+    .prerequisites-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .prerequisite-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+    }
+    
+    .prerequisite-badge.completed {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #86efac;
+    }
+    
+    .workflow-item.completed {
+        border-left-color: #22c55e;
+    }
+    
+    .workflow-item.pending {
+        border-left-color: #f59e0b;
+    }
+    
+    .workflow-item.blocked {
+        border-left-color: #ef4444;
+    }
+    
+    .workflow-item.skipped {
+        border-left-color: #94a3b8;
+    }
+    
+    .workflow-item.in-progress {
+        border-left-color: #3b82f6;
+    }
+    
+    .workflow-item-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    
+    .workflow-item-content {
+        flex: 1;
+    }
+    
+    .workflow-item-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+    
+    .workflow-item-date {
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    .workflow-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .action-btn {
+        padding: 6px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-badge.blocked {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .status-badge.skipped {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    
+    .status-badge.in-progress {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    /* AI Insight Bubble */
+    .ai-insight-bubble {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-left: 4px solid #3b82f6;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+    
+    .ai-insight-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    
+    .ai-insight-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #1e40af;
+        font-weight: 500;
+    }
+    
+    /* Footer Metadata */
+    .summary-footer-metadata {
+        text-align: right;
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    /* Stages Container */
+    .stages-container {
+        display: grid;
+        gap: 16px;
+    }
+    
+    .stage-card {
+        background: white;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 5px solid #cbd5e1;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .stage-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+        border-left-color: #3b82f6;
+    }
+    
+    .stage-card.expanded {
+        padding: 20px;
+    }
+    
+    .expand-icon {
+        margin-left: auto;
+        font-size: 18px;
+        color: #64748b;
+        transition: transform 0.2s;
+    }
+    
+    .stage-card.expanded .expand-icon {
+        transform: rotate(180deg);
+    }
+    
+    .stage-card.completed {
+        border-left-color: #22c55e;
+        border-left-width: 5px;
+        background: linear-gradient(to right, #f0fdf4 0%, white 5%);
+    }
+    
+    .stage-card.pending {
+        border-left-color: #f97316;
+        border-left-width: 5px;
+    }
+    
+    .stage-card.blocked {
+        border-left-color: #ef4444;
+        border-left-width: 5px;
+        background: linear-gradient(to right, #fef2f2 0%, white 5%);
+    }
+    
+    .stage-card.skipped {
+        border-left-color: #94a3b8;
+        border-left-width: 5px;
+    }
+    
+    .stage-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    
+    .stage-title-section {
+        flex: 1;
+    }
+    
+    .stage-header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .completed-date-badge {
+        font-size: 12px;
+        color: #64748b;
+        padding: 4px 10px;
+        background: #f1f5f9;
+        border-radius: 12px;
+        white-space: nowrap;
+        font-weight: 500;
+    }
+    
+    .stage-title {
+        font-size: 19px;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0;
+        line-height: 1.4;
+        letter-spacing: -0.01em;
+    }
+    
+    .stage-status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+    
+    .stage-status.completed {
+        background: #22c55e;
+        color: white;
+    }
+    
+    .stage-status.completed::before {
+        content: '✅';
+        font-size: 14px;
+    }
+    
+    .stage-status.pending {
+        background: #f97316;
+        color: white;
+    }
+    
+    .stage-status.pending::before {
+        content: '⏳';
+        font-size: 14px;
+    }
+    
+    .stage-status.blocked {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .stage-status.blocked::before {
+        content: '⚠️';
+        font-size: 14px;
+    }
+    
+    .stage-status.skipped {
+        background: #94a3b8;
+        color: white;
+    }
+    
+    .stage-status.skipped::before {
+        content: '⏭️';
+        font-size: 14px;
+    }
+    
+    .stage-card.status-skipped {
+        border-left-color: #94a3b8;
+        border-left-width: 5px;
+        opacity: 0.7;
+    }
+    
+    .stage-description {
+        color: #1e293b;
+        font-size: 15px;
+        margin-bottom: 16px;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+    
+    .stage-details {
+        display: none;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+        animation: slideDown 0.2s ease;
+    }
+    
+    .stage-card.expanded .stage-details {
+        display: grid;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .detail-item {
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 3px solid #e2e8f0;
+    }
+    
+    .detail-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+    }
+    
+    .detail-value {
+        font-size: 15px;
+        color: #1e293b;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+    
+    .guidance-text {
+        font-style: italic;
+        color: #1e293b;
+        border-left: 3px solid #7dd3fc;
+        padding-left: 12px;
+        margin-left: 0;
+        font-size: 15px;
+        line-height: 1.7;
+    }
+    
+    .ai-comment {
+        background: #e0f2fe;
+        border-left: 4px solid #0ea5e9;
+        padding: 16px;
+        border-radius: 8px;
+        margin-top: 16px;
+        transition: all 0.2s;
+    }
+    
+    .ai-comment:hover {
+        background: #bae6fd;
+    }
+    
+    .ai-comment-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #0369a1;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .ai-comment-label::before {
+        content: '✨';
+        font-size: 16px;
+    }
+    
+    .ai-comment-text {
+        font-size: 15px;
+        color: #0c4a6e;
+        line-height: 1.7;
+        font-weight: 400;
+    }
+    
+    .prerequisites-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .prerequisite-badge {
+        padding: 4px 10px;
+        background: #e2e8f0;
+        border-radius: 16px;
+        font-size: 11px;
+        color: #475569;
+        font-weight: 500;
+    }
+    
+    .prerequisite-badge.completed {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .prerequisite-badge.completed::before {
+        content: '✓ ';
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 60px;
+        color: #64748b;
+    }
+    
+    .loading::after {
+        content: '...';
+        animation: dots 1.5s steps(4, end) infinite;
+    }
+    
+    @keyframes dots {
+        0%, 20% { content: '.'; }
+        40% { content: '..'; }
+        60%, 100% { content: '...'; }
+    }
+    
+    .error {
+        background: #fef2f2;
+        color: #991b1b;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        border-left: 4px solid #ef4444;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .error::before {
+        content: '⚠️';
+        font-size: 20px;
+    }
+    
+    .info-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    
+    .info-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        background: #e0f2fe;
+        color: #0369a1;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    /* Workflow Progress Header */
+    .workflow-progress-header {
+        margin-bottom: 20px;
+    }
+    
+    .color-swatch {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid rgba(0,0,0,0.1);
+        flex-shrink: 0;
+    }
+    
+    .color-swatch.completed {
+        background: #22c55e;
+    }
+    
+    .color-swatch.pending {
+        background: #f97316;
+    }
+    
+    .color-swatch.blocked {
+        background: #ef4444;
+    }
+    
+    .color-swatch.skipped {
+        background: #94a3b8;
+    }
+    
+    .color-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1e293b;
+    }
+    
+    /* Footer Actions */
+    .footer-actions {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px 24px;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        z-index: 50;
+    }
+    
+    .footer-actions-left {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .footer-actions-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .ai-confidence {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #64748b;
+    }
+    
+    .confidence-bar {
+        width: 60px;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #22c55e, #3b82f6);
+        transition: width 0.3s;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .patient-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .summary-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .footer-actions {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+    
+    /* Accessibility */
+    .stage-card:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+    
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    
+    <div id="errorContainer"></div>
+    
+    <div id="patientHeaderContainer"></div>
+    <div id="resultsContainer"></div>
+    
+    <div id="footerActions" class="footer-actions" style="display: none;">
+        <div class="footer-actions-left">
+            <button class="btn btn-secondary" onclick="loadStageSummary()">🔄 Refresh</button>
+        </div>
+        <div class="footer-actions-right">
+            <div class="ai-confidence">
+                <span>AI Confidence:</span>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                </div>
+                <span id="confidenceText">--%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPatientId = null;
+let currentPatientEmail = null;
+let allStagesStatus = {};
+
+async function loadStageSummary() {
+    // Get patient ID from URL parameter or use default
+    const urlParams = new URLSearchParams(window.location.search);
+    let patientId = urlParams.get('patient_id');
+    
+    // If not in URL, try to get from patient header
+    if (!patientId) {
+        const headerPatientId = document.getElementById('patientHeaderContainer')?.querySelector('.patient-header-value')?.textContent;
+        if (headerPatientId && headerPatientId !== 'N/A') {
+            patientId = headerPatientId;
+        } else {
+            // Default fallback - you can change this or make it required
+            showError('Patient ID not found. Please add ?patient_id=XXXX to the URL');
+            return;
+        }
+    }
+    
+    if (!patientId) {
+        showError('Patient ID is required. Add ?patient_id=XXXX to the URL');
+        return;
+    }
+    
+    currentPatientId = patientId;
+    const useEvaluation = true; // Always use real evaluation
+    const useAIGuidance = true; // AI Guidance is always on
+    
+    const params = new URLSearchParams();
+    if (useEvaluation) params.append('use_evaluation', 'true');
+    if (useAIGuidance) params.append('use_ai_guidance', 'true');
+    
+    const url = `/vizbriz/api/stage_summary_manifest/${patientId}${params.toString() ? '?' + params.toString() : ''}`;
+    
+    const container = document.getElementById('resultsContainer');
+    const headerContainer = document.getElementById('patientHeaderContainer');
+    container.innerHTML = '<div class="loading">Loading stage summary</div>';
+    headerContainer.innerHTML = '';
+    document.getElementById('footerActions').style.display = 'none';
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Failed to load stage summary');
+        }
+        
+        allStagesStatus = {};
+        data.stages.forEach(stage => {
+            allStagesStatus[stage.key] = stage;
+        });
+        
+        renderPatientHeader(data);
+        renderResults(data);
+        document.getElementById('footerActions').style.display = 'flex';
+        
+        // Update AI confidence (mock for now)
+        if (useAIGuidance) {
+            updateAIConfidence(85 + Math.floor(Math.random() * 10));
+        }
+    } catch (error) {
+        showError('Error loading stage summary: ' + error.message);
+        container.innerHTML = '';
+    }
+}
+
+function renderPatientHeader(data) {
+    const headerContainer = document.getElementById('patientHeaderContainer');
+    const status = data.patient_status;
+    const patient = data.patient_details || {};
+    
+    // Store patient email for email modal
+    if (patient && patient.email) {
+        currentPatientEmail = patient.email;
+    }
+    
+    if (!status) {
+        headerContainer.innerHTML = '';
+        return;
+    }
+    
+    // Round progress to nearest integer
+    const progressPercent = Math.round(status.workflow_completion_percentage || 0);
+    
+    // Escape HTML to prevent XSS
+    const escapeHtml = (text) => {
+        if (!text) return 'N/A';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+    
+    const html = `
+        <div class="patient-header">
+            <div class="patient-header-title">Patient Workflow Summary</div>
+            <div class="patient-header-badges">
+                <div class="patient-header-badge">
+                    <span class="patient-header-badge-label">Patient ID:</span>
+                    <span class="patient-header-badge-value">${escapeHtml(data.patient_id)}</span>
+                </div>
+                <div class="patient-header-badge">
+                    <span class="patient-header-badge-label">Name:</span>
+                    <span class="patient-header-badge-value">${escapeHtml(patient.name || 'N/A')}</span>
+                </div>
+                <div class="patient-header-badge">
+                    <span class="patient-header-badge-label">Age:</span>
+                    <span class="patient-header-badge-value">${patient.age !== null && patient.age !== undefined ? patient.age : 'N/A'}</span>
+                </div>
+                <div class="patient-header-badge">
+                    <span class="patient-header-badge-label">Sex:</span>
+                    <span class="patient-header-badge-value">${escapeHtml(patient.gender || 'N/A')}</span>
+                </div>
+                <div class="patient-header-badge">
+                    <span class="patient-header-badge-icon">📞</span>
+                    <span class="patient-header-badge-value">${escapeHtml(patient.phone || 'N/A')}</span>
+                </div>
+                <div class="patient-header-badge">
+                    <span class="patient-header-badge-icon">✉️</span>
+                    <span class="patient-header-badge-value">${escapeHtml(patient.email || 'N/A')}</span>
+                </div>
+                <div class="patient-header-badge highlight-green">
+                    <span class="patient-header-badge-label">Progress:</span>
+                    <span class="patient-header-badge-value">${progressPercent}%</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    headerContainer.innerHTML = html;
+}
+
+/**
+ * Extract context from a stage that matches a recommendation text.
+ * Tries to match recommendation text to stage titles and extracts relevant context.
+ */
+function extractStageContext(recommendationText, stages) {
+    if (!recommendationText || !stages || stages.length === 0) {
+        return '';
+    }
+    
+    const recLower = recommendationText.toLowerCase();
+    
+    // Try to find a matching stage by checking if recommendation contains stage title keywords
+    let bestMatch = null;
+    let bestScore = 0;
+    
+    for (const stage of stages) {
+        if (!stage.title) continue;
+        
+        const stageTitleLower = stage.title.toLowerCase();
+        const stageTitleWords = stageTitleLower.split(/\s+/).filter(w => w.length > 3); // Filter out short words
+        
+        // Calculate match score based on how many stage title words appear in recommendation
+        let score = 0;
+        for (const word of stageTitleWords) {
+            if (recLower.includes(word)) {
+                score += word.length; // Longer matching words get higher score
+            }
+        }
+        
+        // Also check for exact phrase matches (higher priority)
+        if (recLower.includes(stageTitleLower)) {
+            score += 100; // Boost for exact phrase match
+        }
+        
+        if (score > bestScore) {
+            bestScore = score;
+            bestMatch = stage;
+        }
+    }
+    
+    // If we found a match, extract context
+    if (bestMatch && bestScore > 0) {
+        // Prefer description, then guidance, then ai_comment
+        const context = bestMatch.description || bestMatch.guidance || bestMatch.ai_comment || '';
+        
+        if (context) {
+            // Truncate to reasonable length and clean up
+            const maxLength = 120;
+            let cleanContext = context.trim();
+            
+            // Remove extra whitespace
+            cleanContext = cleanContext.replace(/\s+/g, ' ');
+            
+            // Truncate if too long
+            if (cleanContext.length > maxLength) {
+                cleanContext = cleanContext.substring(0, maxLength).trim();
+                // Try to cut at sentence boundary
+                const lastPeriod = cleanContext.lastIndexOf('.');
+                const lastExclamation = cleanContext.lastIndexOf('!');
+                const lastQuestion = cleanContext.lastIndexOf('?');
+                const lastSentenceEnd = Math.max(lastPeriod, lastExclamation, lastQuestion);
+                
+                if (lastSentenceEnd > maxLength * 0.6) {
+                    cleanContext = cleanContext.substring(0, lastSentenceEnd + 1);
+                } else {
+                    cleanContext = cleanContext + '...';
+                }
+            }
+            
+            return cleanContext;
+        }
+    }
+    
+    return '';
+}
+
+function renderResults(data) {
+    const container = document.getElementById('resultsContainer');
+    
+    let html = ``;
+    
+    // Summary Cards Section (New Design)
+    if (data.overall_summary) {
+        const summaryData = typeof data.overall_summary === 'string' 
+            ? { structured: null, raw_text: data.overall_summary, generated_at: null, model: null }
+            : data.overall_summary;
+        
+        const structured = summaryData.structured;
+        const generatedAt = summaryData.generated_at || 'Unknown';
+        const model = summaryData.model || 'AI';
+        
+        if (structured) {
+            const overall = structured.overall_summary || {};
+            const critical = structured.critical_path_analysis || {};
+            const recommendations = structured.recommendations || [];
+            
+            // Get patient status for stage count
+            const status = data.patient_status || {};
+            const completedCount = status.completed_stages_count || 0;
+            const totalCount = status.total_stages_count || 18;
+            const statusText = overall.status || 'In Progress';
+            const statusIcon = statusText.toLowerCase().includes('complete') ? '🟢' : '🔵';
+            
+            // Combined Top Sections Container (Side by Side)
+            html += `
+                <div class="top-sections-container">
+                    <!-- Patient Workflow Overview Section -->
+                    <div class="workflow-overview-section">
+                        <div class="workflow-overview-title">Patient Workflow Overview</div>
+                        <div class="workflow-overview-item">
+                            <strong>Status:</strong> ${statusIcon} ${statusText} (${completedCount} / ${totalCount} stages)
+                        </div>
+                        ${overall.phase ? `
+                        <div class="workflow-overview-item">
+                            <strong>Phase:</strong> ${overall.phase}
+                        </div>
+                        ` : ''}
+                        <div class="workflow-overview-item">
+                            <strong>💡 AI Insight:</strong> ${critical.workflow_dependencies || overall.next_action || 'Completing current stages will unlock downstream workflow progression.'}
+                        </div>
+                        <div class="workflow-overview-item">
+                            <strong>⚠️ Priority:</strong> ${critical.immediate_priority || overall.next_action || 'No immediate priority identified'}
+                        </div>
+                        <div class="workflow-overview-footer">
+                            Last updated ${generatedAt} by Dr. Briz
+                        </div>
+                    </div>
+                    
+                    <!-- Action Plan Section -->
+                    ${recommendations.length > 0 ? `
+                    <div class="action-plan-section">
+                        <div class="action-plan-title">Action Plan</div>
+                        ${recommendations.map((rec, idx) => {
+                            // Extract context from matching stage
+                            const stageContext = extractStageContext(rec, data.stages || []);
+                            return `
+                                <div class="action-plan-item">
+                                    <div class="action-plan-number">${idx + 1}</div>
+                                    <div class="action-plan-text">
+                                        <div class="action-plan-main">${rec}</div>
+                                        ${stageContext ? `<div class="action-plan-context">*${stageContext}*</div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ` : '<div class="action-plan-section"><div class="action-plan-title">Action Plan</div><div class="workflow-overview-item">No actions available</div></div>'}
+                </div>
+            `;
+            
+            // Communication & Activity Section (below Recommended Actions)
+            html += `
+                <div class="communication-section">
+                    <h3 class="section-heading">Communication & Activity</h3>
+                    <div class="communication-grid">
+                        <!-- Communication Card -->
+                        <div class="communication-card">
+                            <div class="communication-header">
+                                <div class="communication-header-left">
+                                    <span class="communication-icon">📧</span>
+                                    <h4>Recent Emails</h4>
+                                </div>
+                                <button onclick="openSendEmailModal()" class="communication-action-btn" title="Send Email">
+                                    <span>✉️</span>
+                                    <span>Send Email</span>
+                                </button>
+                            </div>
+                            <div id="emailLogsContainer" class="communication-content">
+                                <div class="loading-indicator">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes/Comments Card -->
+                        <div class="communication-card">
+                            <div class="communication-header">
+                                <div class="communication-header-left">
+                                    <span class="communication-icon">💬</span>
+                                    <h4>Recent Notes</h4>
+                                </div>
+                                <button onclick="openAddNoteModal()" class="communication-action-btn" title="Add Note">
+                                    <span>➕</span>
+                                    <span>Add Note</span>
+                                </button>
+                            </div>
+                            <div id="commentsContainer" class="communication-content">
+                                <div class="loading-indicator">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Schedule Card -->
+                        <div class="communication-card">
+                            <div class="communication-header">
+                                <div class="communication-header-left">
+                                    <span class="communication-icon">📅</span>
+                                    <h4>Upcoming Appointments</h4>
+                                </div>
+                                <button onclick="openScheduleModal()" class="communication-action-btn" title="Schedule Appointment">
+                                    <span>📅</span>
+                                    <span>Schedule</span>
+                                </button>
+                            </div>
+                            <div id="scheduleContainer" class="communication-content">
+                                <div class="loading-indicator">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Footer Metadata
+            html += `
+                <div class="summary-footer-metadata">
+                    Generated by Dr. Briz AI | Last updated: ${generatedAt}
+                </div>
+            `;
+        }
+    }
+    
+    // Workflow Progress Section (New Horizontal Bar Design)
+    html += '<div class="workflow-progress-section">';
+    html += '<div class="workflow-progress-header">';
+    html += '<h3 class="section-heading">Workflow Progress</h3>';
+    html += '</div>';
+    html += '<div class="workflow-items-list">';
+    
+    data.stages.forEach((stage, index) => {
+        const isCompleted = stage.status === 'completed';
+        const isSkipped = stage.status === 'skipped';
+        const isInProgress = stage.status === 'in_progress';
+        
+        // Check if blocked by prerequisites
+        let isBlocked = false;
+        if (!isSkipped && !isCompleted && stage.prerequisites && stage.prerequisites.length > 0) {
+            isBlocked = stage.prerequisites.some(prereq => {
+                const prereqStatus = allStagesStatus[prereq];
+                return !prereqStatus || prereqStatus.status !== 'completed';
+            });
+        }
+        
+        // Determine status and icon
+        let statusText, statusClass, statusIcon;
+        if (isCompleted) {
+            statusText = 'COMPLETED';
+            statusClass = 'completed';
+            statusIcon = '✅';
+        } else if (isSkipped) {
+            statusText = 'SKIPPED';
+            statusClass = 'skipped';
+            statusIcon = '⏭️';
+        } else if (isInProgress) {
+            statusText = 'IN PROGRESS';
+            statusClass = 'in-progress';
+            statusIcon = '🔄';
+        } else if (isBlocked) {
+            statusText = 'BLOCKED';
+            statusClass = 'blocked';
+            statusIcon = '⚠️';
+        } else {
+            statusText = 'PENDING';
+            statusClass = 'pending';
+            statusIcon = '⏳';
+        }
+        
+        // Format date
+        const dateDisplay = stage.completed_on 
+            ? new Date(stage.completed_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : (stage.scheduled_on ? new Date(stage.scheduled_on).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null);
+        
+        // Icon based on stage type
+        let stageIcon = '📋';
+        if (stage.title.toLowerCase().includes('quiz')) stageIcon = '📝';
+        else if (stage.title.toLowerCase().includes('report') || stage.title.toLowerCase().includes('level')) stageIcon = '📄';
+        else if (stage.title.toLowerCase().includes('consult') || stage.title.toLowerCase().includes('schedule')) stageIcon = '📅';
+        else if (stage.title.toLowerCase().includes('delivery') || stage.title.toLowerCase().includes('order')) stageIcon = '📦';
+        else if (stage.title.toLowerCase().includes('test')) stageIcon = '🧪';
+        else if (stage.title.toLowerCase().includes('scan')) stageIcon = '🔬';
+        else if (stage.title.toLowerCase().includes('consent')) stageIcon = '✍️';
+        
+        // Get prerequisite status for display
+        const prerequisitesHtml = stage.prerequisites && stage.prerequisites.length > 0 ? stage.prerequisites.map(prereq => {
+            const prereqStatus = allStagesStatus[prereq];
+            const prereqClass = prereqStatus && prereqStatus.status === 'completed' ? 'completed' : '';
+            const prereqTitle = prereqStatus && prereqStatus.title ? prereqStatus.title : prereq;
+            return `<span class="prerequisite-badge ${prereqClass}">${prereqTitle}</span>`;
+        }).join('') : '';
+        
+        html += `
+            <div class="workflow-item ${statusClass}" onclick="toggleStageDetails(${index})" tabindex="0" role="button" aria-expanded="false" id="stageCard${index}">
+                <div class="workflow-item-icon">${statusIcon}</div>
+                <div class="workflow-item-content">
+                    <div class="workflow-item-title">${stage.title}</div>
+                    ${dateDisplay ? `<div class="workflow-item-date">${dateDisplay}</div>` : ''}
+                </div>
+                <div class="workflow-item-actions">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="stage-details" id="stageDetails${index}" style="display: none;">
+                    <div class="stage-description">${stage.description || 'No description available'}</div>
+                    ${isSkipped && stage.skip_reason ? `
+                        <div class="detail-item" style="background: #f1f5f9; padding: 12px; border-radius: 6px; margin-top: 12px; border-left: 3px solid #94a3b8;">
+                            <div class="detail-label" style="color: #64748b; font-weight: 600; margin-bottom: 4px;">⏭️ Skip Reason</div>
+                            <div class="detail-value" style="color: #475569;">${stage.skip_reason}</div>
+                            ${stage.skipped_by ? `<div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Skipped because: <strong>${stage.skipped_by}</strong> is already completed</div>` : ''}
+                        </div>
+                    ` : ''}
+                    ${stage.optional ? `
+                        <div class="detail-item" style="margin-top: 12px;">
+                            <div class="detail-label">Optional Stage</div>
+                            <div class="detail-value" style="color: #64748b; font-size: 13px;">This stage can be skipped if conditions are met</div>
+                        </div>
+                    ` : ''}
+                    <div class="detail-item" style="margin-top: 12px;">
+                        <div class="detail-label">Completed On</div>
+                        <div class="detail-value">${dateDisplay || 'Not completed'}</div>
+                    </div>
+                    <div class="detail-item" style="margin-top: 12px;">
+                        <div class="detail-label">Guidance</div>
+                        <div class="detail-value guidance-text">${stage.guidance || 'No guidance available'}</div>
+                    </div>
+                    ${prerequisitesHtml ? `
+                        <div class="detail-item" style="margin-top: 12px;">
+                            <div class="detail-label">Prerequisites</div>
+                            <div class="prerequisites-list">${prerequisitesHtml}</div>
+                        </div>
+                    ` : ''}
+                    ${stage.ai_comment ? `
+                        <div class="detail-item" style="margin-top: 12px;">
+                            <div class="detail-label">AI Comment</div>
+                            <div class="detail-value ai-comment-text">${stage.ai_comment}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    
+    container.innerHTML = html;
+    
+    // Load communication data after rendering main results
+    if (currentPatientId) {
+        loadCommunicationData(currentPatientId);
+    }
+}
+
+// Load all communication data (emails, comments, schedule)
+async function loadCommunicationData(patientId) {
+    if (!patientId) return;
+    
+    // Load all three data sources in parallel
+    Promise.all([
+        fetchEmailLogs(patientId),
+        fetchComments(patientId),
+        fetchSchedule(patientId)
+    ]).catch(err => {
+        console.error('Error loading communication data:', err);
+    });
+}
+
+// Fetch and render email logs
+async function fetchEmailLogs(patientId) {
+    const container = document.getElementById('emailLogsContainer');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`/vizbriz/api/patient/${patientId}/email-logs`, {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load email logs');
+        }
+        
+        const emailLogs = data.email_logs || [];
+        
+        if (emailLogs.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📧</div>
+                    <div class="empty-state-text">No email history</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = emailLogs.map(email => {
+            const date = email.sent_at ? new Date(email.sent_at).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : 'N/A';
+            
+            const statusClass = email.status === 'sent' ? 'sent' : 
+                               email.status === 'failed' ? 'failed' : 'unknown';
+            
+            return `
+                <div class="communication-item">
+                    <div class="communication-item-header">
+                        <div class="communication-item-title">${escapeHtml(email.subject)}</div>
+                        <div class="communication-item-date">${date}</div>
+                    </div>
+                    <div class="communication-item-detail">
+                        <strong>To:</strong> ${escapeHtml(email.recipient_email)}
+                    </div>
+                    <div class="communication-item-detail">
+                        <strong>From:</strong> ${escapeHtml(email.sender_email)}
+                    </div>
+                    <span class="status-badge-email ${statusClass}">${(email.status || 'unknown').toUpperCase()}</span>
+                    ${email.message_preview ? `
+                        <div class="communication-item-preview">${escapeHtml(email.message_preview)}</div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error fetching email logs:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-text">Error loading emails</div>
+            </div>
+        `;
+    }
+}
+
+// Fetch and render comments
+async function fetchComments(patientId) {
+    const container = document.getElementById('commentsContainer');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`/api/patient/${patientId}/comments`, {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load comments');
+        }
+        
+        const comments = (data.comments || []).slice(0, 5); // Limit to 5 most recent
+        
+        if (comments.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-text">No notes yet</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = comments.map(comment => {
+            const date = comment.created_date ? new Date(comment.created_date).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : 'N/A';
+            
+            const urgentClass = comment.is_urgent ? 'comment-urgent' : '';
+            const typeBadge = comment.comment_type && comment.comment_type !== 'general' 
+                ? `<span class="comment-type-badge">${escapeHtml(comment.comment_type)}</span>` 
+                : '';
+            
+            return `
+                <div class="communication-item ${urgentClass}">
+                    <div class="communication-item-header">
+                        <div class="communication-item-title">
+                            ${escapeHtml(comment.content.substring(0, 60))}${comment.content.length > 60 ? '...' : ''}
+                            ${typeBadge}
+                        </div>
+                        <div class="communication-item-date">${date}</div>
+                    </div>
+                    <div class="communication-item-detail">
+                        <strong>By:</strong> ${escapeHtml(comment.dentist || 'Unknown')}
+                    </div>
+                    ${comment.numeric_value ? `
+                        <div class="communication-item-detail">
+                            <strong>Value:</strong> ${comment.numeric_value} ${comment.numeric_unit || ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-text">Error loading notes</div>
+            </div>
+        `;
+    }
+}
+
+// Fetch and render schedule
+async function fetchSchedule(patientId) {
+    const container = document.getElementById('scheduleContainer');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`/api/patient/${patientId}/consult-schedule`, {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load schedule');
+        }
+        
+        const schedules = (data.items || []).slice(0, 5); // Limit to 5 most recent
+        
+        if (schedules.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    <div class="empty-state-text">No appointments scheduled</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = schedules.map(schedule => {
+            const scheduledDate = schedule.scheduled_datetime 
+                ? new Date(schedule.scheduled_datetime).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) 
+                : 'Not scheduled';
+            
+            const statusClass = schedule.status === 'scheduled' ? 'scheduled' :
+                               schedule.status === 'completed' ? 'completed' :
+                               schedule.status === 'cancelled' ? 'cancelled' : 'scheduled';
+            
+            const consultType = (schedule.consult_type || 'consultation').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            return `
+                <div class="communication-item">
+                    <div class="communication-item-header">
+                        <div class="communication-item-title">${escapeHtml(consultType)}</div>
+                        <div class="communication-item-date">${scheduledDate}</div>
+                    </div>
+                    <div class="communication-item-detail">
+                        <strong>Status:</strong> 
+                        <span class="schedule-status-badge ${statusClass}">${(schedule.status || 'scheduled').toUpperCase()}</span>
+                    </div>
+                    ${schedule.doctor_name ? `
+                        <div class="communication-item-detail">
+                            <strong>Doctor:</strong> ${escapeHtml(schedule.doctor_name)}
+                        </div>
+                    ` : ''}
+                    ${schedule.completed_datetime ? `
+                        <div class="communication-item-detail">
+                            <strong>Completed:</strong> ${new Date(schedule.completed_datetime).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </div>
+                    ` : ''}
+                    ${schedule.notes ? `
+                        <div class="communication-item-preview">${escapeHtml(schedule.notes.substring(0, 100))}${schedule.notes.length > 100 ? '...' : ''}</div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error fetching schedule:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-text">Error loading schedule</div>
+            </div>
+        `;
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+
+// Parse AI summary into structured sections
+function parseSummarySections(summaryText) {
+    if (!summaryText) return {};
+    
+    const sections = {};
+    const lines = summaryText.split('\n').map(l => l.trim()).filter(l => l);
+    
+    let currentSection = null;
+    let currentContent = [];
+    
+    for (let line of lines) {
+        // Detect section headers
+        if (line.match(/^Status:/i)) {
+            sections.status = line.replace(/^Status:\s*/i, '');
+        } else if (line.match(/^Progress:/i)) {
+            sections.progress = line.replace(/^Progress:\s*/i, '');
+        } else if (line.match(/^KEY OBSERVATIONS?:/i)) {
+            if (currentSection) sections[currentSection] = currentContent.join('\n');
+            currentSection = 'keyObservations';
+            currentContent = [];
+        } else if (line.match(/^BLOCKED COMPONENTS?:/i)) {
+            if (currentSection) sections[currentSection] = currentContent.join('\n');
+            currentSection = 'blockedComponents';
+            currentContent = [];
+        } else if (line.match(/^NEXT STEPS?:/i)) {
+            if (currentSection) sections[currentSection] = currentContent.join('\n');
+            currentSection = 'nextSteps';
+            currentContent = [];
+        } else if (line.match(/^RECOMMENDATION?:/i)) {
+            if (currentSection) sections[currentSection] = currentContent.join('\n');
+            currentSection = 'recommendation';
+            currentContent = [];
+        } else if (currentSection && line) {
+            currentContent.push(line);
+        }
+    }
+    
+    // Save last section
+    if (currentSection) {
+        sections[currentSection] = currentContent.join('\n');
+    }
+    
+    // If no sections found, treat entire text as recommendation
+    if (Object.keys(sections).length === 0 && summaryText) {
+        sections.recommendation = summaryText;
+    }
+    
+    // Convert bullet points to HTML lists
+    Object.keys(sections).forEach(key => {
+        if (key !== 'status' && key !== 'progress' && sections[key]) {
+            const content = sections[key];
+            const lines = content.split('\n').filter(l => l.trim());
+            const hasBullets = lines.some(l => l.match(/^[-•*]\s/));
+            
+            if (hasBullets) {
+                sections[key] = '<ul class="summary-list">' + 
+                    lines.map(line => {
+                        const cleanLine = line.replace(/^[-•*]\s+/, '');
+                        return `<li>${cleanLine}</li>`;
+                    }).join('') + 
+                    '</ul>';
+            } else {
+                sections[key] = '<p>' + content.replace(/\n/g, '</p><p>') + '</p>';
+            }
+        }
+    });
+    
+    return sections;
+}
+
+function toggleStageDetails(index) {
+    const card = document.getElementById(`stageCard${index}`);
+    if (!card) return;
+    
+    const details = document.getElementById(`stageDetails${index}`);
+    if (!details) return;
+    
+    const isExpanded = card.classList.contains('expanded');
+    
+    if (isExpanded) {
+        card.classList.remove('expanded');
+        card.setAttribute('aria-expanded', 'false');
+        details.style.display = 'none';
+    } else {
+        card.classList.add('expanded');
+        card.setAttribute('aria-expanded', 'true');
+        details.style.display = 'block';
+    }
+}
+
+function updateAIConfidence(percentage) {
+    document.getElementById('confidenceFill').style.width = percentage + '%';
+    document.getElementById('confidenceText').textContent = percentage + '%';
+}
+
+
+function showError(message) {
+    const errorContainer = document.getElementById('errorContainer');
+    errorContainer.innerHTML = `<div class="error">${message}</div>`;
+    setTimeout(() => {
+        errorContainer.innerHTML = '';
+    }, 5000);
+}
+
+function clearResults() {
+    document.getElementById('resultsContainer').innerHTML = '';
+    document.getElementById('patientHeaderContainer').innerHTML = '';
+    document.getElementById('errorContainer').innerHTML = '';
+    document.getElementById('footerActions').style.display = 'none';
+}
+
+// Load on page load if patient_id is provided in URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('patient_id') || '{{ patient_id or "" }}';
+    if (patientId) {
+        loadStageSummary();
+    }
+});
+
+// Refresh AI Summary
+async function refreshAISummary(patientId) {
+    if (!confirm('Refresh AI summary? This will regenerate using the latest patient data.')) {
+        return;
+    }
+    
+    // Invalidate cache and reload
+    try {
+        await fetch(`/vizbriz/api/stage_summary_cache/invalidate/${patientId}`, {
+            method: 'POST'
+        });
+        
+        // Reload with force refresh
+        const url = `/vizbriz/api/stage_summary_manifest/${patientId}?use_evaluation=true&use_ai_guidance=true&force_refresh=true`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (response.ok) {
+            renderResults(data);
+            alert('AI summary refreshed successfully!');
+        } else {
+            throw new Error(data.error || 'Failed to refresh');
+        }
+    } catch (error) {
+        alert('Error refreshing summary: ' + error.message);
+    }
+}
+
+// Toggle section collapse on mobile
+function toggleSection(header) {
+    if (window.innerWidth <= 768) {
+        const card = header.closest('.summary-section-card');
+        card.classList.toggle('collapsed');
+    }
+}
+
+// Copy AI Summary to Clipboard
+function copyAISummary(patientId) {
+    const summaryCard = document.querySelector('.overall-summary-card');
+    if (!summaryCard) {
+        alert('No summary available to copy');
+        return;
+    }
+    
+    // Extract text content from summary
+    const textContent = summaryCard.innerText || summaryCard.textContent;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(textContent).then(() => {
+        alert('Summary copied to clipboard!');
+    }).catch(err => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = textContent;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert('Summary copied to clipboard!');
+        } catch (e) {
+            alert('Failed to copy. Please select and copy manually.');
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.classList.contains('stage-card')) {
+        e.target.click();
+    }
+    // Close modals on Escape
+    if (e.key === 'Escape') {
+        closeAddNoteModal();
+        closeScheduleModal();
+        closeSendEmailModal();
+    }
+});
+
+// ===== MODAL FUNCTIONS =====
+
+// Add Note Modal
+function openAddNoteModal() {
+    const modal = document.getElementById('addNoteModal');
+    if (modal) {
+        // Reset form
+        document.getElementById('note-type-value').value = '';
+        document.getElementById('note-type-text').textContent = 'Select note type...';
+        document.getElementById('note-content-input').value = '';
+        document.getElementById('note-urgent').checked = false;
+        document.getElementById('note-internal').checked = false;
+        document.getElementById('note-type-dropdown').style.display = 'none';
+        document.getElementById('titration-fields-container').style.display = 'none';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Close on overlay click
+        modal.onclick = function(e) {
+            if (e.target === modal) closeAddNoteModal();
+        };
+    }
+}
+
+function closeAddNoteModal() {
+    const modal = document.getElementById('addNoteModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function toggleNoteTypeDropdown() {
+    const dropdown = document.getElementById('note-type-dropdown');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectNoteType(value) {
+    const textEl = document.getElementById('note-type-text');
+    const valueEl = document.getElementById('note-type-value');
+    const dropdown = document.getElementById('note-type-dropdown');
+    const titrationFields = document.getElementById('titration-fields-container');
+    
+    if (textEl && valueEl) {
+        const displayMap = {
+            'consultation': 'Consultation',
+            'followup': 'Follow-up',
+            'titration': 'Titration'
+        };
+        textEl.textContent = displayMap[value] || value;
+        valueEl.value = value;
+    }
+    if (dropdown) dropdown.style.display = 'none';
+    if (titrationFields) {
+        titrationFields.style.display = value === 'titration' ? 'block' : 'none';
+    }
+}
+
+function toggleMetricTypeDropdown() {
+    const dropdown = document.getElementById('metric-type-dropdown');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function selectMetricType(value) {
+    const textEl = document.getElementById('metric-type-text');
+    const valueEl = document.getElementById('metric-type-value');
+    const dropdown = document.getElementById('metric-type-dropdown');
+    
+    if (textEl && valueEl) {
+        textEl.textContent = value === 'advancement' ? 'Advancement' : value;
+        valueEl.value = value;
+    }
+    if (dropdown) dropdown.style.display = 'none';
+}
+
+function submitAddNote() {
+    if (!currentPatientId) {
+        alert('Patient ID not found');
+        return;
+    }
+    
+    const noteType = document.getElementById('note-type-value').value;
+    const noteContent = document.getElementById('note-content-input').value;
+    const numericValue = document.getElementById('note-numeric-value')?.value;
+    const metricType = document.getElementById('metric-type-value')?.value;
+    const isUrgent = document.getElementById('note-urgent').checked;
+    const isInternal = document.getElementById('note-internal').checked;
+    
+    if (!noteType) {
+        alert('Please select a note type');
+        return;
+    }
+    if (!noteContent.trim()) {
+        alert('Please enter note content');
+        return;
+    }
+    if (noteType === 'titration') {
+        if (!metricType) {
+            alert('Please select a metric type');
+            return;
+        }
+        if (!numericValue) {
+            alert('Please enter a numeric value');
+            return;
+        }
+    }
+    
+    const commentData = {
+        content: noteContent,
+        comment_type: noteType,
+        numeric_value: numericValue || null,
+        numeric_unit: 'mm',
+        metric: metricType || null,
+        is_urgent: isUrgent,
+        is_internal: isInternal
+    };
+    
+    fetch(`/api/patient/${currentPatientId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(commentData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Note added successfully!');
+            closeAddNoteModal();
+            fetchComments(currentPatientId);
+        } else {
+            alert('Error: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Error adding note: ' + err.message);
+    });
+}
+
+// Schedule Modal
+function openScheduleModal() {
+    const modal = document.getElementById('scheduleModal');
+    if (modal) {
+        // Reset form
+        document.getElementById('schedule-type-val').value = '';
+        document.getElementById('schedule-type-trigger').textContent = 'Select type';
+        document.getElementById('schedule-status-val').value = '';
+        document.getElementById('schedule-status-trigger').textContent = 'Select status';
+        document.getElementById('schedule-doctor').value = '';
+        document.getElementById('schedule-notes').value = '';
+        document.getElementById('schedule-dt-display').value = '';
+        
+        // Reset date picker
+        const today = new Date();
+        document.getElementById('schedule-picker-date').value = today.toISOString().split('T')[0];
+        document.getElementById('schedule-picker-date').removeAttribute('data-datetime');
+        document.getElementById('schedule-picker-hour').value = '09';
+        document.getElementById('schedule-picker-hour-text').textContent = '09';
+        document.getElementById('schedule-picker-minute').value = '00';
+        document.getElementById('schedule-picker-minute-text').textContent = '00';
+        document.getElementById('schedule-picker-ampm').value = 'AM';
+        document.getElementById('schedule-picker-ampm-text').textContent = 'AM';
+        
+        // Load options
+        loadScheduleOptions();
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        window.editingScheduleId = null;
+        
+        // Close on overlay click
+        modal.onclick = function(e) {
+            if (e.target === modal) closeScheduleModal();
+        };
+    }
+}
+
+function closeScheduleModal() {
+    const modal = document.getElementById('scheduleModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        const datePickerModal = document.getElementById('schedule-datetime-picker-modal');
+        if (datePickerModal) datePickerModal.style.display = 'none';
+    }
+}
+
+function loadScheduleOptions() {
+    fetch('/api/consult-schedule/options')
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) return;
+        
+        // Type dropdown
+        const typeOpts = document.getElementById('schedule-type-options');
+        const typeVal = document.getElementById('schedule-type-val');
+        const typeTrig = document.getElementById('schedule-type-trigger');
+        if (typeOpts && typeVal && typeTrig) {
+            typeOpts.innerHTML = data.consult_types.map(v => 
+                `<div class="cs-option" data-val="${v}">${formatConsultType(v)}</div>`
+            ).join('');
+            typeOpts.querySelectorAll('.cs-option').forEach(el => {
+                el.onclick = () => {
+                    typeVal.value = el.getAttribute('data-val');
+                    typeTrig.textContent = el.textContent;
+                    document.getElementById('schedule-type-dd').classList.remove('open');
+                };
+            });
+            typeTrig.onclick = () => {
+                document.getElementById('schedule-type-dd').classList.toggle('open');
+            };
+        }
+        
+        // Status dropdown
+        const statusOpts = document.getElementById('schedule-status-options');
+        const statusVal = document.getElementById('schedule-status-val');
+        const statusTrig = document.getElementById('schedule-status-trigger');
+        if (statusOpts && statusVal && statusTrig) {
+            statusOpts.innerHTML = data.statuses.map(v => 
+                `<div class="cs-option" data-val="${v}">${v}</div>`
+            ).join('');
+            statusOpts.querySelectorAll('.cs-option').forEach(el => {
+                el.onclick = () => {
+                    statusVal.value = el.getAttribute('data-val');
+                    statusTrig.textContent = el.textContent;
+                    document.getElementById('schedule-status-dd').classList.remove('open');
+                };
+            });
+            statusTrig.onclick = () => {
+                document.getElementById('schedule-status-dd').classList.toggle('open');
+            };
+        }
+    });
+}
+
+function formatConsultType(type) {
+    const displayNames = {
+        'sleep_doctor': 'Sleep Doctor',
+        'dental_sleep_doctor': 'Dental Sleep Doctor',
+        'follow_up_meeting': 'Follow-up Meeting',
+        'followup_sleep_doctor': 'Followup Sleep Doctor',
+        'oral_appliance_delivery': 'Oral Appliance Delivery',
+        'sleep_test': 'Sleep Test'
+    };
+    return displayNames[type] || type.replaceAll('_', ' ');
+}
+
+function openScheduleDateTimePicker() {
+    const modal = document.getElementById('schedule-datetime-picker-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeScheduleDateTimePicker() {
+    const modal = document.getElementById('schedule-datetime-picker-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function setScheduleDateTime() {
+    const dateEl = document.getElementById('schedule-picker-date');
+    const hourEl = document.getElementById('schedule-picker-hour');
+    const minuteEl = document.getElementById('schedule-picker-minute');
+    const ampmEl = document.getElementById('schedule-picker-ampm');
+    const displayEl = document.getElementById('schedule-dt-display');
+    
+    if (!dateEl || !hourEl || !minuteEl || !ampmEl) return;
+    
+    const date = dateEl.value;
+    let hour = parseInt(hourEl.value);
+    const minute = minuteEl.value;
+    const ampm = ampmEl.value;
+    
+    if (ampm === 'PM' && hour !== 12) hour += 12;
+    if (ampm === 'AM' && hour === 12) hour = 0;
+    
+    const datetime = new Date(date + 'T' + hour.toString().padStart(2, '0') + ':' + minute + ':00');
+    dateEl.setAttribute('data-datetime', datetime.toISOString());
+    
+    const displayDate = datetime.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    const displayTime = (hour % 12 || 12).toString().padStart(2, '0') + ':' + minute + ' ' + ampm;
+    if (displayEl) displayEl.value = displayDate + ', ' + displayTime;
+    
+    closeScheduleDateTimePicker();
+}
+
+function toggleSchedulePickerHour() {
+    const dropdown = document.getElementById('schedule-picker-hour-dropdown');
+    if (dropdown) dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectSchedulePickerHour(val) {
+    document.getElementById('schedule-picker-hour').value = val;
+    document.getElementById('schedule-picker-hour-text').textContent = val;
+    document.getElementById('schedule-picker-hour-dropdown').style.display = 'none';
+}
+
+function toggleSchedulePickerMinute() {
+    const dropdown = document.getElementById('schedule-picker-minute-dropdown');
+    if (dropdown) dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectSchedulePickerMinute(val) {
+    document.getElementById('schedule-picker-minute').value = val;
+    document.getElementById('schedule-picker-minute-text').textContent = val;
+    document.getElementById('schedule-picker-minute-dropdown').style.display = 'none';
+}
+
+function toggleSchedulePickerAmPm() {
+    const dropdown = document.getElementById('schedule-picker-ampm-dropdown');
+    if (dropdown) dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function selectSchedulePickerAmPm(val) {
+    document.getElementById('schedule-picker-ampm').value = val;
+    document.getElementById('schedule-picker-ampm-text').textContent = val;
+    document.getElementById('schedule-picker-ampm-dropdown').style.display = 'none';
+}
+
+function submitSchedule() {
+    if (!currentPatientId) {
+        alert('Patient ID not found');
+        return;
+    }
+    
+    const type = document.getElementById('schedule-type-val').value;
+    const status = document.getElementById('schedule-status-val').value;
+    const doctor = document.getElementById('schedule-doctor').value.trim();
+    const notes = document.getElementById('schedule-notes').value.trim();
+    const dateEl = document.getElementById('schedule-picker-date');
+    const datetime = dateEl.getAttribute('data-datetime');
+    
+    if (!type || !status) {
+        alert('Please select Type and Status');
+        return;
+    }
+    if (!datetime) {
+        alert('Please select a date and time');
+        return;
+    }
+    
+    const payload = {
+        consult_type: type,
+        status: status,
+        doctor_name: doctor,
+        scheduled_datetime: datetime,
+        notes: notes
+    };
+    
+    fetch(`/api/patient/${currentPatientId}/consult-schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            alert('Appointment scheduled successfully!');
+            closeScheduleModal();
+            fetchSchedule(currentPatientId);
+        } else {
+            alert('Error: ' + (res.message || 'Failed to schedule'));
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Error scheduling appointment: ' + err.message);
+    });
+}
+
+// Send Email Modal (simplified - for sending general emails)
+function openSendEmailModal() {
+    const modal = document.getElementById('sendEmailModal');
+    if (modal) {
+        // Auto-populate recipient with patient email
+        const recipientField = document.getElementById('email-recipient');
+        if (recipientField) {
+            recipientField.value = currentPatientEmail || '';
+        }
+        document.getElementById('email-subject').value = '';
+        document.getElementById('email-message').value = '';
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Close on overlay click
+        modal.onclick = function(e) {
+            if (e.target === modal) closeSendEmailModal();
+        };
+    }
+}
+
+function closeSendEmailModal() {
+    const modal = document.getElementById('sendEmailModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function submitSendEmail() {
+    if (!currentPatientId) {
+        alert('Patient ID not found');
+        return;
+    }
+    
+    const recipient = document.getElementById('email-recipient').value.trim();
+    const subject = document.getElementById('email-subject').value.trim();
+    const message = document.getElementById('email-message').value.trim();
+    
+    if (!recipient) {
+        alert('Please enter recipient email');
+        return;
+    }
+    if (!subject) {
+        alert('Please enter email subject');
+        return;
+    }
+    if (!message) {
+        alert('Please enter email message');
+        return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipient)) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#sendEmailModal button[onclick="submitSendEmail()"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    
+    // Send email via API
+    fetch(`/vizbriz/api/patient/${currentPatientId}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            recipient_email: recipient,
+            subject: subject,
+            message: message
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Email sent successfully!');
+            closeSendEmailModal();
+            // Refresh email logs
+            if (typeof fetchEmailLogs === 'function') {
+                fetchEmailLogs(currentPatientId);
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Failed to send email'));
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Error sending email: ' + err.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    });
+}
+</script>
+
+<!-- Add Note Modal -->
+<div id="addNoteModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 10000; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; max-width: 600px; width: 90vw; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #7c3aed; font-size: 18px; font-weight: 700;">Add New Note</h3>
+            <button onclick="closeAddNoteModal()" style="background: none; border: none; color: #6b7280; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111827;">Note Type *</label>
+            <div style="position: relative;">
+                <button type="button" onclick="toggleNoteTypeDropdown()" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 14px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: #111827;">
+                    <span id="note-type-text" style="color: #111827;">Select note type...</span>
+                    <span>▼</span>
+                </button>
+                <div id="note-type-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; z-index: 10001;">
+                    <div onclick="selectNoteType('consultation')" style="padding: 12px; cursor: pointer; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">Consultation</div>
+                    <div onclick="selectNoteType('followup')" style="padding: 12px; cursor: pointer; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">Follow-up</div>
+                    <div onclick="selectNoteType('titration')" style="padding: 12px; cursor: pointer;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">Titration</div>
+                </div>
+                <input type="hidden" id="note-type-value">
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111827;">Note *</label>
+            <textarea id="note-content-input" placeholder="Enter your note here..." style="width: 100%; min-height: 100px; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical; color: #111827;"></textarea>
+        </div>
+        <div id="titration-fields-container" style="display: none; margin-bottom: 20px;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111827;">Metric Type *</label>
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleMetricTypeDropdown()" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; background: white; font-size: 14px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: #111827;">
+                        <span id="metric-type-text" style="color: #111827;">Select metric type...</span>
+                        <span>▼</span>
+                    </button>
+                    <div id="metric-type-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; z-index: 10001;">
+                        <div onclick="selectMetricType('advancement')" style="padding: 12px; cursor: pointer;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">Advancement</div>
+                    </div>
+                    <input type="hidden" id="metric-type-value">
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #111827;">Numeric Value *</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="note-numeric-value" placeholder="e.g., 2.5" step="0.1" min="0" max="20" style="flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; color: #111827;">
+                    <span style="color: #666; font-size: 14px;">mm</span>
+                </div>
+            </div>
+        </div>
+        <div style="margin-bottom: 24px;">
+            <div style="display: flex; gap: 20px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="note-urgent" style="margin: 0;">
+                    <span style="font-size: 14px; color: #374151;">Urgent</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="note-internal" style="margin: 0;">
+                    <span style="font-size: 14px; color: #374151;">Internal Note</span>
+                </label>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" onclick="closeAddNoteModal()" style="background: #666; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-size: 14px; cursor: pointer;">Cancel</button>
+            <button type="button" onclick="submitAddNote()" style="background: #7c3aed; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-size: 14px; cursor: pointer;">Add Note</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div id="scheduleModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 10000; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; max-width: 520px; width: 90vw; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #111827; font-size: 18px; font-weight: 700;">Schedule Consultation</h3>
+            <button onclick="closeScheduleModal()" style="background: none; border: none; color: #6b7280; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <style>
+                .cs { position: relative; }
+                .cs-trigger { padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; background: #fff; font-size: 14px; color: #111827 !important; }
+                .cs-options { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; margin-top: 4px; max-height: 220px; overflow-y: auto; display: none; z-index: 10001; }
+                .cs-option { padding: 8px; cursor: pointer; }
+                .cs-option:hover { background: #f3f4f6; }
+                .cs.open .cs-options { display: block; }
+            </style>
+            <div>
+                <label style="font-size: 12px; color: #111827; display: block; margin-bottom: 4px; font-weight: 600;">Type</label>
+                <div id="schedule-type-dd" class="cs">
+                    <div class="cs-trigger" id="schedule-type-trigger">Select type</div>
+                    <div class="cs-options" id="schedule-type-options"></div>
+                </div>
+                <input type="hidden" id="schedule-type-val">
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #111827; display: block; margin-bottom: 4px; font-weight: 600;">Status</label>
+                <div id="schedule-status-dd" class="cs">
+                    <div class="cs-trigger" id="schedule-status-trigger">Select status</div>
+                    <div class="cs-options" id="schedule-status-options"></div>
+                </div>
+                <input type="hidden" id="schedule-status-val">
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #111827; display: block; margin-bottom: 4px; font-weight: 600;">Doctor</label>
+                <input id="schedule-doctor" type="text" placeholder="Doctor" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; color: #111827;">
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #111827; display: block; margin-bottom: 4px; font-weight: 600;">Date/Time</label>
+                <div style="display: flex; gap: 8px;">
+                    <input id="schedule-dt-display" type="text" readonly placeholder="Click to select" style="flex: 1; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9f9f9; cursor: pointer; font-size: 14px; color: #111827;" onclick="openScheduleDateTimePicker()">
+                    <button type="button" onclick="openScheduleDateTimePicker()" style="padding: 8px 16px; background: #1976d2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">Select</button>
+                </div>
+            </div>
+            <div style="grid-column: 1 / -1;">
+                <label style="font-size: 12px; color: #111827; display: block; margin-bottom: 4px; font-weight: 600;">Notes (optional)</label>
+                <textarea id="schedule-notes" rows="2" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; color: #111827;"></textarea>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+            <button onclick="closeScheduleModal()" style="background: #9ca3af; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px;">Cancel</button>
+            <button onclick="submitSchedule()" style="background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Date/Time Picker Modal -->
+<div id="schedule-datetime-picker-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 10001; justify-content: center; align-items: center;">
+    <div style="background: white; width: 440px; max-width: 90vw; border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);">
+        <h4 style="margin: 0 0 20px 0; color: #1976d2; font-size: 18px; font-weight: 600;">Select Date and Time</h4>
+        <div style="margin-bottom: 20px;">
+            <label style="font-size: 13px; color: #111827; margin-bottom: 6px; display: block; font-weight: 600;">Date:</label>
+            <input id="schedule-picker-date" type="date" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; color: #111827;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="font-size: 13px; color: #111827; margin-bottom: 6px; display: block; font-weight: 600;">Time:</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="font-size: 11px; color: #111827; margin-bottom: 4px; display: block; font-weight: 600;">Hour</label>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleSchedulePickerHour()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 14px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: #111827;">
+                            <span id="schedule-picker-hour-text" style="color: #111827;">09</span>
+                            <span style="font-size: 10px;">▼</span>
+                        </button>
+                        <div id="schedule-picker-hour-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; z-index: 10002;">
+                            <div onclick="selectSchedulePickerHour('01')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">01</div>
+                            <div onclick="selectSchedulePickerHour('02')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">02</div>
+                            <div onclick="selectSchedulePickerHour('03')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">03</div>
+                            <div onclick="selectSchedulePickerHour('04')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">04</div>
+                            <div onclick="selectSchedulePickerHour('05')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">05</div>
+                            <div onclick="selectSchedulePickerHour('06')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">06</div>
+                            <div onclick="selectSchedulePickerHour('07')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">07</div>
+                            <div onclick="selectSchedulePickerHour('08')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">08</div>
+                            <div onclick="selectSchedulePickerHour('09')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">09</div>
+                            <div onclick="selectSchedulePickerHour('10')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">10</div>
+                            <div onclick="selectSchedulePickerHour('11')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">11</div>
+                            <div onclick="selectSchedulePickerHour('12')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">12</div>
+                        </div>
+                        <input type="hidden" id="schedule-picker-hour" value="09">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: #111827; margin-bottom: 4px; display: block; font-weight: 600;">Minute</label>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleSchedulePickerMinute()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 14px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: #111827;">
+                            <span id="schedule-picker-minute-text" style="color: #111827;">00</span>
+                            <span style="font-size: 10px;">▼</span>
+                        </button>
+                        <div id="schedule-picker-minute-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; z-index: 10002;">
+                            <div onclick="selectSchedulePickerMinute('00')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">00</div>
+                            <div onclick="selectSchedulePickerMinute('15')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">15</div>
+                            <div onclick="selectSchedulePickerMinute('30')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">30</div>
+                            <div onclick="selectSchedulePickerMinute('45')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">45</div>
+                        </div>
+                        <input type="hidden" id="schedule-picker-minute" value="00">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: #111827; margin-bottom: 4px; display: block; font-weight: 600;">AM/PM</label>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleSchedulePickerAmPm()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 14px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: #111827;">
+                            <span id="schedule-picker-ampm-text" style="color: #111827;">AM</span>
+                            <span style="font-size: 10px;">▼</span>
+                        </button>
+                        <div id="schedule-picker-ampm-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; z-index: 10002;">
+                            <div onclick="selectSchedulePickerAmPm('AM')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">AM</div>
+                            <div onclick="selectSchedulePickerAmPm('PM')" style="padding: 8px; cursor: pointer; color: #333; font-size: 14px;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='white'">PM</div>
+                        </div>
+                        <input type="hidden" id="schedule-picker-ampm" value="AM">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" onclick="closeScheduleDateTimePicker()" style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; color: #666;">Cancel</button>
+            <button type="button" onclick="setScheduleDateTime()" style="padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Send Email Modal -->
+<div id="sendEmailModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 10000; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; border-radius: 12px; max-width: 500px; width: 90vw; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 700;">Send Email</h3>
+            <button onclick="closeSendEmailModal()" style="background: none; border: none; color: #6b7280; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #111827; font-weight: 600; font-size: 14px;">Recipient Email *</label>
+            <input id="email-recipient" type="email" placeholder="recipient@example.com" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; color: #111827;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #111827; font-weight: 600; font-size: 14px;">Subject *</label>
+            <input id="email-subject" type="text" placeholder="Email subject" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; color: #111827;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #111827; font-weight: 600; font-size: 14px;">Message *</label>
+            <textarea id="email-message" placeholder="Enter your message here..." style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; min-height: 120px; resize: vertical; box-sizing: border-box; color: #111827;"></textarea>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button onclick="closeSendEmailModal()" style="background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;">Cancel</button>
+            <button onclick="submitSendEmail()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">Send Email</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
