@@ -42,6 +42,16 @@ Documentation/
 annotation_dataset/
 flask_app/resources/
 patient_data/
+report repository/
+*.db
+execution_manifest_*.json
+phi_redaction_checkpoint.json
+processing_log.txt
+last_sync_time.json
+FETCH_HEAD
+=5.9.0
+test S3 conection
+test S3 conection.py
 
 # Large / vendored bundles
 lambda/
